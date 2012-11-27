@@ -23,15 +23,24 @@ the Comprehensive R Archive Network
 Acknowledgments
 --------------
 
-We gratefully acknowledge Shan Shan Wu <shanshan.wu@ingclarion.com> for
-the original C++ code used in Latimer et al. 2006.
+We gratefully acknowledge Shan Shan Wu for the original C++ code used
+in Latimer et al. 2006.
 
 Related publications
 --------------------
 
-**Latimer, A. M.; Wu, S. S.; Gelfand, A. E. & Silander, J. A.**
-Building statistical models to analyze species distributions,
-*Ecological Applications*, 2006, 16, 33-50.
+**Latimer, A. M.; Wu, S. S.; Gelfand, A. E. & Silander, J. A.** 2006.
+Building statistical models to analyze species distributions.
+*Ecological Applications.* **16**(1): 33-50.
+
+**Gelfand A. E., Silander J. A., Wu S. S., Latimer A., Lewis P. O.,
+Rebelo A. G. and Holder M.** 2006. Explaining species distribution
+patterns through hierarchical modeling. *Bayesian Analysis.* **1**(1):
+41-92.
+
+**Diez J. M. and Pulliam H. R.** 2007. Hierarchical analysis of
+species distributions and abundance across environmental
+gradients. *Ecology.* **88**(12): 3144-3152.
 
 Contact
 -------
