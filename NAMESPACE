@@ -1,0 +1,12 @@
+useDynLib(hSDM)
+import(coda)
+
+export(hSDM.binomial,
+       hSDM.poisson,
+       hSDM.binomial.iCAR,
+       hSDM.poisson.iCAR,
+       hSDM.hierarchical.binomial,
+       hSDM.hierarchical.poisson,
+       inv.logit,
+       logit)
+
