@@ -55,10 +55,11 @@ hSDM.hierarchical.binomial <- function (presences, trials,
   #========
 
   #= Response
-  Y <- data[,names(data)==presences]
-  T <- data[,names(data)==trials]
+  Y <- presences
+  nobs <- length(Y)
+  T <- trials
   #= Alteration
-  U <- data[,names(data)==alteration]
+  U <- alteration
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
@@ -66,12 +67,11 @@ hSDM.hierarchical.binomial <- function (presences, trials,
   mf.obs <- model.frame(formula=observability,data=data)
   W <- model.matrix(attr(mf.obs,"terms"),data=mf.obs)
   #= Spatial correlation
-  cells <- data[,names(data)==cells]
+  cells <- cells
   ncell <- length(unique(cells))
   n.neighbors <- n.neighbors
   neighbors <- neighbors
   #= Model parameters
-  nobs <- length(Y)
   np <- ncol(X)
   nq <- ncol(W)
   ngibbs <- mcmc+burnin
@@ -82,11 +82,12 @@ hSDM.hierarchical.binomial <- function (presences, trials,
   #========== 
   # Check data
   #==========
-  check.T(T)
-  check.Y(Y,T)
-  check.U(U)
-  check.X(X)
-  check.W(W)
+  check.T.binomial(T,nobs)
+  check.Y.binomial(Y,T)
+  check.U(U,nobs)
+  check.X(X,nobs)
+  check.W(W,nobs)
+  check.cells(cells,nobs)
   check.neighbors(n.neighbors,ncell,neighbors)
 
   #========

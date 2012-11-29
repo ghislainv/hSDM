@@ -32,6 +32,7 @@
     Ghislain Vieilledent <ghislain.vieilledent@cirad.fr>\cr
     Andrew M. Latimer <amlatimer@ucdavis.edu>\cr
     Alan E. Gelfand <alan@stat.duke.edu>\cr
+    Cory Merow <cory.merow@gmail.com>\cr
     Frederic Mortier <frederic.mortier@cirad.fr>\cr
     John A. Silander Jr. <john.silander@uconn.edu>\cr
   }

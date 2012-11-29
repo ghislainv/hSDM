@@ -24,21 +24,21 @@ shape = 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1)}
 
 \arguments{
   
-  \item{presences}{A vector name "y" so that \code{data$y} indicates
-  the number of successes (or presences) for each observation.}
+  \item{presences}{A vector indicating the number of successes (or
+  presences) for each observation.}
 
-  \item{trials}{A vector name "t" so that \code{data$t} indicates the
-  number of trials for each observation. \eqn{t_n} should be superior or
-  equal to \eqn{y_n}, the number of successes for observation
-  \eqn{n}. If \eqn{t_n=0}, then \eqn{y_n=0}.}
+  \item{trials}{A vector indicating the number of trials for each
+  observation. \eqn{t_n} should be superior or equal to \eqn{y_n}, the
+  number of successes for observation \eqn{n}. If \eqn{t_n=0}, then
+  \eqn{y_n=0}.}
 
   \item{suitability}{A one-sided formula of the form '~x1+...+xp' with p
-  terms specifying the explicative covariates for the suitability
+  terms specifying the explicative variables for the suitability
   process of the model.}
 
-  \item{cells}{A vector name "c" so that \code{data$c} indicates the
-  spatial cell identifier (from 1 to total number of cell) for each
-  observation. Several observations can occur in one spatial cell.}
+  \item{cells}{A vector indicating the spatial cell identifier (from 1
+  to total number of cell) for each observation. Several observations
+  can occur in one spatial cell.}
 
   \item{n.neighbors}{A vector of integers that indicates the number of
     neighbors (adjacent cells) of each spatial cell.}
@@ -49,13 +49,12 @@ shape = 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1)}
   cell). Length of the \code{neighbors} vector should be equal to
   sum(data$num).}
   
-  \item{alteration}{A vector name "u" so that \code{data$u} indicates
-    the proportion of area in each spatial cell which is transformed (by
-    anthropogenic activities for example) for each observation. Must be
-    between 0 and 1.}
+  \item{alteration}{A vector indicating the proportion of area in the
+    spatial cell which is transformed (by anthropogenic activities for
+    example) for each observation. Must be between 0 and 1.}
   
   \item{observability}{A one-sided formula of the form '~x1+...+xq' with
-    q terms specifying the explicative covariates for the observability
+    q terms specifying the explicative variables for the observability
     process of the model.}
 
   \item{data}{A data frame containing the model's variables.}
@@ -239,7 +238,7 @@ rho <- rho-mean(rho) # Centering rhos on zero
 # Suitability
 logit.theta.1 <- vector()
 for (n in 1:nobs) {
-  logit.theta.1[n] <- X[n,]%*%beta.target+rho[cell[n]]
+  logit.theta.1[n] <- X[n,]\%*\%beta.target+rho[cell[n]]
 }
 theta.1 <- inv.logit(logit.theta.1)
 y.1 <- rbinom(nobs,1,theta.1)
@@ -248,7 +247,7 @@ y.1 <- rbinom(nobs,1,theta.1)
 u <- rbinom(nobs,1,U)
 
 # Observability
-logit.theta.2 <- W%*%gamma.target
+logit.theta.2 <- W\%*\%gamma.target
 theta.2 <- inv.logit(logit.theta.2)
 y.2 <- rbinom(nobs,trials,theta.2)
 
@@ -256,19 +255,19 @@ y.2 <- rbinom(nobs,trials,theta.2)
 Y <- y.2*(1-u)*y.1
 
 #== Data-set
-Data <- data.frame(Y=as.integer(Y),trials=as.integer(trials),cell,X1,X2,W1,W2,U)
+Data <- data.frame(Y,trials,cell,X1,X2,W1,W2,U)
 str(Data)
 
 #==================================
 #== Statistical modelling with hSDM
 
-model <- hSDM.hierarchical.binomial(presences="Y",
-                                    trials="trials",
+model <- hSDM.hierarchical.binomial(presences=Data$Y,
+                                    trials=Data$trials,
                                     suitability=~X1+X2,
-                                    cells="cell",
-                                    n.neighbors=as.integer(n.neighbors),
+                                    cells=Data$cell,
+                                    n.neighbors=n.neighbors,
                                     neighbors=adj,
-                                    alteration="U",
+                                    alteration=Data$U,
                                     observability=~W1+W2,
                                     data=Data, burnin=500,
                                     mcmc=500, thin=1,

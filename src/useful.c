@@ -1,6 +1,5 @@
 #include <stdlib.h> // For rand() and RAND_MAX
 #include <math.h>
-#include <malloc.h>
 
 
 /*****************************************************************/

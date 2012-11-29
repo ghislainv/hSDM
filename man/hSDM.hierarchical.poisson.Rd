@@ -24,16 +24,16 @@ shape = 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1)}
 
 \arguments{
   
-  \item{counts}{A vector name "y" so that \code{data$y} indicates
-  the count (or abundance) for each observation.}
+  \item{counts}{A vector indicating the count (or abundance) for each
+  observation.}
 
   \item{suitability}{A one-sided formula of the form '~x1+...+xp' with p
-  terms specifying the explicative covariates for the suitability
+  terms specifying the explicative variables for the suitability
   process of the model.}
 
-  \item{cells}{A vector name "c" so that \code{data$c} indicates the
-  spatial cell identifier (from 1 to total number of cell) for each
-  observation. Several observations can occur in one spatial cell.}
+  \item{cells}{A vector indicating the spatial cell identifier (from 1
+  to total number of cell) for each observation. Several observations
+  can occur in one spatial cell.}
 
   \item{n.neighbors}{A vector of integers that indicates the number of
     neighbors (adjacent cells) of each spatial cell.}
@@ -44,16 +44,15 @@ shape = 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1)}
   cell). Length of the \code{neighbors} vector should be equal to
   sum(data$num).}
   
-  \item{alteration}{A vector name "u" so that \code{data$u} indicates
-    the proportion of area in each spatial cell which is transformed (by
-    anthropogenic activities for example) for each observation. Must be
-    between 0 and 1.}
+  \item{alteration}{A vector indicating the proportion of area in the
+    spatial cell which is transformed (by anthropogenic activities for
+    example) for each observation. Must be between 0 and 1.}
   
   \item{observability}{A one-sided formula of the form '~x1+...+xq' with
-    q terms specifying the explicative covariates for the observability
+    q terms specifying the explicative variables for the observability
     process of the model.}
 
-  \item{data}{A data frame containing the model's variables.}
+  \item{data}{A data frame containing the model's explicative variables.}
 
   \item{burnin}{The number of burnin iterations for the sampler.}
     
@@ -233,7 +232,7 @@ rho <- rho-mean(rho) # Centering rhos on zero
 # Suitability
 logit.theta.1 <- vector()
 for (n in 1:nobs) {
-  logit.theta.1[n] <- X[n,]%*%beta.target+rho[cell[n]]
+  logit.theta.1[n] <- X[n,]\%*\%beta.target+rho[cell[n]]
 }
 theta.1 <- inv.logit(logit.theta.1)
 y.1 <- rbinom(nobs,1,theta.1)
@@ -242,7 +241,7 @@ y.1 <- rbinom(nobs,1,theta.1)
 u <- rbinom(nobs,1,U)
 
 # Observability
-log.theta.2 <- W%*%gamma.target
+log.theta.2 <- W\%*\%gamma.target
 theta.2 <- exp(log.theta.2)
 y.2 <- rpois(nobs,theta.2)
 
@@ -250,18 +249,18 @@ y.2 <- rpois(nobs,theta.2)
 Y <- y.2*(1-u)*y.1
 
 #== Data-set
-Data <- data.frame(Y=as.integer(Y),cell,X1,X2,W1,W2,U)
+Data <- data.frame(Y=Y,cell,X1,X2,W1,W2,U)
 str(Data)
 
 #==================================
 #== Statistical modelling with hSDM
 
-model <- hSDM.hierarchical.poisson(counts="Y",
+model <- hSDM.hierarchical.poisson(counts=Data$Y,
                                    suitability=~X1+X2,
-                                   cells="cell",
-                                   n.neighbors=as.integer(n.neighbors),
+                                   cells=Data$cell,
+                                   n.neighbors=n.neighbors,
                                    neighbors=adj,
-                                   alteration="U",
+                                   alteration=Data$U,
                                    observability=~W1+W2,
                                    data=Data, burnin=500,
                                    mcmc=500, thin=1,

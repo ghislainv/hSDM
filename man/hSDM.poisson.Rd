@@ -14,14 +14,15 @@ verbose = 1)}
 
 \arguments{
   
-  \item{counts}{A vector name "y" so that \code{data$y} indicates the
-  count (or abundance) for each observation.}
+  \item{counts}{A vector indicating the count (or abundance) for each
+  observation.}
 
   \item{suitability}{A one-sided formula of the form '~x1+...+xp' with p
   terms specifying the explicative covariates for the suitability
   process of the model.}
   
-  \item{data}{A data frame containing the model's variables.}
+  \item{data}{A data frame containing the model's explicative
+  variables.}
 
   \item{burnin}{The number of burnin iterations for the sampler.}
     
@@ -125,14 +126,14 @@ beta.target <- matrix(c(0.2,0.1,0.1),ncol=1) # fixed effects
 #== Simulating latent variables
 
 # Suitability
-log.theta <- X %*% beta.target
+log.theta <- X \%*\% beta.target
 theta <- exp(log.theta)
 
 #== Simulating response variable
 Y <- rpois(n=nobs,lambda=theta)
 
 #== Data-set
-Data <- data.frame(Y=as.integer(Y),X1,X2)
+Data <- data.frame(Y,X1,X2)
 str(Data)
 par(mfrow=c(2,1))
 plot(Data$X1,log.theta)
@@ -147,7 +148,7 @@ summary(mod.glm)
 beta.hat.glm <- coef(mod.glm)
 
 #== hSDM
-mod.hSDM.poisson <- hSDM.poisson(counts="Y",
+mod.hSDM.poisson <- hSDM.poisson(counts=Data$Y,
                                  suitability=~X1+X2,
                                  data=Data, burnin=1000,
                                  mcmc=1000, thin=1,

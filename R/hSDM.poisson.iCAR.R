@@ -51,17 +51,17 @@ hSDM.poisson.iCAR <- function (counts,
   #========
 
   #= Response
-  Y <- data[,names(data)==counts]
+  Y <- counts
+  nobs <- length(Y)
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
   #= Spatial correlation
-  cells <- data[,names(data)==cells]
+  cells <- cells
   ncell <- length(unique(cells))
   n.neighbors <- n.neighbors
   neighbors <- neighbors
   #= Model parameters
-  nobs <- length(Y)
   np <- ncol(X)
   ngibbs <- mcmc+burnin
   nthin <- thin
@@ -71,8 +71,9 @@ hSDM.poisson.iCAR <- function (counts,
   #========== 
   # Check data
   #==========
-  check.Y(Y,Y)
-  check.X(X)
+  check.Y.poisson(Y)
+  check.X(X,nobs)
+  check.cells(cells,nobs)
   check.neighbors(n.neighbors,ncell,neighbors)
   
   #========

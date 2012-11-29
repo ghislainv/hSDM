@@ -44,12 +44,12 @@ hSDM.poisson <- function (counts,
   #========
 
   #= Response
-  Y <- data[,names(data)==counts]
+  Y <- counts
+  nobs <- length(Y)
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
   #= Model parameters
-  nobs <- nrow(X)
   np <- ncol(X)
   ngibbs <- mcmc+burnin
   nthin <- thin
@@ -59,8 +59,8 @@ hSDM.poisson <- function (counts,
   #========== 
   # Check data
   #==========
-  check.Y(Y,Y)
-  check.X(X)
+  check.Y.poisson(Y)
+  check.X(X,nobs)
   
   #========
   # Initial starting values for M-H

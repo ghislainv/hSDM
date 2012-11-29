@@ -14,19 +14,19 @@ seed = 1234, verbose = 1)}
 
 \arguments{
   
-  \item{presences}{A vector name "y" so that \code{data$y} indicates
-  the number of successes (or presences) for each observation.}
+  \item{presences}{A vector indicating the number of successes (or
+  presences) for each observation.}
 
-  \item{trials}{A vector name "t" so that \code{data$t} indicates the
-  number of trials for each observation. \eqn{t_n} should be superior or
-  equal to \eqn{y_n}, the number of successes for observation
-  \eqn{n}. If \eqn{t_n=0}, then \eqn{y_n=0}.}
+  \item{trials}{A vector indicating the number of trials for each
+  observation. \eqn{t_n} should be superior or equal to \eqn{y_n}, the
+  number of successes for observation \eqn{n}. If \eqn{t_n=0}, then
+  \eqn{y_n=0}.}
 
   \item{suitability}{A one-sided formula of the form '~x1+...+xp' with p
-  terms specifying the explicative covariates for the suitability
-  process of the model.}
+  terms specifying the explicative variables for the suitability process
+  of the model.}
   
-  \item{data}{A data frame containing the model's variables.}
+  \item{data}{A data frame containing the model's explicative variables.}
 
   \item{burnin}{The number of burnin iterations for the sampler.}
     
@@ -120,7 +120,7 @@ set.seed(1234)
 
 # Constants
 nobs <- 1000
-T <- rpois(nobs,5)	# Number of trial associated to each observation
+trials <- rpois(nobs,5)	# Number of trial associated to each observation
 
 # Covariates for "suitability" process
 X1 <- rnorm(n=nobs,0,1)
@@ -133,14 +133,14 @@ beta.target <- matrix(c(0.2,0.1,0.1),ncol=1) # fixed effects
 #== Simulating latent variables
 
 # Suitability
-logit.theta <- X %*% beta.target
+logit.theta <- X \%*\% beta.target
 theta <- inv.logit(logit.theta)
 
 #== Simulating response variable
-Y <- rbinom(n=nobs,size=T,prob=theta)
+Y <- rbinom(n=nobs,size=trials,prob=theta)
 
 #== Data-set
-Data <- data.frame(Y=as.integer(Y),T=as.integer(T),X1,X2)
+Data <- data.frame(Y,trials,X1,X2)
 str(Data)
 par(mfrow=c(2,1))
 plot(Data$X1,logit.theta)
@@ -155,8 +155,8 @@ summary(mod.glm)
 beta.hat.glm <- coef(mod.glm)
 
 #== hSDM
-mod.hSDM.binomial <- hSDM.binomial(presences="Y",
-                                   trials="T",
+mod.hSDM.binomial <- hSDM.binomial(presences=Data$Y,
+                                   trials=Data$trials,
                                    suitability=~X1+X2,
                                    data=Data, burnin=1000,
                                    mcmc=1000, thin=1,

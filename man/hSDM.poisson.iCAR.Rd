@@ -17,16 +17,16 @@ Vrho.start, mubeta = 0, Vbeta = 1e+06, priorVrho = "1/Gamma", shape =
 
 \arguments{
 
-  \item{counts}{A vector name "y" so that \code{data$y} indicates
-  the count (or abundance) for each observation.}
+  \item{counts}{A vector indicating the count (or abundance) for each
+  observation.}
 
   \item{suitability}{A one-sided formula of the form '~x1+...+xp' with p
-  terms specifying the explicative covariates for the suitability
+  terms specifying the explicative variables for the suitability
   process of the model.}
 
-  \item{cells}{A vector name "c" so that \code{data$c} indicates the
-  spatial cell identifier (from 1 to total number of cell) for each
-  observation. Several observations can occur in one spatial cell.}
+  \item{cells}{A vector indicating the spatial cell identifier (from 1
+  to total number of cell) for each observation. Several observations
+  can occur in one spatial cell.}
 
   \item{n.neighbors}{A vector of integers that indicates the number of
     neighbors (adjacent cells) of each spatial cell.}
@@ -37,7 +37,8 @@ Vrho.start, mubeta = 0, Vbeta = 1e+06, priorVrho = "1/Gamma", shape =
   cell). Length of the \code{neighbors} vector should be equal to
   sum(data$num).}
   
-  \item{data}{A data frame containing the model's variables.}
+  \item{data}{A data frame containing the model's explicative
+  variables.}
 
   \item{burnin}{The number of burnin iterations for the sampler.}
     
@@ -186,7 +187,7 @@ rho <- rho-mean(rho) # Centering rhos on zero
 # Suitability
 log.theta <- vector()
 for (n in 1:nobs) {
-  log.theta[n] <- X[n,]%*%beta.target+rho[cell[n]]
+  log.theta[n] <- X[n,]\%*\%beta.target+rho[cell[n]]
 }
 theta <- exp(log.theta)
 
@@ -194,7 +195,7 @@ theta <- exp(log.theta)
 Y <- rpois(nobs,theta)
 
 #== Data-set
-Data <- data.frame(Y=as.integer(Y),cell,X1,X2)
+Data <- data.frame(Y,cell,X1,X2)
 str(Data)
 
 #========================
@@ -211,10 +212,10 @@ summary(mod.glmm)
 beta.hat.glmm <- fixef(mod.glmm)
 
 #== hSDM
-mod.hSDM.poisson.iCAR <- hSDM.poisson.iCAR(counts="Y",
+mod.hSDM.poisson.iCAR <- hSDM.poisson.iCAR(counts=Data$Y,
                                            suitability=~X1+X2,
-                                           cells="cell",
-                                           n.neighbors=as.integer(n.neighbors),
+                                           cells=Data$cell,
+                                           n.neighbors=n.neighbors,
                                            neighbors=adj,
                                            data=Data, burnin=1000,
                                            mcmc=1000, thin=1,

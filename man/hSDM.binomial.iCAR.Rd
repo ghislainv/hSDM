@@ -18,23 +18,23 @@ verbose = 1)}
 
 \arguments{
 
-  \item{presences}{A vector name "y" so that \code{data$y} indicates
-  the number of successes (or presences) for each observation.}
+  \item{presences}{A vector indicating the number of successes (or
+  presences) for each observation.}
 
-  \item{trials}{A vector name "t" so that \code{data$t} indicates the
-  number of trials for each observation. \eqn{t_n} should be superior or
-  equal to \eqn{y_n}, the number of successes for observation
-  \eqn{n}. If \eqn{t_n=0}, then \eqn{y_n=0}.}
+  \item{trials}{A vector indicating the number of trials for each
+  observation. \eqn{t_n} should be superior or equal to \eqn{y_n}, the
+  number of successes for observation \eqn{n}. If \eqn{t_n=0}, then
+  \eqn{y_n=0}.}
 
   \item{suitability}{A one-sided formula of the form '~x1+...+xp' with p
-  terms specifying the explicative covariates for the suitability
-  process of the model.}
+  terms specifying the explicative variables for the suitability process
+  of the model.}
 
-  \item{cells}{A vector name "c" so that \code{data$c} indicates the
-  spatial cell identifier (from 1 to total number of cell) for each
-  observation. Several observations can occur in one spatial cell.}
+  \item{cells}{A vector indicating the spatial cell identifier (from 1
+  to total number of cell) for each observation. Several observations
+  can occur in one spatial cell.}
 
-  \item{n.neighbors}{A vector of integers that indicates the number of
+  \item{n.neighbors}{A vector of integers indicating the number of
     neighbors (adjacent cells) of each spatial cell.}
   
   \item{neighbors}{A vector of integers indicating the neighbors
@@ -43,7 +43,7 @@ verbose = 1)}
   cell). Length of the \code{neighbors} vector should be equal to
   sum(data$num).}
   
-  \item{data}{A data frame containing the model's variables.}
+  \item{data}{A data frame containing the model's explicative variables.}
 
   \item{burnin}{The number of burnin iterations for the sampler.}
     
@@ -194,7 +194,7 @@ rho <- rho-mean(rho) # Centering rhos on zero
 # Suitability
 logit.theta <- vector()
 for (n in 1:nobs) {
-  logit.theta[n] <- X[n,]%*%beta.target+rho[cell[n]]
+  logit.theta[n] <- X[n,]\%*\%beta.target+rho[cell[n]]
 }
 theta <- inv.logit(logit.theta)
 
@@ -202,7 +202,7 @@ theta <- inv.logit(logit.theta)
 Y <- rbinom(nobs,trials,theta)
 
 #== Data-set
-Data <- data.frame(Y=as.integer(Y),T=as.integer(trials),cell,X1,X2)
+Data <- data.frame(Y,trials,cell,X1,X2)
 str(Data)
 
 #==================================
@@ -219,11 +219,11 @@ summary(mod.glmm)
 beta.hat.glmm <- fixef(mod.glmm)
 
 #== hSDM
-mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences="Y",
-                                             trials="T",
+mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=Data$Y,
+                                             trials=Data$trials,
                                              suitability=~X1+X2,
-                                             cells="cell",
-                                             n.neighbors=as.integer(n.neighbors),
+                                             cells=Data$cell,
+                                             n.neighbors=n.neighbors,
                                              neighbors=adj,
                                              data=Data, burnin=1000,
                                              mcmc=1000, thin=1,
