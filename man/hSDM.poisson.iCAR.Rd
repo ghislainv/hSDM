@@ -1,14 +1,14 @@
 \name{hSDM.poisson.iCAR}
 \alias{hSDM.poisson.iCAR}
 
-\title{The hSDM.poisson.iCAR function performs a Poisson regression
-  model in a hierarchical Bayesian framework. The suitability process
-  includes a spatial correlation process. The spatial correlation is
-  modelled using an intrinsic CAR model.}
+\title{The \code{hSDM.poisson.iCAR} function performs a Poisson
+  regression in a hierarchical Bayesian framework. The suitability
+  process includes a spatial correlation process. The spatial
+  correlation is modelled using an intrinsic CAR model.}
 
-\description{The hSDM.poisson.iCAR function calls a Gibbs sampler which uses
-  Metropolis algorithm to estimate the conditional posterior
-  distribution of the model parameters.}
+\description{The \code{hSDM.poisson.iCAR} function calls a Gibbs sampler
+  written in C code which uses a Metropolis algorithm to estimate the
+  conditional posterior distribution of model's parameters.}
 
 \usage{hSDM.poisson.iCAR(counts, suitability, cells, n.neighbors,
 neighbors, data, burnin = 5000, mcmc = 10000, thin = 10, beta.start,
@@ -136,7 +136,7 @@ Vrho.start, mubeta = 0, Vbeta = 1e+06, priorVrho = "1/Gamma", shape =
 \dontrun{
 
 #==============================================
-# hSDM.poisson()
+# hSDM.poisson.iCAR()
 # Example with simulated data
 #==============================================
 
@@ -222,6 +222,8 @@ mod.hSDM.poisson.iCAR <- hSDM.poisson.iCAR(counts=Data$Y,
                                            beta.start=beta.hat.glmm,
                                            Vrho.start=10,
                                            priorVrho="1/Gamma",
+                                           #priorVrho="Uniform",
+                                           #priorVrho=10,
                                            mubeta=0, Vbeta=1.0E6,
                                            shape=0.5, rate=0.0005,
                                            Vrho.max=1000,
@@ -240,6 +242,7 @@ summary(mod.hSDM.poisson.iCAR$rho)
 
 }
 
+\keyword{Poisson regression}
 \keyword{biodiversity}
 \keyword{species distribution models}
 \keyword{hierarchical Bayesian models}

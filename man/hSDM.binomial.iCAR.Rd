@@ -1,14 +1,15 @@
 \name{hSDM.binomial.iCAR}
 \alias{hSDM.binomial.iCAR}
 
-\title{The hSDM.binomial.iCAR function performs a Binomial logistic
-  regression model in a hierarchical Bayesian framework. The suitability
-  process includes a spatial correlation process. The spatial
-  correlation is modelled using an intrinsic CAR model.}
+\title{The \code{hSDM.binomial.iCAR} function performs a Binomial
+  logistic regression model in a hierarchical Bayesian framework. The
+  suitability process includes a spatial correlation process. The
+  spatial correlation is modelled using an intrinsic CAR model.}
 
-\description{The hSDM.binomial.iCAR function calls a Gibbs sampler which uses
-  Metropolis algorithm to estimate the conditional posterior
-  distribution of the model parameters.}
+\description{The \code{hSDM.binomial.iCAR} function calls a Gibbs
+  sampler written in C code which uses a Metropolis algorithm to
+  estimate the conditional posterior distribution of model's
+  parameters.}
 
 \usage{hSDM.binomial.iCAR(presences, trials, suitability, cells,
 n.neighbors, neighbors, data, burnin = 5000, mcmc = 10000, thin = 10,
@@ -209,12 +210,12 @@ str(Data)
 #== Statistical modelling
 
 #== glm resolution to compare
-mod.glm <- glm(cbind(Y,T-Y)~X1+X2,data=Data,family="binomial")
+mod.glm <- glm(cbind(Y,trials-Y)~X1+X2,data=Data,family="binomial")
 summary(mod.glm)
 
 #== glmm (mixed models) resolution to compare
 #== cell random effects without spatial correlation
-mod.glmm <- lmer(cbind(Y,T-Y)~X1+X2+(1|cell),data=Data,family="binomial")  # Non-spatial random effect fit
+mod.glmm <- lmer(cbind(Y,trials-Y)~X1+X2+(1|cell),data=Data,family="binomial")  # Non-spatial random effect fit
 summary(mod.glmm)
 beta.hat.glmm <- fixef(mod.glmm)
 
@@ -230,6 +231,8 @@ mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=Data$Y,
                                              beta.start=beta.hat.glmm,
                                              Vrho.start=10,
                                              priorVrho="1/Gamma",
+                                             #priorVrho="Uniform",
+                                             #priorVrho=10,
                                              mubeta=0, Vbeta=1.0E6,
                                              shape=0.5, rate=0.0005,
                                              Vrho.max=1000,
@@ -248,6 +251,7 @@ summary(mod.hSDM.binomial.iCAR$rho)
 
 }
 
+\keyword{Binomial logistic regression}
 \keyword{biodiversity}
 \keyword{species distribution models}
 \keyword{hierarchical Bayesian models}

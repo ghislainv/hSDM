@@ -6,7 +6,7 @@
 \title{hierarchical Bayesian species distribution models}
 
 \description{\code{hSDM} is an R package for estimating parameters of
-  hierarchical Bayesian species distribution models. Such models allows
+  hierarchical Bayesian species distribution models. Such models allow
   interpreting the observations (occurrence and abundance of a species)
   as a result of several hierarchical processes including ecological
   processes (habitat suitability, spatial dependence and anthropogenic
@@ -33,6 +33,7 @@
     Andrew M. Latimer <amlatimer@ucdavis.edu>\cr
     Alan E. Gelfand <alan@stat.duke.edu>\cr
     Cory Merow <cory.merow@gmail.com>\cr
+    Adam M. Wilson <adam.wilson@yale.edu>\cr
     Frederic Mortier <frederic.mortier@cirad.fr>\cr
     John A. Silander Jr. <john.silander@uconn.edu>\cr
   }

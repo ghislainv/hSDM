@@ -1,12 +1,12 @@
 \name{hSDM.binomial}
 \alias{hSDM.binomial}
 
-\title{The hSDM.binomial function performs a Binomial logistic regression
-  model in a Bayesian framework.}
+\title{The \code{hSDM.binomial} function performs a Binomial logistic
+  regression model in a Bayesian framework.}
 
-\description{The hSDM.binomial function calls a Gibbs sampler which uses
-  Metropolis algorithm to estimate the conditional posterior
-  distribution of the model parameters.}
+\description{The \code{hSDM.binomial} function calls a Gibbs sampler
+  written in C code which uses a Metropolis algorithm to estimate the
+  conditional posterior distribution of model's parameters.}
 
 \usage{hSDM.binomial(presences, trials, suitability, data, burnin =
 5000, mcmc = 10000, thin = 10, beta.start, mubeta = 0, Vbeta = 1e+06,
@@ -150,7 +150,7 @@ plot(Data$X2,logit.theta)
 #== Statistical modelling
 
 #== glm resolution to compare
-mod.glm <- glm(cbind(Y,T-Y)~X1+X2,family="binomial",data=Data)
+mod.glm <- glm(cbind(Y,trials-Y)~X1+X2,family="binomial",data=Data)
 summary(mod.glm)
 beta.hat.glm <- coef(mod.glm)
 
@@ -176,12 +176,9 @@ summary(mod.hSDM.binomial$prob.p.pred)
 
 }
 
+\keyword{Binomial logistic regression}
 \keyword{biodiversity}
 \keyword{species distribution models}
-\keyword{hierarchical Bayesian models}
-\keyword{spatial correlation}
-\keyword{intrinsic CAR model}
-\keyword{conditional autoregressive model}
 \keyword{MCMC}
 \keyword{Markov Chains Monte Carlo}
 \keyword{Metropolis algorithm}

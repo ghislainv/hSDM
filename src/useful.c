@@ -125,7 +125,7 @@ double integer(double a, double b)
         free(wl);
         free(wlc);               
         return(x);
-};
+}
 
 /* the following function returns a random number from TG^+(a,b,1)            */  
 /* a=shape parameter, b=rate parameter                                        */ 
@@ -166,7 +166,7 @@ double inter_le(double a, double b)
 		       };
 	   };
          return(x);
-};
+}
 
 /* the following function returns a random number from TG^+(a,b,t)            */
 /* a=shape parameter, b=rate parameter                                        */

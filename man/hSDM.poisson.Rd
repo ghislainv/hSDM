@@ -1,12 +1,12 @@
 \name{hSDM.poisson}
 \alias{hSDM.poisson}
 
-\title{The hSDM.poisson function performs a Poisson regression model in
+\title{The \code{hSDM.poisson} function performs a Poisson regression in
   a Bayesian framework.}
 
-\description{The hSDM.poisson function calls a Gibbs sampler which uses
-  Metropolis algorithm to estimate the conditional posterior
-  distribution of the model parameters.}
+\description{The \code{hSDM.poisson} function calls a Gibbs sampler
+  written in C code which uses a Metropolis algorithm to estimate the
+  conditional posterior distribution of model's parameters.}
 
 \usage{hSDM.poisson(counts, suitability, data, burnin = 5000, mcmc =
 10000, thin = 10, beta.start, mubeta = 0, Vbeta = 1e+06, seed = 1234,
@@ -168,12 +168,9 @@ summary(mod.hSDM.poisson$prob.p.pred)
 
 }
 
+\keyword{Poisson regression}
 \keyword{biodiversity}
 \keyword{species distribution models}
-\keyword{hierarchical Bayesian models}
-\keyword{spatial correlation}
-\keyword{intrinsic CAR model}
-\keyword{conditional autoregressive model}
 \keyword{MCMC}
 \keyword{Markov Chains Monte Carlo}
 \keyword{Metropolis algorithm}
