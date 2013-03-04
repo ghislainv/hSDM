@@ -17,7 +17,7 @@
   estimate the conditional posterior distribution of model's
   parameters.}
 
-\usage{hSDM.hierarchical.poisson(counts, suitability, cells,
+\usage{hSDM.hierarchical.poisson(counts, visits, suitability, cells,
 n.neighbors, neighbors, alteration, observability, data, burnin = 5000,
 mcmc = 10000, thin = 10, beta.start, gamma.start, Vrho.start, mubeta =
 0, Vbeta = 1e+06, mugamma = 0, Vgamma = 1e+06, priorVrho = "1/Gamma",
@@ -26,7 +26,11 @@ shape = 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1)}
 \arguments{
   
   \item{counts}{A vector indicating the count (or abundance) for each
-  observation.}
+    observation.}
+
+  \item{visits}{A vector indicating if the observation point \code{n}
+    has been visited (\code{visits[n]=1}) or not (\code{visits[n]=0}). If
+    \code{visits[n]=0}, then \code{counts[n]=0}.}
 
   \item{suitability}{A one-sided formula of the form '~x1+...+xp' with p
   terms specifying the explicative variables for the suitability
@@ -248,15 +252,17 @@ y.2 <- rpois(nobs,theta.2)
 
 #== Simulating response variable
 Y <- y.2*(1-u)*y.1
+V <- rep(1,nobs)
 
 #== Data-set
-Data <- data.frame(Y=Y,cell,X1,X2,W1,W2,U)
+Data <- data.frame(Y,V,cell,X1,X2,W1,W2,U)
 str(Data)
 
 #==================================
 #== Statistical modelling with hSDM
 
 model <- hSDM.hierarchical.poisson(counts=Data$Y,
+                                   visits=Data$V,
                                    suitability=~X1+X2,
                                    cells=Data$cell,
                                    n.neighbors=n.neighbors,

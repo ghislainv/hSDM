@@ -44,6 +44,7 @@ struct dens_par {
     int NOBS;
     int NCELL;
     int *Y;
+    int *T;
     int *IdCell;
     int *nObsCell;
     int **PosCell;
@@ -75,6 +76,7 @@ static double betadens (double beta_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
+      if (d->T[n]>0) {
 	/* prob_p */
 	double Xpart_prob_p=0.0;
 	for (int p=0; p<d->NP; p++) {
@@ -86,6 +88,7 @@ static double betadens (double beta_k, void *dens_data) {
 	double prob_p=exp(Xpart_prob_p+d->rho_run[d->IdCell[n]]);
 	/* log Likelihood */
 	logL+=dpois(d->Y[n],prob_p,1);
+      }
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(beta_k,d->mubeta[k],sqrt(d->Vbeta[k]),1);
@@ -138,6 +141,7 @@ void hSDM_poisson_iCAR (
     const int *ncell, // Number of cells
     const int *np, // Number of fixed effects for prob_p
     const int *Y_vect, // Count
+    const int *T_vect, // Number of trials
     const double *X_vect, // Suitability covariates
     // Spatial correlation
     const int *C_vect, // Cell Id
@@ -201,6 +205,11 @@ void hSDM_poisson_iCAR (
     dens_data.Y=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
 	dens_data.Y[n]=Y_vect[n];
+    }
+    // T
+    dens_data.T=malloc(NOBS*sizeof(int));
+    for (int n=0; n<NOBS; n++) {
+	dens_data.T[n]=T_vect[n];
     }
 
     /* Spatial correlation */
@@ -400,6 +409,7 @@ void hSDM_poisson_iCAR (
 	// logLikelihood
 	double logL=0.0;
 	for (int n=0; n<NOBS; n++) {
+	  if (dens_data.T[n]>0) {
 	    /* prob_p */
 	    double Xpart_prob_p=0.0;
 	    for (int p=0; p<NP; p++) {
@@ -408,6 +418,7 @@ void hSDM_poisson_iCAR (
 	    prob_p[n]=exp(Xpart_prob_p+dens_data.rho_run[dens_data.IdCell[n]]);
 	    /* log Likelihood */
 	    logL+=dpois(dens_data.Y[n],prob_p[n],1);
+	  }
 	}
 
 	// Deviance

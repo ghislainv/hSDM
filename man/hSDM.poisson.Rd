@@ -8,14 +8,18 @@
   written in C code which uses a Metropolis algorithm to estimate the
   conditional posterior distribution of model's parameters.}
 
-\usage{hSDM.poisson(counts, suitability, data, burnin = 5000, mcmc =
+\usage{hSDM.poisson(counts, visits, suitability, data, burnin = 5000, mcmc =
 10000, thin = 10, beta.start, mubeta = 0, Vbeta = 1e+06, seed = 1234,
 verbose = 1)}
 
 \arguments{
   
   \item{counts}{A vector indicating the count (or abundance) for each
-  observation.}
+    observation.}
+
+  \item{visits}{A vector indicating if the observation point \code{n}
+    has been visited (\code{visits[n]=1}) or not (\code{visits[n]=0}). If
+    \code{visits[n]=0}, then \code{counts[n]=0}.}
 
   \item{suitability}{A one-sided formula of the form '~x1+...+xp' with p
   terms specifying the explicative covariates for the suitability
@@ -131,9 +135,10 @@ theta <- exp(log.theta)
 
 #== Simulating response variable
 Y <- rpois(n=nobs,lambda=theta)
+V <- rep(1,nobs)
 
 #== Data-set
-Data <- data.frame(Y,X1,X2)
+Data <- data.frame(Y,V,X1,X2)
 str(Data)
 par(mfrow=c(2,1))
 plot(Data$X1,log.theta)
@@ -149,6 +154,7 @@ beta.hat.glm <- coef(mod.glm)
 
 #== hSDM
 mod.hSDM.poisson <- hSDM.poisson(counts=Data$Y,
+                                 visits=Data$V,
                                  suitability=~X1+X2,
                                  data=Data, burnin=1000,
                                  mcmc=1000, thin=1,

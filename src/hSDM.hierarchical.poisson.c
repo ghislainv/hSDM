@@ -44,6 +44,7 @@ struct dens_par {
     int NOBS;
     int NCELL;
     int *Y;
+    int *T;
     int *IdCell;
     int *nObsCell;
     int **PosCell;
@@ -83,6 +84,7 @@ static double betadens (double beta_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
+      if (d->T[n]>0) {
 	/* prob_p */
 	double Xpart_prob_p=0.0;
 	for (int p=0; p<d->NP; p++) {
@@ -105,6 +107,7 @@ static double betadens (double beta_k, void *dens_data) {
 	if (d->Y[n]==0) {
 	    logL+=log(exp(-prob_q)*(1-d->U[n])*prob_p+(1-(1-d->U[n])*prob_p));
 	}
+      }
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(beta_k,d->mubeta[k],sqrt(d->Vbeta[k]),1);
@@ -123,6 +126,7 @@ static double gammadens (double gamma_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
+      if (d->T[n]>0) {
 	/* prob_p */
 	double Xpart_prob_p=0.0;
 	for (int p=0; p<d->NP; p++) {
@@ -145,6 +149,7 @@ static double gammadens (double gamma_k, void *dens_data) {
 	if (d->Y[n]==0) {
 	    logL+=log(exp(-prob_q)*(1-d->U[n])*prob_p+(1-(1-d->U[n])*prob_p));
 	}
+      }
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(gamma_k,d->mugamma[k],sqrt(d->Vgamma[k]),1); 
@@ -208,6 +213,7 @@ void hSDM_hierarchical_poisson (
     const int *np, // Number of fixed effects for prob_p
     const int *nq, // Number of fixed effects for prob_q
     const int *Y_vect, // Counts
+    const int *T_vect, // Number of trials
     const double *X_vect, // Suitability covariates
     const double *W_vect, // Observability covariates
     const double *U_vect, // Alteration percentage between [0,1]
@@ -282,6 +288,11 @@ void hSDM_hierarchical_poisson (
     dens_data.Y=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
 	dens_data.Y[n]=Y_vect[n];
+    }
+    // T
+    dens_data.T=malloc(NOBS*sizeof(int));
+    for (int n=0; n<NOBS; n++) {
+	dens_data.T[n]=T_vect[n];
     }
 
     /* Alteration */
@@ -540,6 +551,7 @@ void hSDM_hierarchical_poisson (
 	// logLikelihood
 	double logL=0.0;
 	for (int n=0; n<NOBS; n++) {
+	  if (dens_data.T[n]>0) {
 	    /* prob_p */
 	    double Xpart_prob_p=0.0;
 	    for (int p=0; p<NP; p++) {
@@ -559,6 +571,7 @@ void hSDM_hierarchical_poisson (
 	    if (dens_data.Y[n]==0) {
 	        logL+=log(exp(-prob_q[n])*(1-dens_data.U[n])*prob_p[n]+(1-(1-dens_data.U[n])*prob_p[n]));
 	    }
+	  }
 	}
 
 	// Deviance

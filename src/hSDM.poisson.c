@@ -43,6 +43,7 @@ struct dens_par {
     /* Data */
     int NOBS;
     int *Y;
+    int *T;
     /* Suitability */
     int NP;
     int pos_beta;
@@ -64,17 +65,19 @@ static double betadens (double beta_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
-	/* prob_p */
-	double Xpart_prob_p=0.0;
-	for (int p=0; p<d->NP; p++) {
-	    if (p!=k) {
+        if (d->T[n]>0) {
+	  /* prob_p */
+	  double Xpart_prob_p=0.0;
+	  for (int p=0; p<d->NP; p++) {
+	      if (p!=k) {
 		Xpart_prob_p+=d->X[n][p]*d->beta_run[p];
-	    }
+	      }
+	  }
+	  Xpart_prob_p+=d->X[n][k]*beta_k;
+	  double prob_p=exp(Xpart_prob_p);
+	  /* log Likelihood */
+	  logL+=dpois(d->Y[n],prob_p,1);
 	}
-	Xpart_prob_p+=d->X[n][k]*beta_k;
-	double prob_p=exp(Xpart_prob_p);
-	/* log Likelihood */
-	logL+=dpois(d->Y[n],prob_p,1);
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(beta_k,d->mubeta[k],sqrt(d->Vbeta[k]),1);
@@ -92,6 +95,7 @@ void hSDM_poisson (
     const int *nobs, // Number of observations
     const int *np, // Number of fixed effects for prob_p
     const int *Y_vect, // Count
+    const int *T_vect, // Number of trials
     const double *X_vect, // Suitability covariates
     // Starting values for M-H
     const double *beta_start,
@@ -143,6 +147,11 @@ void hSDM_poisson (
     dens_data.Y=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
 	dens_data.Y[n]=Y_vect[n];
+    }
+    // T
+    dens_data.T=malloc(NOBS*sizeof(int));
+    for (int n=0; n<NOBS; n++) {
+	dens_data.T[n]=T_vect[n];
     }
 
     /* Suitability process */
@@ -218,6 +227,7 @@ void hSDM_poisson (
 	// logLikelihood
 	double logL=0.0;
 	for (int n=0; n<NOBS; n++) {
+	  if (dens_data.T[n]>0) {
 	    /* prob_p */
 	    double Xpart_prob_p=0.0;
 	    for (int p=0; p<NP; p++) {
@@ -226,6 +236,7 @@ void hSDM_poisson (
 	    prob_p[n]=exp(Xpart_prob_p);
 	    /* log Likelihood */
 	    logL+=dpois(dens_data.Y[n],prob_p[n],1);
+	  }
 	}
 
 	// Deviance

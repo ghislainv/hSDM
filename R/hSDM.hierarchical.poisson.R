@@ -24,7 +24,7 @@
 ####################################################################
 
 
-hSDM.hierarchical.poisson <- function (counts,
+hSDM.hierarchical.poisson <- function (counts, visits,
                                        suitability,
                                        cells,
                                        n.neighbors,
@@ -57,6 +57,7 @@ hSDM.hierarchical.poisson <- function (counts,
   #= Response
   Y <- counts
   nobs <- length(Y)
+  T <- visits
   #= Alteration
   U <- alteration
   #= Suitability
@@ -81,7 +82,8 @@ hSDM.hierarchical.poisson <- function (counts,
   #========== 
   # Check data
   #==========
-  check.Y.poisson(Y)
+  check.T.poisson(T,nobs)
+  check.Y.poisson(Y,T)
   check.X(X,nobs)
   check.U(U,nobs)
   check.W(W,nobs)
@@ -129,6 +131,7 @@ hSDM.hierarchical.poisson <- function (counts,
                np=as.integer(np),
                nq=as.integer(nq),
                Y_vect=as.integer(c(Y)),
+               T_vect=as.integer(c(T)),
                X_vect=as.double(c(X)),
                W_vect=as.double(c(W)),
                U_vect=as.double(c(U)),
@@ -167,16 +170,16 @@ hSDM.hierarchical.poisson <- function (counts,
   colnames(Matrix) <- c(names.fixed,"Vrho","Deviance")
   
   #= Filling-in the matrix
-  Matrix[,c(1:np)] <- matrix(Sample[[18]],ncol=np)
-  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[19]],ncol=nq)
-  Matrix[,ncol(Matrix)-1] <- Sample[[21]]
-  Matrix[,ncol(Matrix)] <- Sample[[30]]
+  Matrix[,c(1:np)] <- matrix(Sample[[19]],ncol=np)
+  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[20]],ncol=nq)
+  Matrix[,ncol(Matrix)-1] <- Sample[[22]]
+  Matrix[,ncol(Matrix)] <- Sample[[31]]
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
   
   #= Output
-  return (list(mcmc=MCMC,rho.pred=Sample[[20]],prob.p.pred=Sample[[31]],prob.q.pred=Sample[[32]]))
+  return (list(mcmc=MCMC,rho.pred=Sample[[21]],prob.p.pred=Sample[[32]],prob.q.pred=Sample[[33]]))
 
 }
 

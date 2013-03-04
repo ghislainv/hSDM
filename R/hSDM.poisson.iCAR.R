@@ -24,7 +24,7 @@
 ####################################################################
 
 
-hSDM.poisson.iCAR <- function (counts,
+hSDM.poisson.iCAR <- function (counts, visits,
                                suitability,
                                cells,
                                n.neighbors,
@@ -53,6 +53,7 @@ hSDM.poisson.iCAR <- function (counts,
   #= Response
   Y <- counts
   nobs <- length(Y)
+  T <- visits
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
@@ -71,7 +72,8 @@ hSDM.poisson.iCAR <- function (counts,
   #========== 
   # Check data
   #==========
-  check.Y.poisson(Y)
+  check.T.poisson(T,nobs)
+  check.Y.poisson(Y,T)
   check.X(X,nobs)
   check.cells(cells,nobs)
   check.neighbors(n.neighbors,ncell,neighbors)
@@ -111,6 +113,7 @@ hSDM.poisson.iCAR <- function (counts,
                ncell=as.integer(ncell),
                np=as.integer(np),
                Y_vect=as.integer(c(Y)),
+               T_vect=as.integer(c(T)),
                X_vect=as.double(c(X)),
                #= Spatial correlation
                C_vect=as.integer(c(cells)-1), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term. 
@@ -143,15 +146,15 @@ hSDM.poisson.iCAR <- function (counts,
   colnames(Matrix) <- c(names.fixed,"Vrho","Deviance")
   
   #= Filling-in the matrix
-  Matrix[,c(1:np)] <- matrix(Sample[[14]],ncol=np)
-  Matrix[,ncol(Matrix)-1] <- Sample[[16]]
-  Matrix[,ncol(Matrix)] <- Sample[[23]]
+  Matrix[,c(1:np)] <- matrix(Sample[[15]],ncol=np)
+  Matrix[,ncol(Matrix)-1] <- Sample[[17]]
+  Matrix[,ncol(Matrix)] <- Sample[[24]]
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
   
   #= Output
-  return (list(mcmc=MCMC,rho.pred=Sample[[15]],prob.p.pred=Sample[[24]]))
+  return (list(mcmc=MCMC,rho.pred=Sample[[16]],prob.p.pred=Sample[[25]]))
 
 }
 

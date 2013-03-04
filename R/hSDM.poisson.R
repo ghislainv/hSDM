@@ -24,7 +24,7 @@
 ####################################################################
 
 
-hSDM.poisson <- function (counts,
+hSDM.poisson <- function (counts, visits,
                           suitability,
                           data, burnin=5000,
                           mcmc=10000, thin=10, 
@@ -46,6 +46,7 @@ hSDM.poisson <- function (counts,
   #= Response
   Y <- counts
   nobs <- length(Y)
+  T <- visits
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
@@ -59,7 +60,8 @@ hSDM.poisson <- function (counts,
   #========== 
   # Check data
   #==========
-  check.Y.poisson(Y)
+  check.T.poisson(T,nobs)
+  check.Y.poisson(Y,T)
   check.X(X,nobs)
   
   #========
@@ -89,6 +91,7 @@ hSDM.poisson <- function (counts,
                nobs=as.integer(nobs),
                np=as.integer(np),
                Y_vect=as.integer(c(Y)),
+               T_vect=as.integer(c(T)),
                X_vect=as.double(c(X)),
                #= Starting values for M-H
                beta_start=as.double(c(beta.start)),
@@ -111,14 +114,14 @@ hSDM.poisson <- function (counts,
   colnames(Matrix) <- c(names.fixed,"Deviance")
   
   #= Filling-in the matrix
-  Matrix[,c(1:np)] <- matrix(Sample[[9]],ncol=np)
-  Matrix[,ncol(Matrix)] <- Sample[[12]]
+  Matrix[,c(1:np)] <- matrix(Sample[[10]],ncol=np)
+  Matrix[,ncol(Matrix)] <- Sample[[13]]
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
   
   #= Output
-  return (list(mcmc=MCMC,prob.p.pred=Sample[[13]]))
+  return (list(mcmc=MCMC,prob.p.pred=Sample[[14]]))
 
 }
 

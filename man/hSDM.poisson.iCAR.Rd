@@ -10,7 +10,7 @@
   written in C code which uses a Metropolis algorithm to estimate the
   conditional posterior distribution of model's parameters.}
 
-\usage{hSDM.poisson.iCAR(counts, suitability, cells, n.neighbors,
+\usage{hSDM.poisson.iCAR(counts, visits, suitability, cells, n.neighbors,
 neighbors, data, burnin = 5000, mcmc = 10000, thin = 10, beta.start,
 Vrho.start, mubeta = 0, Vbeta = 1e+06, priorVrho = "1/Gamma", shape =
 0.5, rate = 0.0005, Vrho.max = 1000, seed = 1234, verbose = 1)}
@@ -18,7 +18,11 @@ Vrho.start, mubeta = 0, Vbeta = 1e+06, priorVrho = "1/Gamma", shape =
 \arguments{
 
   \item{counts}{A vector indicating the count (or abundance) for each
-  observation.}
+    observation.}
+
+  \item{visits}{A vector indicating if the observation point \code{n}
+  has been visited (\code{visits[n]=1}) or not (\code{visits[n]=0}). If
+  \code{visits[n]=0}, then \code{counts[n]=0}.}
 
   \item{suitability}{A one-sided formula of the form '~x1+...+xp' with p
   terms specifying the explicative variables for the suitability
@@ -193,9 +197,10 @@ theta <- exp(log.theta)
 
 #== Simulating response variable
 Y <- rpois(nobs,theta)
+V <- rep(1,nobs)
 
 #== Data-set
-Data <- data.frame(Y,cell,X1,X2)
+Data <- data.frame(Y,V,cell,X1,X2)
 str(Data)
 
 #========================
@@ -213,6 +218,7 @@ beta.hat.glmm <- fixef(mod.glmm)
 
 #== hSDM
 mod.hSDM.poisson.iCAR <- hSDM.poisson.iCAR(counts=Data$Y,
+                                           visits=Data$V,
                                            suitability=~X1+X2,
                                            cells=Data$cell,
                                            n.neighbors=n.neighbors,
