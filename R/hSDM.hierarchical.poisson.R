@@ -41,7 +41,7 @@ hSDM.hierarchical.poisson <- function (counts, visits,
                                        priorVrho="1/Gamma",
                                        shape=0.5, rate=0.0005,
                                        Vrho.max=1000,
-                                       seed=1234, verbose=1)
+                                       seed=1234, verbose=1, save.rho=0)
 
 {   
   #========
@@ -49,6 +49,7 @@ hSDM.hierarchical.poisson <- function (counts, visits,
   #========
   check.mcmc.parameters(burnin, mcmc, thin)
   check.verbose(verbose)
+  check.save.rho(save.rho)
    
   #======== 
   # Form response, covariate matrices and model parameters
@@ -114,7 +115,8 @@ hSDM.hierarchical.poisson <- function (counts, visits,
   #========
   beta <- rep(beta.start,nsamp)
   gamma <- rep(gamma.start,nsamp)
-  rho_pred <- rho.start
+  if (save.rho==0) {rho_pred <- rho.start}
+  if (save.rho==1) {rho_pred <- rep(rho.start,nsamp)}
   Vrho <- rep(Vrho.start,nsamp)
   prob_p_pred <- rep(0,nobs)
   prob_q_pred <- rep(0,nobs)
@@ -162,6 +164,8 @@ hSDM.hierarchical.poisson <- function (counts, visits,
                seed=as.integer(seed), 
                #= Verbose
                verbose=as.integer(verbose),
+               #= Save rho
+               save_rho=as.integer(save.rho),
                PACKAGE="hSDM")
  
   #= Matrix of MCMC samples
@@ -177,9 +181,17 @@ hSDM.hierarchical.poisson <- function (counts, visits,
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
+
+  #= Save rho
+  if (save.rho==0) {rho.pred=Sample[[21]]}
+  if (save.rho==1) {
+      Matrix.rho.pred=matrix(Sample[[21]],ncol=ncell)
+      colnames(Matrix.rho.pred) <- paste("rho.",c(1:ncell),sep="")
+      rho.pred=mcmc(Matrix.rho.pred,start=nburn+1,end=ngibbs,thin=nthin)
+  }
   
   #= Output
-  return (list(mcmc=MCMC,rho.pred=Sample[[21]],prob.p.pred=Sample[[32]],prob.q.pred=Sample[[33]]))
+  return (list(mcmc=MCMC,rho.pred=rho.pred,prob.p.pred=Sample[[32]],prob.q.pred=Sample[[33]]))
 
 }
 

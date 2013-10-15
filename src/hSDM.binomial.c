@@ -282,7 +282,7 @@ void hSDM_binomial (
 	//////////////////////////////////////////////////
 	// Progress bar
 	double Perc=100*(g+1)/(NGIBBS);
-	if (((g+1)%(NGIBBS/100))==0 && (*verbose==1)) {  
+	if (((g+1)%(NGIBBS/100))==0 && verbose[0]==1) {  
 	    Rprintf("*");
 	    R_FlushConsole();
 	    //R_ProcessEvents(); for windows

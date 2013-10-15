@@ -243,8 +243,10 @@ void hSDM_hierarchical_binomial (
     // Seeds
     const int *seed,
     // Verbose
-    const int *verbose
-    
+    const int *verbose,
+    // Save rho
+    const int *save_rho
+
     ) {
 	
     ////////////////////////////////////////////////////////////////////////////////
@@ -591,9 +593,18 @@ void hSDM_hierarchical_binomial (
 		prob_p_pred[n]+=prob_p[n]/NSAMP; // We compute the mean of NSAMP values
 		prob_q_pred[n]+=prob_q[n]/NSAMP; // We compute the mean of NSAMP values
 	    }
-	    for (int i=0; i<NCELL; i++) {
-		rho_pred[i]+=dens_data.rho_run[i]/NSAMP; // We compute the mean of NSAMP values
+	    // rho
+	    if (save_rho[0]==0) { // We compute the mean of NSAMP values
+		for (int i=0; i<NCELL; i++) {
+		    rho_pred[i]+=dens_data.rho_run[i]/NSAMP; 
+		}
 	    }
+	    if (save_rho[0]==1) { // The NSAMP sampled values for rhos are saved
+		for (int i=0; i<NCELL; i++) {
+		    rho_pred[i*NSAMP+(isamp-1)]=dens_data.rho_run[i]; 
+		}
+	    }
+	    // Vrho
 	    Vrho[isamp-1]=dens_data.Vrho_run;
 	}
 
@@ -651,7 +662,7 @@ void hSDM_hierarchical_binomial (
 	//////////////////////////////////////////////////
 	// Progress bar
 	double Perc=100*(g+1)/(NGIBBS);
-	if (((g+1)%(NGIBBS/100))==0 && (*verbose==1)) {
+	if (((g+1)%(NGIBBS/100))==0 && verbose[0]==1) {
 	    Rprintf("*");
 	    R_FlushConsole();
 	    //R_ProcessEvents(); for windows

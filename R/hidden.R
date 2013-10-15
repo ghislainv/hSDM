@@ -79,6 +79,21 @@ check.verbose <- function (verbose) {
 
 ##=======================================================================
 ##
+## Check save.rho
+##
+##=======================================================================
+
+check.save.rho <- function (save.rho) {
+  if (!(save.rho %in% c(0,1))) {
+    cat("Error: save.rho must take value 0 or 1.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  return(0)
+}
+
+##=======================================================================
+##
 ## Check data
 ##
 ##=======================================================================

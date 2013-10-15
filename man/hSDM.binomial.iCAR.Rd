@@ -15,7 +15,7 @@
 n.neighbors, neighbors, data, burnin = 5000, mcmc = 10000, thin = 10,
 beta.start, Vrho.start, mubeta = 0, Vbeta = 1e+06, priorVrho =
 "1/Gamma", shape = 0.5, rate = 0.0005, Vrho.max = 1000, seed = 1234,
-verbose = 1)}
+verbose = 1, save.rho = 0)}
 
 \arguments{
 
@@ -98,6 +98,12 @@ verbose = 1)}
     progress bar is printed, indicating the step (in \%) reached by the
     Gibbs sampler.}
 
+  \item{save.rho}{A switch (0,1) which determines whether or not the
+    sampled values for rhos are saved. Default is 0: the posterior mean
+    is computed and returned in the \code{rho.pred} vector. Be careful,
+    setting \code{save.rho} to 1 might require a large amount of
+    memory.}
+
 }
 
 \value{
@@ -109,10 +115,14 @@ verbose = 1)}
       D=-2log(prod_i P(y_i,n_i|beta,rho_i))}, is also
     provided.}
 
-  \item{rho.pred}{Predictive posterior mean of the spatial random effect
-    associated to each spatial cell.}
+  \item{rho.pred}{If \code{save.rho} is set to 0 (default),
+    \code{rho.pred} is the predictive posterior mean of the spatial
+    random effect associated to each spatial cell. If \code{save.rho} is
+    set to 1, \code{rho.pred} is an \code{mcmc} object with sampled
+    values for each spatial random effect associated to each spatial
+    cell.}
   
-  \item{prob.pred.p}{Predictive posterior mean of the probability
+  \item{prob.p.pred}{Predictive posterior mean of the probability
     associated to the suitability process for each spatial cell.}
     
 }
@@ -236,7 +246,7 @@ mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=Data$Y,
                                              mubeta=0, Vbeta=1.0E6,
                                              shape=0.5, rate=0.0005,
                                              Vrho.max=1000,
-                                             seed=1234, verbose=1)
+                                             seed=1234, verbose=1, save.rho=0)
 
 #==========
 #== Outputs
@@ -245,7 +255,7 @@ pdf(file="Posteriors_hSDM.binomial.iCAR.pdf")
 plot(mod.hSDM.binomial.iCAR$mcmc)
 dev.off()
 summary(mod.hSDM.binomial.iCAR$prob.p.pred)
-summary(mod.hSDM.binomial.iCAR$rho)
+summary(mod.hSDM.binomial.iCAR$rho.pred)
 
 }
 

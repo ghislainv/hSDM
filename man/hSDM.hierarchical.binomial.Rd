@@ -21,7 +21,8 @@
 n.neighbors, neighbors, alteration, observability, data, burnin = 5000,
 mcmc = 10000, thin = 10, beta.start, gamma.start, Vrho.start, mubeta =
 0, Vbeta = 1e+06, mugamma = 0, Vgamma = 1e+06, priorVrho = "1/Gamma",
-shape = 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1)}
+shape = 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1,
+save.rho = 0)}
 
 \arguments{
   
@@ -128,6 +129,12 @@ shape = 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1)}
     progress bar is printed, indicating the step (in \%) reached by the
     Gibbs sampler.}
 
+  \item{save.rho}{A switch (0,1) which determines whether or not the
+    sampled values for rhos are saved. Default is 0: the posterior mean
+    is computed and returned in the \code{rho.pred} vector. Be careful,
+    setting \code{save.rho} to 1 might require a large amount of
+    memory.}
+
 }
 
 \value{
@@ -139,13 +146,17 @@ shape = 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1)}
       D=-2log(prod_i P(y_i,n_i|u_i,beta,gamma,rho_i))}, is also
     provided.}
 
-  \item{rho.pred}{Predictive posterior mean of the spatial random effect
-    associated to each spatial cell.}
+  \item{rho.pred}{If \code{save.rho} is set to 0 (default),
+    \code{rho.pred} is the predictive posterior mean of the spatial
+    random effect associated to each spatial cell. If \code{save.rho} is
+    set to 1, \code{rho.pred} is an \code{mcmc} object with sampled
+    values for each spatial random effect associated to each spatial
+    cell.}
   
-  \item{prob.pred.p}{Predictive posterior mean of the probability
+  \item{prob.p.pred}{Predictive posterior mean of the probability
     associated to the suitability process for each spatial cell.}
   
-  \item{prob.pred.q}{Predictive posterior mean of the probability
+  \item{prob.q.pred}{Predictive posterior mean of the probability
   associated to the observability process for each spatial cell.}
   
 }
@@ -282,7 +293,7 @@ model <- hSDM.hierarchical.binomial(presences=Data$Y,
                                     mugamma=0, Vgamma=1.0E6,
                                     shape=0.5, rate=0.0005,
                                     Vrho.max=1000,
-                                    seed=1234, verbose=1)
+                                    seed=1234, verbose=1, save.rho=0)
 
 #==========
 #== Outputs
@@ -291,7 +302,7 @@ pdf(file="Posteriors_hSDM.hierarchical.binomial.pdf")
 plot(model$mcmc)
 dev.off()
 summary(model$prob.p.pred)
-summary(model$rho)
+summary(model$rho.pred)
 
 }
 
@@ -306,3 +317,4 @@ summary(model$rho)
 \keyword{MCMC}
 \keyword{Markov Chains Monte Carlo}
 \keyword{Metropolis algorithm}
+\keyword{ZIB models}

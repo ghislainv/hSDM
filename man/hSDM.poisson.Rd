@@ -73,7 +73,7 @@ verbose = 1)}
       D=-2log(prod_i P(y_i,n_i|beta))}, is also
     provided.}
   
-  \item{prob.pred.p}{Predictive posterior mean of the probability
+  \item{prob.p.pred}{Predictive posterior mean of the probability
     associated to the suitability process for each spatial cell.}
     
 }
