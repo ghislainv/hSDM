@@ -169,24 +169,26 @@ static double rhodens (double rho_i, void *dens_data) {
     double logL=0;
     for (int m=0; m<d->nObsCell[i]; m++) {
 	int w=d->PosCell[i][m]; // which observation
-	/* prob_p */
-	double Xpart_prob_p=0.0;
-	for (int p=0; p<d->NP; p++) {
-	    Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
-	}
-	double prob_p=invlogit(Xpart_prob_p+rho_i);
-        /* prob_q */
-	double log_prob_q=0.0;
-	for (int q=0; q<d->NQ; q++) {
-	    log_prob_q+=d->W[w][q]*d->gamma_run[q];
-	}
-	double prob_q=exp(log_prob_q);
-	/* log Likelihood */
-	if (d->Y[w]>0) {
-	    logL+=dpois(d->Y[w],prob_q,1)+log(1-d->U[w])+log(prob_p);
-	}
-	if (d->Y[w]==0) {
-	    logL+=log(exp(-prob_q)*(1-d->U[w])*prob_p+(1-(1-d->U[w])*prob_p));
+	if (d->T[w]>0) {
+	    /* prob_p */
+	    double Xpart_prob_p=0.0;
+	    for (int p=0; p<d->NP; p++) {
+		Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
+	    }
+	    double prob_p=invlogit(Xpart_prob_p+rho_i);
+	    /* prob_q */
+	    double log_prob_q=0.0;
+	    for (int q=0; q<d->NQ; q++) {
+		log_prob_q+=d->W[w][q]*d->gamma_run[q];
+	    }
+	    double prob_q=exp(log_prob_q);
+	    /* log Likelihood */
+	    if (d->Y[w]>0) {
+		logL+=dpois(d->Y[w],prob_q,1)+log(1-d->U[w])+log(prob_p);
+	    }
+	    if (d->Y[w]==0) {
+		logL+=log(exp(-prob_q)*(1-d->U[w])*prob_p+(1-(1-d->U[w])*prob_p));
+	    }
 	}
     }
     // logPosterior=logL+logPrior

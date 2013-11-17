@@ -157,9 +157,9 @@ static double gammadens (double gamma_k, void *dens_data) {
 }
 
 /* ************************************************************ */
-/* rhodens */
+/* rhodens_visited */
 
-static double rhodens (double rho_i, void *dens_data) {
+static double rhodens_visited (double rho_i, void *dens_data) {
     // Pointer to the structure: d 
     struct dens_par *d;
     d=dens_data;
@@ -169,24 +169,26 @@ static double rhodens (double rho_i, void *dens_data) {
     double logL=0;
     for (int m=0; m<d->nObsCell[i]; m++) {
 	int w=d->PosCell[i][m]; // which observation
-	/* prob_p */
-	double Xpart_prob_p=0.0;
-	for (int p=0; p<d->NP; p++) {
-	    Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
-	}
-	double prob_p=invlogit(Xpart_prob_p+rho_i);
-        /* prob_q */
-	double logit_prob_q=0.0;
-	for (int q=0; q<d->NQ; q++) {
-	    logit_prob_q+=d->W[w][q]*d->gamma_run[q];
-	}
-	double prob_q=invlogit(logit_prob_q);
-	/* log Likelihood */
-	if (d->Y[w]>0) {
-	    logL+=dbinom(d->Y[w],d->T[w],prob_q,1)+log(1-d->U[w])+log(prob_p);
-	}
-	if (d->Y[w]==0) {
-	    logL+=log(pow(1-prob_q,d->T[w])*(1-d->U[w])*prob_p+(1-(1-d->U[w])*prob_p));
+	if (d->T[w]>0) {
+	    /* prob_p */
+	    double Xpart_prob_p=0.0;
+	    for (int p=0; p<d->NP; p++) {
+		Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
+	    }
+	    double prob_p=invlogit(Xpart_prob_p+rho_i);
+	    /* prob_q */
+	    double logit_prob_q=0.0;
+	    for (int q=0; q<d->NQ; q++) {
+		logit_prob_q+=d->W[w][q]*d->gamma_run[q];
+	    }
+	    double prob_q=invlogit(logit_prob_q);
+	    /* log Likelihood */
+	    if (d->Y[w]>0) {
+		logL+=dbinom(d->Y[w],d->T[w],prob_q,1)+log(1-d->U[w])+log(prob_p);
+	    }
+	    if (d->Y[w]==0) {
+		logL+=log(pow(1-prob_q,d->T[w])*(1-d->U[w])*prob_p+(1-(1-d->U[w])*prob_p));
+	    }
 	}
     }
     // logPosterior=logL+logPrior
@@ -200,6 +202,25 @@ static double rhodens (double rho_i, void *dens_data) {
     return logP;
 }
 
+/* ************************************************************ */
+/* rhodens_unvisited */
+
+static double rhodens_unvisited (void *dens_data) {
+    // Pointer to the structure: d 
+    struct dens_par *d;
+    d=dens_data;
+    // Indicating the rank of the parameter of interest
+    int c=d->pos_rho; //
+    // Draw directly in the posterior distribution
+    int nNeighbors=d->nNeigh[c];
+    double sumNeighbors=0.0;
+    for (int m=0;m<nNeighbors;m++) {
+	sumNeighbors+=d->rho_run[d->Neigh[c][m]];
+    }
+    double meanNeighbors=sumNeighbors/nNeighbors;
+    double sample=myrnorm(meanNeighbors,sqrt(d->Vrho_run/nNeighbors)); 
+    return sample;
+}
 
 /* ************************************************************ */
 /* Gibbs sampler function */
@@ -435,6 +456,22 @@ void hSDM_hierarchical_binomial (
     for (int i=0; i<NCELL; i++) {
 	Ar_rho[i]=0.0;
     }
+
+    // Visited cell or not
+    int NVISCELL=0;
+    int *viscell = malloc(NCELL*sizeof(int));
+    for (int i=0; i<NCELL; i++) {
+	viscell[i]=0;
+	for (int m=0; m<dens_data.nObsCell[i]; m++) {
+	    int w=dens_data.PosCell[i][m]; // which observation
+	    if (dens_data.T[w]>0) {
+		viscell[i]++;
+	    }
+	}
+	if (viscell[i]>0) {
+	    NVISCELL++;
+	}
+    }
  
     ////////////
     // Message//
@@ -493,16 +530,21 @@ void hSDM_hierarchical_binomial (
         /* Sampling rho_run[i] */
 	for (int i=0; i<NCELL; i++) {
 	    dens_data.pos_rho=i; // Specifying the rank of the parameter of interest
-	    double x_now=dens_data.rho_run[i];
-	    double x_prop=myrnorm(x_now,sigmap_rho[i]);
-	    double p_now=rhodens(x_now, &dens_data);
-	    double p_prop=rhodens(x_prop, &dens_data);
-	    double r=exp(p_prop-p_now); // ratio
-	    double z=myrunif();
-	    // Actualization
-	    if (z < r) {
-		dens_data.rho_run[i]=x_prop;
-		nA_rho[i]++;
+	    if (viscell[i]>0) {
+		double x_now=dens_data.rho_run[i];
+		double x_prop=myrnorm(x_now,sigmap_rho[i]);
+		double p_now=rhodens_visited(x_now, &dens_data);
+		double p_prop=rhodens_visited(x_prop, &dens_data);
+		double r=exp(p_prop-p_now); // ratio
+		double z=myrunif();
+		// Actualization
+		if (z < r) {
+		    dens_data.rho_run[i]=x_prop;
+		    nA_rho[i]++;
+		}
+	    }
+	    if (viscell[i]==0) {
+	    	dens_data.rho_run[i]=rhodens_unvisited(&dens_data);
 	    }
 	}
 
@@ -680,7 +722,9 @@ void hSDM_hierarchical_binomial (
 	    	}
 	    	// rho
 	    	for (int i=0; i<NCELL; i++) {
-	    	    mAr_rho+=Ar_rho[i]/NCELL;
+		    if (viscell[i]>0) {
+			mAr_rho+=Ar_rho[i]/NVISCELL;
+		    }
 	    	}
 	    	Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, gamma:%.3f, rho:%.3f\n",Perc,mAr_beta,mAr_gamma,mAr_rho);
 	    	R_FlushConsole();

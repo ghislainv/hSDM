@@ -104,19 +104,21 @@ static double rhodens (double rho_i, void *dens_data) {
     struct dens_par *d;
     d=dens_data;
     // Indicating the rank of the parameter of interest
-    int i=d->pos_rho; //
+    int i=d->pos_rho;
     // logLikelihood
     double logL=0;
     for (int m=0; m<d->nObsCell[i]; m++) {
 	int w=d->PosCell[i][m]; // which observation
-	/* prob_p */
-	double Xpart_prob_p=0.0;
-	for (int p=0; p<d->NP; p++) {
-	    Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
+	if (d->T[w]>0) {
+	    /* prob_p */
+	    double Xpart_prob_p=0.0;
+	    for (int p=0; p<d->NP; p++) {
+		Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
+	    }
+	    double prob_p=exp(Xpart_prob_p+rho_i);
+	    /* log Likelihood */
+	    logL+=dpois(d->Y[w],prob_p,1);
 	}
-	double prob_p=exp(Xpart_prob_p+rho_i);
-	/* log Likelihood */
-	logL+=dpois(d->Y[w],prob_p,1);
     }
     // logPosterior=logL+logPrior
     int nNeighbors=d->nNeigh[i];

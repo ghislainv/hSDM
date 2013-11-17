@@ -53,5 +53,5 @@ TA C-105/D
 FRANCE
 
 Skype: ghislain.vieilledent
-Email: ghislain(dot)vieilledent(at)cirad(dot)fr   
+Email: ghislain(dot)vieilledent(at)cirad(dot)fr
 WWW: <http://ghislain.vieilledent.free.fr>
