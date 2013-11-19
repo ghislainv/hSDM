@@ -170,6 +170,30 @@ check.T.binomial <- function (T,nobs) {
   return(0)
 }
 
+check.T.binomial.2 <- function (T,nobs) { #= This version of the function assumes T>0
+  if(length(T)!=nobs) {
+    cat("Error: 'trials' must have the same length as the response variable.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if(!is.numeric(T)) {
+    cat("Error: 'trials' must be a vector of numeric values.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if (sum(is.na(T))>0) {
+    cat("Error: 'trials' must not contain missing values.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if (sum(T<=0 | T%%1!=0)>0) {
+    cat("Error: 'trials' must be a vector of integers superior to zero.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  return(0)
+}
+
 check.Y.binomial <- function (Y,T) {
   if(!is.numeric(Y)) {
     cat("Error: 'presences' must be a vector of numeric values.\n")
@@ -287,8 +311,8 @@ check.neighbors <- function (n.neighbors,ncell,neighbors) {
          call.=FALSE)
   }
   # Positive integer
-  if (sum(neighbors<0 | neighbors%%1!=0)>0) {
-    cat("Error: 'neighbors' must be a vector of positive integers.\n")
+  if (sum(neighbors<=0 | neighbors%%1!=0)>0) {
+    cat("Error: 'neighbors' must be a vector of integers superior to zero.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
@@ -335,8 +359,8 @@ check.cells <- function (cells,nobs) {
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
-  if (sum(cells<0 | cells%%1!=0)>0) {
-    cat("Error: 'cells' must be a vector of positive integers.\n")
+  if (sum(cells<=0 | cells%%1!=0)>0) {
+    cat("Error: 'cells' must be a vector of integers superior to zero.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
@@ -350,13 +374,13 @@ check.cells <- function (cells,nobs) {
 ##=======================================================================
 
 form.beta.start <- function (beta.start,np) {
-  if (is.na(beta.start)[1]) { 
+  if (sum(is.na(beta.start))>0) { 
     beta.start <- rep(0,np)
   }
-  else if(!is.na(beta.start)[1] & is.null(dim(beta.start))) {
-    beta.start <- beta.start * matrix(1,np,1)  
+  else if(!is.na(beta.start)[1] & length(beta.start)!=np) {
+    beta.start <- rep(beta.start[1],np) 
   }
-  else if(!all(dim(beta.start) == c(np,1))) {
+  else if(length(beta.start)!=np) {
     cat("Error: beta.start not conformable.\n")
     stop("Please respecify and call ", calling.function(), " again.\n",
          call.=FALSE)
@@ -365,13 +389,13 @@ form.beta.start <- function (beta.start,np) {
 }
 
 form.gamma.start <- function (gamma.start,nq) {
-  if (is.na(gamma.start)[1]) { 
+  if (sum(is.na(gamma.start))>0) { 
     gamma.start <- rep(0,nq)
   }
-  else if(!is.na(gamma.start)[1] & is.null(dim(gamma.start))) {
-    gamma.start <- gamma.start * matrix(1,nq,1)  
+  else if(!is.na(gamma.start)[1] & length(gamma.start)!=nq) {
+    gamma.start <- rep(gamma.start[1],nq)  
   }
-  else if(!all(dim(gamma.start) == c(nq,1))) {
+  else if(length(gamma.start)!=nq) {
     cat("Error: gamma.start not conformable.\n")
     stop("Please respecify and call ", calling.function(), " again.\n",
          call.=FALSE)

@@ -78,7 +78,7 @@ hSDM.site.occupancy <- function (# Observations
   if (is.null(suitability.pred) | is.null(spatial.entity.pred)) {
       X.pred <- X
       cells.pred <- cells
-      n.pred <- nobs
+      npred <- nobs
   }
   if (!is.null(suitability.pred) & !is.null(spatial.entity.pred)) {
       mf.pred <- model.frame(formula=suitability,data=suitability.pred)
@@ -97,7 +97,7 @@ hSDM.site.occupancy <- function (# Observations
   #========== 
   # Check data
   #==========
-  check.T.binomial(T,nobs)
+  check.T.binomial.2(T,nobs) #= This version (.2) of the function assumes T>0
   check.Y.binomial(Y,T)
   check.X(X,nobs)
   check.W(W,nobs)

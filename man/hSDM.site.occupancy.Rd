@@ -76,9 +76,11 @@ suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
   \item{thin}{The thinning interval used in the simulation. The number
     of mcmc iterations must be divisible by this value.}
 
-  \item{beta.start}{Starting values for beta parameters.}
+  \item{beta.start}{Starting values for \eqn{\beta}{beta}
+    parameters. This can either be a scalar or a p-length vector.}
 
-  \item{gamma.start}{Starting values for gamma parameters.}
+  \item{gamma.start}{Starting values for \eqn{\beta}{gamma}
+    parameters. This can either be a scalar or a q-length vector.}
   
   \item{Vrho.start}{Positive scalar indicating the starting value for the
     variance of the spatial random effects.}
