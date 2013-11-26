@@ -202,12 +202,12 @@ static double rhodens_unvisited (void *dens_data) {
     struct dens_par *d;
     d=dens_data;
     // Indicating the rank of the parameter of interest
-    int c=d->pos_rho; //
+    int i=d->pos_rho; //
     // Draw directly in the posterior distribution
-    int nNeighbors=d->nNeigh[c];
+    int nNeighbors=d->nNeigh[i];
     double sumNeighbors=0.0;
     for (int m=0;m<nNeighbors;m++) {
-	sumNeighbors+=d->rho_run[d->Neigh[c][m]];
+	sumNeighbors+=d->rho_run[d->Neigh[i][m]];
     }
     double meanNeighbors=sumNeighbors/nNeighbors;
     double sample=myrnorm(meanNeighbors,sqrt(d->Vrho_run/nNeighbors)); 
@@ -415,16 +415,15 @@ void hSDM_site_occupancy (
     }
 
     /* Visited cell or not */
-    int NVISCELL=0;
     int *viscell = malloc(NCELL*sizeof(int));
     for (int i=0; i<NCELL; i++) {
 	viscell[i]=0;
-	for (int m=0; m<dens_data.nObsCell[i]; m++) {
-	    int w=dens_data.PosCell[i][m]; // which observation
-	    if (dens_data.T[w]>0) {
-		viscell[i]++;
-	    }
-	}
+    }
+    for (int n=0; n<NOBS; n++) {
+	viscell[dens_data.IdCell[n]]++;
+    }
+    int NVISCELL=0;
+    for (int i=0; i<NCELL; i++) {
 	if (viscell[i]>0) {
 	    NVISCELL++;
 	}
@@ -451,39 +450,32 @@ void hSDM_site_occupancy (
     // beta
     double *sigmap_beta = malloc(NP*sizeof(double));
     int *nA_beta = malloc(NP*sizeof(int));
+    double *Ar_beta = malloc(NP*sizeof(double)); // Acceptance rate 
     for (int p=0; p<NP; p++) {
 	nA_beta[p]=0;
 	sigmap_beta[p]=1.0;
-    }
-    double *Ar_beta = malloc(NP*sizeof(double)); // Acceptance rate 
-    for (int p=0; p<NP; p++) {
 	Ar_beta[p]=0.0;
     }
 
     // gamma
     double *sigmap_gamma = malloc(NQ*sizeof(double));
     int *nA_gamma = malloc(NQ*sizeof(int));
+    double *Ar_gamma = malloc(NQ*sizeof(double)); // Acceptance rate 
     for (int q=0; q<NQ; q++) {
 	nA_gamma[q]=0;
 	sigmap_gamma[q]=1.0;
-    }
-    double *Ar_gamma = malloc(NQ*sizeof(double)); // Acceptance rate 
-    for (int q=0; q<NQ; q++) {
 	Ar_gamma[q]=0.0;
     }
 
     // rho
     double *sigmap_rho = malloc(NCELL*sizeof(double));
     int *nA_rho = malloc(NCELL*sizeof(int));
+    double *Ar_rho = malloc(NCELL*sizeof(double)); // Acceptance rate 
     for (int i=0; i<NCELL; i++) {
 	nA_rho[i]=0;
 	sigmap_rho[i]=1.0;
-    }
-    double *Ar_rho = malloc(NCELL*sizeof(double)); // Acceptance rate 
-    for (int i=0; i<NCELL; i++) {
 	Ar_rho[i]=0.0;
     }
-
  
     ////////////
     // Message//
@@ -646,7 +638,7 @@ void hSDM_site_occupancy (
 
 	//////////////////////////////////////////////////
 	// Output
-	if(((g+1)>NBURN) && (((g+1)%(NTHIN))==0)){
+	if (((g+1)>NBURN) && (((g+1)%(NTHIN))==0)) {
 	    int isamp=((g+1)-NBURN)/(NTHIN);
 	    for (int p=0; p<NP; p++) {
 		beta_vect[p*NSAMP+(isamp-1)]=dens_data.beta_run[p];
@@ -693,31 +685,33 @@ void hSDM_site_occupancy (
 	if (NGIBBS >=1000) DIV=100;
 	else DIV=NGIBBS/10;
 	/* During the burnin period */
-	if((g+1)%DIV==0 && (g+1)<=NBURN){
+	if ((g+1)%DIV==0 && (g+1)<=NBURN) {
 	    // beta
 	    for (int p=0; p<NP; p++) {
 		Ar_beta[p]=((double) nA_beta[p])/DIV;
-		if(Ar_beta[p]>=ropt) sigmap_beta[p]=sigmap_beta[p]*(2-(1-Ar_beta[p])/(1-ropt));
+		if (Ar_beta[p]>=ropt) sigmap_beta[p]=sigmap_beta[p]*(2-(1-Ar_beta[p])/(1-ropt));
 		else sigmap_beta[p]=sigmap_beta[p]/(2-Ar_beta[p]/ropt);
 		nA_beta[p]=0.0; // We reinitialize the number of acceptance to zero
 	    }
 	    // gamma
 	    for (int q=0; q<NQ; q++) {
 		Ar_gamma[q]=((double) nA_gamma[q])/DIV;
-		if(Ar_gamma[q]>=ropt) sigmap_gamma[q]=sigmap_gamma[q]*(2-(1-Ar_gamma[q])/(1-ropt));
+		if (Ar_gamma[q]>=ropt) sigmap_gamma[q]=sigmap_gamma[q]*(2-(1-Ar_gamma[q])/(1-ropt));
 		else sigmap_gamma[q]=sigmap_gamma[q]/(2-Ar_gamma[q]/ropt);
 		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
 	    }
 	    // rho
 	    for (int i=0; i<NCELL; i++) {
-		Ar_rho[i]=((double) nA_rho[i])/DIV;
-		if(Ar_rho[i]>=ropt) sigmap_rho[i]=sigmap_rho[i]*(2-(1-Ar_rho[i])/(1-ropt));
-		else sigmap_rho[i]=sigmap_rho[i]/(2-Ar_rho[i]/ropt);
-		nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		if (viscell[i]>0) {
+		    Ar_rho[i]=((double) nA_rho[i])/DIV;
+		    if (Ar_rho[i]>=ropt) sigmap_rho[i]=sigmap_rho[i]*(2-(1-Ar_rho[i])/(1-ropt));
+		    else sigmap_rho[i]=sigmap_rho[i]/(2-Ar_rho[i]/ropt);
+		    nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		}
 	    }
 	}
         /* After the burnin period */
-	if((g+1)%DIV==0 && (g+1)>NBURN){
+	if ((g+1)%DIV==0 && (g+1)>NBURN) {
 	    // beta
 	    for (int p=0; p<NP; p++) {
 		Ar_beta[p]=((double) nA_beta[p])/DIV;
@@ -730,8 +724,10 @@ void hSDM_site_occupancy (
 	    }
 	    // rho
 	    for (int i=0; i<NCELL; i++) {
-		Ar_rho[i]=((double) nA_rho[i])/DIV;
-		nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		if (viscell[i]>0) {
+		    Ar_rho[i]=((double) nA_rho[i])/DIV;
+		    nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		}
 	    }
 	}
 
@@ -743,7 +739,7 @@ void hSDM_site_occupancy (
 	    Rprintf("*");
 	    R_FlushConsole();
 	    //R_ProcessEvents(); for windows
-	    if(((g+1)%(NGIBBS/10))==0){
+	    if (((g+1)%(NGIBBS/10))==0) {
 	    	double mAr_beta=0; // Mean acceptance rate
 	    	double mAr_gamma=0;
 	    	double mAr_rho=0;
@@ -811,6 +807,8 @@ void hSDM_site_occupancy (
     free(dens_data.Vgamma);
     free(dens_data.gamma_run);
     free(prob_q_run);
+    /* Visited cells */
+    free(viscell);
     /* Predictions */
     free(IdCell_pred);
     for (int m=0; m<NPRED; m++) {

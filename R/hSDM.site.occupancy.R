@@ -4,7 +4,7 @@
 ##
 ####################################################################
 ##
-## Original code by Ghislain Vieilledent, October 2011
+## Original code by Ghislain Vieilledent, November 2013
 ## CIRAD UR B&SEF
 ## ghislain.vieilledent@cirad.fr / ghislainv@gmail.com
 ##
@@ -19,7 +19,7 @@
 ####################################################################
 ##
 ## Revisions: 
-## - G. Vieilledent, on November 25th 2013
+## - G. Vieilledent, on November 20th 2013
 ##
 ####################################################################
 
@@ -54,6 +54,7 @@ hSDM.site.occupancy <- function (# Observations
   check.mcmc.parameters(burnin, mcmc, thin)
   check.verbose(verbose)
   check.save.rho(save.rho)
+  check.save.p(save.p)
    
   #======== 
   # Form response, covariate matrices and model parameters
@@ -70,8 +71,6 @@ hSDM.site.occupancy <- function (# Observations
   mf.obs <- model.frame(formula=observability,data=data)
   W <- model.matrix(attr(mf.obs,"terms"),data=mf.obs)
   #= Spatial correlation
-  n.neighbors <- n.neighbors
-  neighbors <- neighbors
   ncell <- length(n.neighbors)
   cells <- spatial.entity
   #= Predictions
