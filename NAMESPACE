@@ -8,6 +8,7 @@ export(hSDM.binomial,
        hSDM.hierarchical.binomial,
        hSDM.hierarchical.poisson,
        hSDM.site.occupancy,
+       hSDM.Nmixture,
        inv.logit,
        logit)
 

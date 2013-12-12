@@ -158,8 +158,8 @@ suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
   \item{mcmc}{An mcmc object that contains the posterior sample. This
     object can be summarized by functions provided by the coda
     package. The posterior sample of the deviance \eqn{D}{D}, with
-    \eqn{D=-2\log(\prod_i P(y_i,n_i|u_i,\beta,\gamma,\rho_i))}{%
-      D=-2log(prod_i P(y_i,n_i|u_i,beta,gamma,rho_i))}, is also
+    \eqn{D=-2\log(\prod_i P(y_i,z_i|...))}{%
+      D=-2log(prod_i P(y_i,z_i|...))}, is also
     provided.}
 
   \item{rho.pred}{If \code{save.rho} is set to 0 (default),

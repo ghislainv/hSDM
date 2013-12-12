@@ -109,6 +109,21 @@ check.save.p <- function (save.p) {
 
 ##=======================================================================
 ##
+## Check save.N
+##
+##=======================================================================
+
+check.save.N <- function (save.N) {
+  if (!(save.N %in% c(0,1))) {
+    cat("Error: save.N must take value 0 or 1.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  return(0)
+}
+
+##=======================================================================
+##
 ## Check data
 ##
 ##=======================================================================
@@ -155,6 +170,25 @@ check.Y.poisson <- function (Y,T) {
   }
   if (sum(Y!=0 & T==0)>0) {
     cat("Error: 'counts' must be zero when 'trials' equals zero.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  return(0)
+}
+
+check.Y.poisson.2 <- function (Y) {
+  if(!is.numeric(Y)) {
+    cat("Error: 'counts' must be a vector of numeric values.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if (sum(is.na(Y))>0) {
+    cat("Error: 'counts' must not contain missing values.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if (sum(Y<0 | Y%%1!=0)>0) {
+    cat("Error: 'counts' must be a vector of positive integers.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
