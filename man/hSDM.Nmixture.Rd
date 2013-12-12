@@ -1,0 +1,297 @@
+\name{hSDM.Nmixture}
+\alias{hSDM.Nmixture}
+
+\title{The \code{hSDM.Nmixture} function can be used to model
+  species distribution including different processes in a hierarchical
+  Bayesian framework: a \eqn{\mathcal{P}oisson}{Poisson} suitability
+  process (refering to environmental suitability) which takes into
+  account the spatial dependence of the observations, and a
+  \eqn{\mathcal{B}inomial}{Binomial} observability process (refering to various
+  ecological and methodological issues explaining the species
+  detection).}
+
+\description{The \code{hSDM.Nmixture} function calls a
+  Gibbs sampler written in C code which uses a Metropolis algorithm to
+  estimate the conditional posterior distribution of hierarchical
+  model's parameters.}
+
+\usage{hSDM.Nmixture(# Observations
+                     counts, observability, spatial.entity, data.observability,
+                     # Habitat
+                     suitability, data.suitability,
+                     # Spatial structure
+                     n.neighbors, neighbors,
+                     # Predictions
+                     suitability.pred = NULL, spatial.entity.pred = NULL,
+                     # Chains
+                     burnin = 5000, mcmc = 10000, thin = 10,
+                     # Starting values
+                     beta.start,
+                     gamma.start,
+                     Vrho.start,
+                     # Priors
+                     mubeta  =  0, Vbeta = 1.0E6,
+                     mugamma  =  0, Vgamma = 1.0E6,
+                     priorVrho = "1/Gamma",
+                     shape = 0.5, rate = 0.0005,
+                     Vrho.max = 1000,
+                     # Various
+                     seed = 1234, verbose = 1,
+                     save.rho = 0, save.p = 0, save.N = 0)}
+
+\arguments{
+  
+  \item{counts}{A vector indicating the count (or abundance) for each
+    observation.}
+
+  \item{observability}{A one-sided formula of the form
+    \eqn{\sim w_1+...+w_q}{'~w_1+...+w_q'} with \eqn{q} terms specifying the
+    explicative variables for the observability process.}
+  
+  \item{spatial.entity}{A vector indicating the spatial entity
+    identifier (from one to the total number of entities) for each
+    observation. Several observations can occur in one spatial entity. A
+    spatial entity can be a raster cell for example.}
+
+  \item{data.observability}{A data frame containing the model's
+    variables for the observability process.}
+
+  \item{suitability}{A one-sided formula of the form
+    \eqn{\sim x_1+...+x_p}{'~x_1+...+x_p'} with \eqn{p} terms specifying the
+    explicative variables for the suitability process.}
+
+  \item{data.suitability}{A data frame containing the model's
+    variables for the suitability process.}
+
+  \item{n.neighbors}{A vector of integers that indicates the number of
+    neighbors (adjacent entities) of each spatial
+    entity. \code{length(n.neighbors)} indicates the total number of
+    spatial entities.}
+  
+  \item{neighbors}{A vector of integers indicating the neighbors
+    (adjacent entities) of each spatial entity. Must be of the form
+    c(neighbors of entity 1, neighbors of entity 2, ... , neighbors of
+    the last entity). Length of the \code{neighbors} vector should be
+    equal to \code{sum(n.neighbors)}.}
+
+  \item{suitability.pred}{An optional data frame in which to look for
+    variables with which to predict. If NULL, the observations are
+    used.}
+
+  \item{spatial.entity.pred}{An optional vector indicating the spatial
+    entity identifier (from one to the total number of entities) for
+    predictions. If NULL, the vector \code{spatial.entity} for
+    observations is used.}
+
+  \item{burnin}{The number of burnin iterations for the sampler.}
+    
+  \item{mcmc}{The number of Gibbs iterations for the sampler. Total
+    number of Gibbs iterations is equal to
+    \code{burnin+mcmc}. \code{burnin+mcmc} must be divisible by 10 and
+    superior or equal to 100 so that the progress bar can be displayed.}
+    
+  \item{thin}{The thinning interval used in the simulation. The number
+    of mcmc iterations must be divisible by this value.}
+
+  \item{beta.start}{Starting values for \eqn{\beta}{beta} parameters of
+    the suitability process. This can either be a scalar or a
+    \eqn{p}-length vector.}
+
+  \item{gamma.start}{Starting values for \eqn{\beta}{gamma} parameters
+    of the observability process. This can either be a scalar or a
+    \eqn{q}-length vector.}
+  
+  \item{Vrho.start}{Positive scalar indicating the starting value for the
+    variance of the spatial random effects.}
+
+  \item{mubeta}{Means of the priors for the \eqn{\beta}{beta} parameters
+  of the suitability process. \code{mubeta} must be either a scalar or a
+  p-length vector. If \code{mubeta} takes a scalar value, then that value will
+  serve as the prior mean for all of the betas. The default value is set
+  to 0 for an uninformative prior.}
+
+  \item{Vbeta}{Variances of the Normal priors for the \eqn{\beta}{beta}
+  parameters of the suitability process. \code{Vbeta} must be either a
+  scalar or a p-length vector. If \code{Vbeta} takes a scalar value,
+  then that value will serve as the prior variance for all of the
+  betas. The default variance is large and set to 1.0E6 for an
+  uninformative flat prior.}
+
+  \item{mugamma}{Means of the Normal priors for the \eqn{\gamma}{gamma}
+  parameters of the observability process. \code{mugamma} must be either
+  a scalar or a p-length vector. If \code{mugamma} takes a scalar value,
+  then that value will serve as the prior mean for all of the
+  gammas. The default value is set to 0 for an uninformative prior.}
+
+  \item{Vgamma}{Variances of the Normal priors for the
+  \eqn{\gamma}{gamma} parameters of the observability
+  process. \code{Vgamma} must be either a scalar or a p-length
+  vector. If \code{Vgamma} takes a scalar value, then that value will
+  serve as the prior variance for all of the gammas. The default
+  variance is large and set to 1.0E6 for an uninformative flat prior.}
+
+  \item{priorVrho}{Type of prior for the variance of the spatial random
+  effects. Can be set to a fixed positive scalar, or to an inverse-gamma
+  distribution ("1/Gamma") with parameters \code{shape} and \code{rate},
+  or to a uniform distribution ("Uniform") on the interval
+  [0,\code{Vrho.max}]. Default set to "1/Gamma".}
+
+  \item{shape}{The shape parameter for the Gamma prior on the precision
+  of the spatial random effects. Default value is \code{shape=0.05} for
+  uninformative prior.}
+
+  \item{rate}{The rate (1/scale) parameter for the Gamma prior on the
+    precision of the spatial random effects. Default value is
+    \code{rate=0.0005} for uninformative prior.}
+
+  \item{Vrho.max}{Upper bound for the uniform prior of the spatial
+    random effect variance. Default set to 1000.}
+ 
+  \item{seed}{The seed for the random number generator. Default set to
+  1234.}
+  
+  \item{verbose}{A switch (0,1) which determines whether or not the
+    progress of the sampler is printed to the screen. Default is 1: a
+    progress bar is printed, indicating the step (in \%) reached by the
+    Gibbs sampler.}
+
+  \item{save.rho}{A switch (0,1) which determines whether or not the
+    sampled values for rhos are saved. Default is 0: the posterior mean
+    is computed and returned in the \code{rho.pred} vector. Be careful,
+    setting \code{save.rho} to 1 might require a large amount of
+    memory.}
+
+  \item{save.p}{A switch (0,1) which determines whether or not the
+    sampled values for predictions are saved. Default is 0: the
+    posterior mean is computed and returned in the \code{prob.p.pred}
+    vector. Be careful, setting \code{save.p} to 1 might require a large
+    amount of memory.}
+
+  \item{save.N}{A switch (0,1) which determines whether or not the
+    sampled values for the latent count variable N for each observed
+    cells are saved. Default is 0: the mean (rounded to the closest
+    integer) is computed and returned in the \code{N.pred} vector. Be
+    careful, setting \code{save.N} to 1 might require a large amount of
+    memory.}
+
+}
+
+\value{
+  
+  \item{mcmc}{An mcmc object that contains the posterior sample. This
+    object can be summarized by functions provided by the coda
+    package. The posterior sample of the deviance \eqn{D}{D}, with
+    \eqn{D=-2\log(\prod_i P(y_i,N_i|...))}{%
+      D=-2log(prod_i P(y_i,N_i|...))}, is also
+    provided.}
+
+  \item{rho.pred}{If \code{save.rho} is set to 0 (default),
+    \code{rho.pred} is the predictive posterior mean of the spatial
+    random effect associated to each spatial entity. If \code{save.rho} is
+    set to 1, \code{rho.pred} is an \code{mcmc} object with sampled
+    values for each spatial random effect associated to each spatial
+    entity.}
+
+  \item{prob.p.pred}{If \code{save.p} is set to 0 (default),
+    \code{prob.p.pred} is the predictive posterior mean of the
+    probability associated to the suitability process for each
+    prediction. If \code{save.p} is set to 1, \code{prob.p.pred} is an
+    \code{mcmc} object with sampled values of the probability associated
+    to the suitability process for each prediction.}
+
+  \item{N.pred}{If \code{save.N} is set to 0 (default), \code{N.pred} is
+    the posterior mean (rounded to the closest integer) of the latent
+    count variable N for each observed cell. If \code{save.N} is set to 1,
+    \code{N.pred} is an \code{mcmc} object with sampled values of the
+    latent count variable N for each observed cell.}
+  
+  \item{prob.p.latent}{Predictive posterior mean of the probability
+    associated to the suitability process for each observation.}
+  
+  \item{prob.q.latent}{Predictive posterior mean of the probability
+  associated to the observability process for each observation.}
+  
+}
+
+\details{
+
+  The model integrates two processes, an ecological process associated
+  to the presence or absence of the species due to habitat suitability
+  and an observation process that takes into account the fact that the
+  probability of detection of the species is inferior to one. The
+  ecological process includes an intrinsic conditional autoregressive
+  model (iCAR) model for spatial autocorrelation between observations,
+  assuming that the probability of presence of the species at one site
+  depends on the probability of presence of the species on neighboring
+  sites.
+
+  \bold{Ecological process:}
+  \deqn{N_i \sim \mathcal{P}oisson(\lambda_i)}{N_i ~ Poisson(lambda_i)}
+  \deqn{log(\lambda_i) = X_i \beta + \rho_i}{log(lambda_i) = X_i *
+    beta + rho_i}
+  \eqn{\rho_i}{rho_i}: spatial random effect
+  
+  \bold{Spatial autocorrelation:}
+  
+  An intrinsic conditional autoregressive model (iCAR) is assumed:
+  \deqn{\rho_i \sim \mathcal{N}ormal(\mu_i,V_{\rho} / n_i)}{rho_i ~
+    Normal(mu_i,V_rho / n_i)}
+  \eqn{\mu_i}{mu_i}: mean of \eqn{\rho_{i'}}{rho_i'} in the
+  neighborhood of \eqn{i}.
+  
+  \eqn{V_{\rho}}{V_rho}: variance of the spatial random effects.
+  
+  \eqn{n_i}{n_i}: number of neighbors for spatial entity \eqn{i}.
+  
+  \bold{Observation process:}
+  \deqn{y_i \sim \mathcal{B}inomial(N_i, \delta_i)}{y_i ~ Binomial(N_i, delta_i)}
+  \deqn{logit(\delta_i) = W_i \gamma}{logit(delta_i) = W_i * gamma} 
+
+}
+
+\references{
+
+  Gelfand, A. E.; Schmidt, A. M.; Wu, S.; Silander, J. A.; Latimer, A. and
+  Rebelo, A. G. (2005) Modelling species diversity through species level
+  hierarchical modelling. \emph{Applied Statistics}, 54, 1-20.
+  
+  Gilks, W. R., Best, N. G. and Tan, K. K. C. (1995) Adaptive rejection
+  Metropolis sampling. \emph{Applied Statistics}, 44, 455-472.
+  
+  Latimer, A. M.; Wu, S. S.; Gelfand, A. E. and Silander, J. A. (2006) Building
+  statistical models to analyze species distributions. \emph{Ecological
+    Applications}, 16, 33-50.
+
+  MacKenzie, D. I.; Nichols, J. D.; Lachman, G. B.; Droege, S.; Andrew
+  Royle, J. and Langtimm, C. A. (2002) Estimating site occupancy rates when
+  detection probabilities are less than one. \emph{Ecology}, 83, 2248-2255.
+
+}
+
+\author{
+  Ghislain Vieilledent \email{ghislain.vieilledent@cirad.fr}
+}
+
+\seealso{
+  \code{\link[coda]{plot.mcmc}}, \code{\link[coda]{summary.mcmc}}
+}
+
+\examples{
+
+\dontrun{
+  To be done
+}
+
+}
+
+\keyword{biodiversity}
+\keyword{species distribution models}
+\keyword{hierarchical Bayesian models}
+\keyword{N-mixture models}
+\keyword{spatial correlation}
+\keyword{intrinsic CAR model}
+\keyword{conditional autoregressive model}
+\keyword{MCMC}
+\keyword{Markov Chains Monte Carlo}
+\keyword{Metropolis algorithm}
+\keyword{ZIB models}
