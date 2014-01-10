@@ -202,19 +202,19 @@ hSDM.site.occupancy <- function (# Observations
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save rho
-  if (save.rho==0) {rho.pred=Sample[[23]]}
+  if (save.rho==0) {rho.pred <- Sample[[23]]}
   if (save.rho==1) {
-      Matrix.rho.pred=matrix(Sample[[23]],ncol=ncell)
+      Matrix.rho.pred <- matrix(Sample[[23]],ncol=ncell)
       colnames(Matrix.rho.pred) <- paste("rho.",c(1:ncell),sep="")
-      rho.pred=mcmc(Matrix.rho.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      rho.pred <- mcmc(Matrix.rho.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Save pred
-  if (save.p==0) {prob.p.pred=Sample[[36]]}
+  if (save.p==0) {prob.p.pred <- Sample[[36]]}
   if (save.p==1) {
-      Matrix.p.pred=matrix(Sample[[36]],ncol=npred)
+      Matrix.p.pred <- matrix(Sample[[36]],ncol=npred)
       colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
-      prob.p.pred=mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Output
