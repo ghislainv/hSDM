@@ -261,7 +261,6 @@ suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
 
 #============
 #== Preambule
-library(lme4)
 library(hSDM)
 library(raster)
 library(sp)
@@ -276,6 +275,8 @@ seed <- 1234
 # Target parameters
 beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
 gamma.target <- matrix(c(0.2),ncol=1) #= This means that theta.2~0.5: 50\% of chance to detect the species
+## Uncomment if you want covariates on the observability process
+## gamma.target <- matrix(c(0.2,0.5,0.5),ncol=1)
 Vrho.target <- 1 # Spatial Variance
 
 # Landscape
@@ -328,6 +329,12 @@ X2 <- X2.cell[cells]
 X <- cbind(rep(1,nobs),X1,X2)
 
 # Covariates for "observability" process
+## Uncomment if you want covariates on the observability process 
+## set.seed(3*seed)
+## W1 <- rnorm(n=nobs,0,1)
+## set.seed(4*seed)
+## W2 <- rnorm(n=nobs,0,1)
+## W <- cbind(rep(1,nobs),W1,W2)
 W <- cbind(rep(1,nobs))
 
 #== Simulating latent variables
@@ -354,7 +361,9 @@ y.2 <- rbinom(nobs,trials,theta.2)
 Y <- y.2*y.1
 
 #== Data-set
-Data <- data.frame(Y,trials,cells,X1,X2,W1,W2)
+Data <- data.frame(Y,trials,cells,X1,X2)
+## Uncomment if you want covariates on the observability process 
+## Data <- data.frame(Y,trials,cells,X1,X2,W1,W2)
 Data <- SpatialPointsDataFrame(coords=coords,data=Data)
 plot(Data)
 
@@ -385,7 +394,7 @@ mod.hSDM.site.occupancy <- hSDM.site.occupancy(presences=Data$Y,
                                                #priorVrho=10,
                                                mubeta=0, Vbeta=1.0E6,
                                                shape=0.5, rate=0.0005,
-                                               Vrho.max=1000,
+                                               #Vrho.max=1000,
                                                seed=1234, verbose=1,
                                                save.rho=1, save.p=0)
 

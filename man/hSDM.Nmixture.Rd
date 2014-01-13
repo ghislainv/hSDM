@@ -262,9 +262,8 @@
   statistical models to analyze species distributions. \emph{Ecological
     Applications}, 16, 33-50.
 
-  MacKenzie, D. I.; Nichols, J. D.; Lachman, G. B.; Droege, S.; Andrew
-  Royle, J. and Langtimm, C. A. (2002) Estimating site occupancy rates when
-  detection probabilities are less than one. \emph{Ecology}, 83, 2248-2255.
+  Royle, J. A. (2004) N-mixture models for estimating population size from
+  spatially replicated counts. \emph{Biometrics}, 60, 108-115.
 
 }
 
@@ -287,7 +286,6 @@
 
 #============
 #== Preambule
-library(lme4)
 library(hSDM)
 library(raster)
 library(sp)
@@ -302,6 +300,8 @@ seed <- 1234
 # Target parameters
 beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
 gamma.target <- matrix(c(0.2),ncol=1) #= This means that theta.2~0.5: 50\% of chance to detect the species
+## Uncomment if you want covariates on the observability process
+## gamma.target <- matrix(c(0.2,0.5,0.5),ncol=1)
 Vrho.target <- 1 # Spatial Variance
 
 # Landscape
@@ -352,6 +352,12 @@ X2 <- rnorm(n=ncell,0,1)
 X <- cbind(rep(1,ncell),X1,X2)
 
 # Covariates for "observability" process
+## Uncomment if you want covariates on the observability process 
+## set.seed(3*seed)
+## W1 <- rnorm(n=nobs,0,1)
+## set.seed(4*seed)
+## W2 <- rnorm(n=nobs,0,1)
+## W <- cbind(rep(1,nobs),W1,W2)
 W <- cbind(rep(1,nobs))
 
 #== Simulating latent variables
@@ -372,7 +378,9 @@ set.seed(seed)
 Y <- rbinom(nobs,N[cells],theta)
 
 #== Data-sets
-Data.obs <- data.frame(Y,cells,W1,W2)
+Data.obs <- data.frame(Y,cells)
+## Uncomment if you want covariates on the observability process 
+## Data.obs <- data.frame(Y,cells,W1,W2)
 Data.suit <- data.frame(cells=c(1:ncell),X1,X2)
 Data.obs <- SpatialPointsDataFrame(coords=coords,data=Data.obs)
 plot(Data.obs)
@@ -395,16 +403,17 @@ mod.hSDM.Nmixture <- hSDM.Nmixture(# Observations
                                    # Starting values
                                    beta.start=0,
                                    gamma.start=0,
-                                   Vrho.start=1,
+                                   Vrho.start=10,
                                    # Priors
                                    mubeta=0, Vbeta=1.0E6,
                                    mugamma=0, Vgamma=1.0E6,
                                    priorVrho="1/Gamma",
-                                   # shape=0.5, rate=0.0005,
-                                   shape=0.1, rate=0.1,
-                                   Vrho.max=1000,
+                                   #priorVrho="Uniform",
+                                   #priorVrho=10,
+                                   shape=0.5, rate=0.0005,
+                                   #Vrho.max=1000,
                                    # Various
-                                   seed=seed, verbose=1,
+                                   seed=1234, verbose=1,
                                    save.rho=0, save.p=0, save.N=1)
 
 #==========
