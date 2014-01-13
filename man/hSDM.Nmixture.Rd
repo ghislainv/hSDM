@@ -181,8 +181,8 @@
   \item{mcmc}{An mcmc object that contains the posterior sample. This
     object can be summarized by functions provided by the coda
     package. The posterior sample of the deviance \eqn{D}{D}, with
-    \eqn{D=-2\log(\prod_i P(y_i,N_i|...))}{%
-      D=-2log(prod_i P(y_i,N_i|...))}, is also
+    \eqn{D=-2\log(\prod_{it} P(y_{it},N_i|...))}{%
+      D=-2log(prod_it P(y_it,N_i|...))}, is also
     provided.}
 
   \item{rho.pred}{If \code{save.rho} is set to 0 (default),
@@ -244,8 +244,8 @@
   \eqn{n_i}{n_i}: number of neighbors for spatial entity \eqn{i}.
   
   \bold{Observation process:}
-  \deqn{y_i \sim \mathcal{B}inomial(N_i, \delta_i)}{y_i ~ Binomial(N_i, delta_i)}
-  \deqn{logit(\delta_i) = W_i \gamma}{logit(delta_i) = W_i * gamma} 
+  \deqn{y_{it} \sim \mathcal{B}inomial(N_i, \delta_{it})}{y_it ~ Binomial(N_i, delta_it)}
+  \deqn{logit(\delta_{it}) = W_{it} \gamma}{logit(delta_it) = W_it * gamma} 
 
 }
 
@@ -279,7 +279,195 @@
 \examples{
 
 \dontrun{
-  To be done
+
+#==============================================
+# hSDM.Nmixture()
+# Example with simulated data
+#==============================================
+
+#============
+#== Preambule
+library(lme4)
+library(hSDM)
+library(raster)
+library(sp)
+library(mvtnorm)
+
+#==================
+#== Data simulation
+
+# Set seed for repeatability
+seed <- 1234
+
+# Target parameters
+beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
+gamma.target <- matrix(c(0.2),ncol=1) #= This means that theta.2~0.5: 50\% of chance to detect the species
+Vrho.target <- 1 # Spatial Variance
+
+# Landscape
+Landscape <- raster(ncol=20,nrow=20,crs='+proj=utm +zone=1')
+ncell <- ncell(Landscape)
+
+# Neighbors
+neighbors.mat <- adjacent(Landscape, cells=c(1:ncell), directions=8, pairs=TRUE, sorted=TRUE)
+n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
+adj <- neighbors.mat[,2]
+
+# Generate symmetric adjacency matrix, A
+A <- matrix(0,ncell,ncell)
+index.start <- 1
+for (i in 1:ncell) {
+    index.end <- index.start+n.neighbors[i]-1
+    A[i,adj[c(index.start:index.end)]] <- 1
+    index.start <- index.end+1
+}
+
+# Spatial effects
+d <- 1	# Spatial dependence parameter = 1 for intrinsic CAR
+Q <- diag(n.neighbors)-d*A + diag(.0001,ncell) # Add small constant to make Q non-singular
+covrho <- Vrho.target*solve(Q) # Covariance of rhos
+set.seed(seed)
+rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
+rho <- rho-mean(rho) # Centering rhos on zero
+
+# Visited cells
+n.visited <- 150 # Compare with 400, 350 and 100 for example
+set.seed(seed)
+visited.cells <- sort(sample(1:ncell,n.visited,replace=FALSE)) # Draw visited cells at random
+notvisited.cells <- c(1:ncell)[-visited.cells]
+
+# Number of observations
+nobs <- 300
+
+# Cell vector
+set.seed(seed)
+cells <- c(visited.cells,sample(visited.cells,nobs-n.visited,replace=TRUE))
+coords <- xyFromCell(Landscape,cells) # Get coordinates
+
+# Covariates for "suitability" process
+set.seed(seed)
+X1 <- rnorm(n=ncell,0,1) # Here, we decided to define one habitat by spatial entity (raster cell)
+set.seed(2*seed)
+X2 <- rnorm(n=ncell,0,1)
+X <- cbind(rep(1,ncell),X1,X2)
+
+# Covariates for "observability" process
+W <- cbind(rep(1,nobs))
+
+#== Simulating latent variables
+
+# Suitability
+log.lambda <- vector()
+log.lambda <- X\%*\%beta.target+rho
+lambda <- exp(log.lambda)
+set.seed(seed)
+N <- rpois(ncell,lambda)
+
+# Observability
+logit.theta <- W\%*\%gamma.target
+theta <- inv.logit(logit.theta)
+
+#== Simulating response variable
+set.seed(seed)
+Y <- rbinom(nobs,N[cells],theta)
+
+#== Data-sets
+Data.obs <- data.frame(Y,cells,W1,W2)
+Data.suit <- data.frame(cells=c(1:ncell),X1,X2)
+Data.obs <- SpatialPointsDataFrame(coords=coords,data=Data.obs)
+plot(Data.obs)
+Data.pred <- Data.suit
+
+#==================================
+#== N-mixture model
+
+mod.hSDM.Nmixture <- hSDM.Nmixture(# Observations
+                                   counts=Data.obs$Y, observability=~1,
+                                   spatial.entity=Data.obs$cells, data.observability=Data.obs,
+                                   # Habitat
+                                   suitability=~X1+X2, data.suitability=Data.suit,
+                                   # Spatial structure
+                                   n.neighbors=n.neighbors, neighbors=adj,
+                                   # Predictions
+                                   suitability.pred=Data.pred, spatial.entity.pred=Data.pred$cells,
+                                   # Chains
+                                   burnin=10000, mcmc=10000, thin=10,
+                                   # Starting values
+                                   beta.start=0,
+                                   gamma.start=0,
+                                   Vrho.start=1,
+                                   # Priors
+                                   mubeta=0, Vbeta=1.0E6,
+                                   mugamma=0, Vgamma=1.0E6,
+                                   priorVrho="1/Gamma",
+                                   # shape=0.5, rate=0.0005,
+                                   shape=0.1, rate=0.1,
+                                   Vrho.max=1000,
+                                   # Various
+                                   seed=seed, verbose=1,
+                                   save.rho=0, save.p=0, save.N=1)
+
+#==========
+#== Outputs
+
+#= Parameter estimates
+summary(mod.hSDM.Nmixture$mcmc)
+
+#= MCMC and posteriors
+pdf(file="Posteriors_hSDM.Nmixture.pdf")
+plot(mod.hSDM.Nmixture$mcmc)
+dev.off()
+
+pdf(file="Posteriors.rho_hSDM.Nmixture.pdf")
+plot(mod.hSDM.Nmixture$rho.pred)
+dev.off()
+
+pdf(file="Posteriors.N_hSDM.Nmixture.pdf")
+plot(mod.hSDM.Nmixture$N.pred)
+dev.off()
+
+#= Check that Ns are correctly estimated
+M <- as.matrix(mod.hSDM.Nmixture$N.pred)
+N.est <- apply(M,2,mean)
+Y.by.cell <- tapply(Data.obs$Y,Data.obs$cells,mean)
+pdf(file="Check_N.pdf",width=10,height=5)
+par(mfrow=c(1,2))
+plot(Y.by.cell, N.est) ## More individuals are expected in reality (N > Y) due to detection process
+abline(a=0,b=1,col="red")
+plot(N[visited.cells], N.est) ## N are well estimated
+abline(a=0,b=1,col="red")
+cor(N[visited.cells], N.est) ## Close to 1
+dev.off()
+
+#= Summary plots
+
+# rho
+r.rho <- r.rho.pred <- r.visited <- Landscape
+r.rho[] <- rho
+rho.pred <- mod.hSDM.Nmixture$rho.pred # apply(mod.hSDM.Nmixture$rho.pred,2,mean)
+r.rho.pred[] <- rho.pred
+r.visited[] <- 0
+r.visited[visited.cells] <- 1
+# prob.p
+r.prob.p <- Landscape
+r.prob.p[] <- mod.hSDM.Nmixture$prob.p.pred
+
+pdf(file="Summary_hSDM.Nmixture.pdf")
+par(mfrow=c(3,2))
+plot(r.rho, main="rho target")
+plot(r.visited,main="Visited cells and presences")
+plot(Data.obs[Y>0,],add=TRUE,pch=16,cex=0.5)
+plot(r.rho.pred, main="rho estimated")
+plot(rho[visited.cells],rho.pred[visited.cells],
+     xlab="rho target",
+     ylab="rho estimated")
+points(rho[notvisited.cells],rho.pred[notvisited.cells],pch=16,col="blue")
+legend(x=-4,y=3.5,legend="Unvisited cells",col="blue",pch=16,bty="n")
+abline(a=0,b=1,col="red")
+plot(r.prob.p,main="Proba of presence")
+plot(Data.obs[Y>0,],add=TRUE,pch=16,cex=0.5)
+dev.off()
+
 }
 
 }

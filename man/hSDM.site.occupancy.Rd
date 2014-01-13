@@ -271,7 +271,7 @@ library(mvtnorm)
 #== Data simulation
 
 # Set seed for repeatability
-set.seed(1234)
+seed <- 1234
 
 # Target parameters
 beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
@@ -300,11 +300,13 @@ for (i in 1:ncell) {
 d <- 1	# Spatial dependence parameter = 1 for intrinsic CAR
 Q <- diag(n.neighbors)-d*A + diag(.0001,ncell) # Add small constant to make Q non-singular
 covrho <- Vrho.target*solve(Q) # Covariance of rhos
+set.seed(seed)
 rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
 rho <- rho-mean(rho) # Centering rhos on zero
 
 # Visited cells
 n.visited <- 150 # Compare with 400, 350 and 100 for example
+set.seed(seed)
 visited.cells <- sort(sample(1:ncell,n.visited,replace=FALSE)) # Draw visited cells at random
 notvisited.cells <- c(1:ncell)[-visited.cells]
 
@@ -312,20 +314,20 @@ notvisited.cells <- c(1:ncell)[-visited.cells]
 nobs <- 300
 
 # Cell vector
+set.seed(seed)
 cells <- c(visited.cells,sample(visited.cells,nobs-n.visited,replace=TRUE))
 coords <- xyFromCell(Landscape,cells) # Get coordinates
 
 # Covariates for "suitability" process
+set.seed(seed)
 X1.cell <- rnorm(n=ncell,0,1) # Here, we decided to define one habitat by spatial entity (raster cell)
+set.seed(2*seed)
 X2.cell <- rnorm(n=ncell,0,1)
 X1 <- X1.cell[cells]
 X2 <- X2.cell[cells]
 X <- cbind(rep(1,nobs),X1,X2)
 
 # Covariates for "observability" process
-W1 <- rnorm(n=nobs,0,1)
-W2 <- rnorm(n=nobs,0,1)
-#W <- cbind(rep(1,nobs),W1,W2)
 W <- cbind(rep(1,nobs))
 
 #== Simulating latent variables
@@ -336,13 +338,16 @@ for (n in 1:nobs) {
   logit.theta.1[n] <- X[n,]\%*\%beta.target+rho[cells[n]]
 }
 theta.1 <- inv.logit(logit.theta.1)
+set.seed(seed)
 y.1 <- rbinom(nobs,1,theta.1)
 
 # Observability
+set.seed(seed)
 trials <- rpois(nobs,5)	# Number of trial associated to each observation
 trials[trials==0] <- 1
 logit.theta.2 <- W\%*\%gamma.target
 theta.2 <- inv.logit(logit.theta.2)
+set.seed(seed)
 y.2 <- rbinom(nobs,trials,theta.2)
 
 #== Simulating response variable
@@ -357,19 +362,8 @@ plot(Data)
 Data.pred <- data.frame(X1=X1.cell,X2=X2.cell,cells=c(1:ncell))
 
 #==================================
-#== Statistical modelling
+#== Site-occupancy model
 
-#== glm resolution to compare
-mod.glm <- glm(cbind(Y,trials-Y)~X1+X2,data=Data,family="binomial")
-summary(mod.glm)
-
-#== glmm (mixed models) resolution to compare
-#== cell random effects without spatial correlation
-mod.glmm <- lmer(cbind(Y,trials-Y)~X1+X2+(1|cells),data=Data,family="binomial")  # Non-spatial random effect fit
-summary(mod.glmm)
-beta.hat.glmm <- fixef(mod.glmm)
-
-#== hSDM.site.occupancy
 mod.hSDM.site.occupancy <- hSDM.site.occupancy(presences=Data$Y,
                                                trials=Data$trials,
                                                suitability=~X1+X2,
@@ -383,7 +377,7 @@ mod.hSDM.site.occupancy <- hSDM.site.occupancy(presences=Data$Y,
                                                suitability.pred=Data.pred,
                                                spatial.entity.pred=Data.pred$cells,
                                                burnin=5000, mcmc=5000, thin=5,
-                                               beta.start=beta.hat.glmm,
+                                               beta.start=0,
                                                gamma.start=0,
                                                Vrho.start=10,
                                                priorVrho="1/Gamma",
@@ -397,14 +391,18 @@ mod.hSDM.site.occupancy <- hSDM.site.occupancy(presences=Data$Y,
 
 #==========
 #== Outputs
+
+#= Parameter estimates
 summary(mod.hSDM.site.occupancy$mcmc)
+
+#= MCMC and posteriors
 pdf(file="Posteriors_hSDM.site.occupancy.pdf")
 plot(mod.hSDM.site.occupancy$mcmc)
 dev.off()
 
-## pdf(file="Posteriors.rho_hSDM.site.occupancy.pdf")
-## plot(mod.hSDM.site.occupancy$rho.pred)
-## dev.off()
+pdf(file="Posteriors.rho_hSDM.site.occupancy.pdf")
+plot(mod.hSDM.site.occupancy$rho.pred)
+dev.off()
 
 #= Summary plots
 
