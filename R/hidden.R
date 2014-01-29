@@ -394,22 +394,22 @@ check.neighbors <- function (n.neighbors,ncell,neighbors) {
 
 check.cells <- function (cells,nobs) {
   if(length(cells)!=nobs) {
-    cat("Error: 'cells' must have the same length as the response variable.\n")
+    cat("Error: 'spatial.entity' must have the same length as the response variable.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
   if(!is.numeric(cells)) {
-    cat("Error: 'cells' must be a vector of numeric values.\n")
+    cat("Error: 'spatial.entity' must be a vector of numeric values.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
   if (sum(is.na(cells))>0) {
-    cat("Error: 'cells' must not contain missing values.\n")
+    cat("Error: 'spatial.entity' must not contain missing values.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
   if (sum(cells<=0 | cells%%1!=0)>0) {
-    cat("Error: 'cells' must be a vector of integers superior to zero.\n")
+    cat("Error: 'spatial.entity' must be a vector of integers superior to zero.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }

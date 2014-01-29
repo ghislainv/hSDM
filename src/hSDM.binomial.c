@@ -17,11 +17,6 @@
 // Copyright (C) 2011 Ghislain Vieilledent
 // 
 ////////////////////////////////////////////////////////////////////
-//
-// Revisions: 
-// - G. Vieilledent, on 15 Nov 2012
-//
-////////////////////////////////////////////////////////////////////
 
 
 // C libraries
@@ -97,6 +92,9 @@ void hSDM_binomial (
     const int *Y_vect, // Number of successes (presences)
     const int *T_vect, // Number of trials
     const double *X_vect, // Suitability covariates
+    // Predictions
+    const int *npred, // Number of predictions
+    const double *X_pred_vect, // Suitability covariates for predictions
     // Starting values for M-H
     const double *beta_start,
     // Parameters to save
@@ -105,11 +103,14 @@ void hSDM_binomial (
     const double *mubeta, double *Vbeta,
      // Diagnostic
     double *Deviance,
-    double *prob_p_pred, // Proba of suitability
+    double *prob_p_latent, // Latent proba of suitability (length NOBS) 
+    double *prob_p_pred, // Proba of suitability for predictions (length NPRED)
     // Seeds
     const int *seed,
     // Verbose
-    const int *verbose
+    const int *verbose,
+    // Save and p
+    const int *save_p
     
     ) {
 	
@@ -129,12 +130,17 @@ void hSDM_binomial (
     const int NSAMP=(NGIBBS-NBURN)/NTHIN;
     const int NOBS=nobs[0];
     const int NP=np[0];
+    const int NPRED=npred[0];
 
     ///////////////////////////////////
     // Declaring some useful objects //
-    double *prob_p=malloc(NOBS*sizeof(double));
+    double *prob_p_run=malloc(NOBS*sizeof(double));
     for (int n=0; n<NOBS; n++) {
-	prob_p[n]=0.0;
+	prob_p_run[n]=0.0;
+    }
+    double *prob_p_pred_run=malloc(NPRED*sizeof(double));
+    for (int m=0; m<NPRED; m++) {
+	prob_p_pred_run[m]=0.0;
     }
 
     //////////////////////////////////////////////////////////
@@ -175,18 +181,26 @@ void hSDM_binomial (
 	dens_data.beta_run[p]=beta_start[p];
     }
 
-   ////////////////////////////////////////////////////////////
+    /* Predictions */
+    // X_pred
+    double **X_pred=malloc(NPRED*sizeof(double*));
+    for (int m=0; m<NPRED; m++) {
+    	X_pred[m]=malloc(NP*sizeof(double));
+    	for (int p=0; p<NP; p++) {
+    	    X_pred[m][p]=X_pred_vect[p*NPRED+m];
+    	}
+    }
+
+    ////////////////////////////////////////////////////////////
     // Proposal variance and acceptance for adaptive sampling //
 
     // beta
     double *sigmap_beta = malloc(NP*sizeof(double));
     int *nA_beta = malloc(NP*sizeof(int));
+    double *Ar_beta = malloc(NP*sizeof(double)); // Acceptance rate 
     for (int p=0; p<NP; p++) {
 	nA_beta[p]=0;
 	sigmap_beta[p]=1.0;
-    }
-    double *Ar_beta = malloc(NP*sizeof(double)); // Acceptance rate 
-    for (int p=0; p<NP; p++) {
 	Ar_beta[p]=0.0;
     }
 
@@ -232,13 +246,25 @@ void hSDM_binomial (
 	    for (int p=0; p<NP; p++) {
 		Xpart_prob_p+=dens_data.X[n][p]*dens_data.beta_run[p];
 	    }
-	    prob_p[n]=invlogit(Xpart_prob_p);
+	    prob_p_run[n]=invlogit(Xpart_prob_p);
 	    /* log Likelihood */
-	    logL+=dbinom(dens_data.Y[n],dens_data.T[n],prob_p[n],1);
+	    logL+=dbinom(dens_data.Y[n],dens_data.T[n],prob_p_run[n],1);
 	}
 
 	// Deviance
 	double Deviance_run=-2*logL;
+
+
+	//////////////////////////////////////////////////
+	// Predictions
+	for (int m=0; m<NPRED; m++) {
+	    /* prob_p_pred_run */
+	    double Xpart_prob_p_pred=0.0;
+	    for (int p=0; p<NP; p++) {
+		Xpart_prob_p_pred+=X_pred[m][p]*dens_data.beta_run[p];
+	    }
+	    prob_p_pred_run[m]=invlogit(Xpart_prob_p_pred);
+	}
 
 
 	//////////////////////////////////////////////////
@@ -250,7 +276,18 @@ void hSDM_binomial (
 	    }
 	    Deviance[isamp-1]=Deviance_run;
 	    for (int n=0; n<NOBS; n++) {
-		prob_p_pred[n]+=prob_p[n]/NSAMP; // We compute the mean of NSAMP values
+		prob_p_latent[n]+=prob_p_run[n]/NSAMP; // We compute the mean of NSAMP values
+	    }
+	    // prob.p
+	    if (save_p[0]==0) { // We compute the mean of NSAMP values
+		for (int m=0; m<NPRED; m++) {
+		    prob_p_pred[m]+=prob_p_pred_run[m]/NSAMP; 
+		}
+	    }
+	    if (save_p[0]==1) { // The NSAMP sampled values for prob_p are saved
+		for (int m=0; m<NPRED; m++) {
+		    prob_p_pred[m*NSAMP+(isamp-1)]=prob_p_pred_run[m]; 
+		}
 	    }
 	}
 
@@ -307,7 +344,6 @@ void hSDM_binomial (
     ///////////////
     // Delete memory allocation (see malloc())
     /* Data */
-    free(prob_p);
     free(dens_data.Y);
     free(dens_data.T);
     /* Suitability */
@@ -318,6 +354,17 @@ void hSDM_binomial (
     free(dens_data.mubeta);
     free(dens_data.Vbeta);
     free(dens_data.beta_run);
+    free(prob_p_run);
+    /* Predictions */
+    for (int m=0; m<NPRED; m++) {
+    	free(X_pred[m]);
+    }
+    free(X_pred);
+    free(prob_p_pred_run);
+    /* Adaptive MH */
+    free(sigmap_beta);
+    free(nA_beta);
+    free(Ar_beta);
 
 } // end hSDM function
 

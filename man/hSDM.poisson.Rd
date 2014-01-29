@@ -1,12 +1,13 @@
 \name{hSDM.poisson}
 \alias{hSDM.poisson}
 
-\title{The \code{hSDM.poisson} function performs a Poisson regression in
-  a Bayesian framework.}
+\title{Poisson regression model}
 
-\description{The \code{hSDM.poisson} function calls a Gibbs sampler
-  written in C code which uses a Metropolis algorithm to estimate the
-  conditional posterior distribution of model's parameters.}
+\description{The \code{hSDM.poisson} function performs a Poisson
+  regression in a Bayesian framework. The \code{hSDM.poisson} function
+  calls a Gibbs sampler written in C code which uses an adaptive
+  Metropolis algorithm to estimate the conditional posterior
+  distribution of model's parameters.}
 
 \usage{hSDM.poisson(counts, visits, suitability, data, burnin = 5000, mcmc =
 10000, thin = 10, beta.start, mubeta = 0, Vbeta = 1e+06, seed = 1234,

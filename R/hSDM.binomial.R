@@ -17,20 +17,16 @@
 ## Copyright (C) 2011 Ghislain Vieilledent
 ## 
 ####################################################################
-##
-## Revisions: 
-## - G. Vieilledent, on November 15th 2012
-##
-####################################################################
 
 
 hSDM.binomial <- function (presences, trials,
                            suitability,
-                           data, burnin=5000,
-                           mcmc=10000, thin=10, 
+                           data,
+                           suitability.pred=NULL,
+                           burnin=5000, mcmc=10000, thin=10,
                            beta.start,
                            mubeta=0, Vbeta=1.0E6,
-                           seed=1234, verbose=1)
+                           seed=1234, verbose=1, save.p=0)
 
 {   
   #========
@@ -38,6 +34,7 @@ hSDM.binomial <- function (presences, trials,
   #========
   check.mcmc.parameters(burnin, mcmc, thin)
   check.verbose(verbose)
+  check.save.p(save.p)
    
   #======== 
   # Form response, covariate matrices and model parameters
@@ -50,6 +47,16 @@ hSDM.binomial <- function (presences, trials,
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
+  #= Predictions
+  if (is.null(suitability.pred)) {
+      X.pred <- X
+      npred <- nobs
+  }
+  if (!is.null(suitability.pred)) {
+      mf.pred <- model.frame(formula=suitability,data=suitability.pred)
+      X.pred <- model.matrix(attr(mf.pred,"terms"),data=mf.pred)
+      npred <- nrow(X.pred)
+  }
   #= Model parameters
   np <- ncol(X)
   ngibbs <- mcmc+burnin
@@ -79,7 +86,9 @@ hSDM.binomial <- function (presences, trials,
   # Parameters to save
   #========
   beta <- rep(beta.start,nsamp)
-  prob_p_pred <- rep(0,nobs)
+  prob_p_latent <- rep(0,nobs)
+  if (save.p==0) {prob_p_pred <- rep(0,npred)}
+  if (save.p==1) {prob_p_pred <- rep(0,npred*nsamp)}
   Deviance <- rep(0,nsamp)
 
   #========
@@ -93,6 +102,9 @@ hSDM.binomial <- function (presences, trials,
                Y_vect=as.integer(c(Y)),
                T_vect=as.integer(c(T)),
                X_vect=as.double(c(X)),
+               #= Predictions
+               npred=as.integer(npred),
+               X_pred_vect=as.double(c(X.pred)),
                #= Starting values for M-H
                beta_start=as.double(c(beta.start)),
                #= Parameters to save
@@ -101,11 +113,14 @@ hSDM.binomial <- function (presences, trials,
                mubeta=as.double(c(mubeta)), Vbeta=as.double(c(Vbeta)),
                #= Diagnostic
                Deviance.nonconst=as.double(Deviance),
-               prob_p_pred.nonconst=as.double(prob_p_pred), ## Predictive posterior mean
+               prob_p_latent.nonconst=as.double(prob_p_latent), ## Predictive posterior mean
+               prob_p_pred.nonconst=as.double(prob_p_pred), 
                #= Seed
                seed=as.integer(seed), 
                #= Verbose
                verbose=as.integer(verbose),
+               #= Save p
+               save_p=as.integer(save.p),
                PACKAGE="hSDM")
  
   #= Matrix of MCMC samples
@@ -114,14 +129,22 @@ hSDM.binomial <- function (presences, trials,
   colnames(Matrix) <- c(names.fixed,"Deviance")
   
   #= Filling-in the matrix
-  Matrix[,c(1:np)] <- matrix(Sample[[10]],ncol=np)
-  Matrix[,ncol(Matrix)] <- Sample[[13]]
+  Matrix[,c(1:np)] <- matrix(Sample[[12]],ncol=np)
+  Matrix[,ncol(Matrix)] <- Sample[[15]]
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
+
+  #= Save pred
+  if (save.p==0) {prob.p.pred <- Sample[[17]]}
+  if (save.p==1) {
+      Matrix.p.pred <- matrix(Sample[[17]],ncol=npred)
+      colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
+      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
+  }
   
   #= Output
-  return (list(mcmc=MCMC,prob.p.pred=Sample[[14]]))
+  return (list(mcmc=MCMC, prob.p.pred=prob.p.pred, prob.p.latent=Sample[[16]]))
 
 }
 

@@ -2,13 +2,15 @@ useDynLib(hSDM)
 import(coda)
 
 export(hSDM.binomial,
-       hSDM.poisson,
        hSDM.binomial.iCAR,
-       hSDM.poisson.iCAR,
-       hSDM.hierarchical.binomial,
-       hSDM.hierarchical.poisson,
        hSDM.site.occupancy,
+       hSDM.site.occupancy.iCAR,
+       hSDM.hierarchical.binomial,
+       hSDM.poisson,
+       hSDM.poisson.iCAR,
        hSDM.Nmixture,
+       hSDM.Nmixture.iCAR,
+       hSDM.hierarchical.poisson,
        inv.logit,
        logit)
 

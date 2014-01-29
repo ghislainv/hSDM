@@ -17,11 +17,6 @@
 // Copyright (C) 2011 Ghislain Vieilledent
 // 
 ////////////////////////////////////////////////////////////////////
-//
-// Revisions: 
-// - G. Vieilledent, on November 25th 2013
-//
-////////////////////////////////////////////////////////////////////
 
 
 // C libraries
@@ -47,17 +42,9 @@ struct dens_par {
     int *IdCell;
     int *nObsCell;
     int **PosCell;
-    int *viscell;
     /* Latent variable */
     int *N_run;
     int pos_N;
-    /* Spatial correlation */
-    int *nNeigh;
-    int **Neigh;
-    int pos_rho;
-    double *rho_run;
-    double shape, rate;
-    double Vrho_run;
     /* Suitability */
     int NP;
     int pos_beta;
@@ -85,19 +72,17 @@ static double betadens (double beta_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int i=0; i<d->NCELL; i++) {
-	if (d->viscell[i]>0) {
-	    /* prob_p */
-	    double Xpart_prob_p=0.0;
-	    for (int p=0; p<d->NP; p++) {
-		if (p!=k) {
-		    Xpart_prob_p+=d->X[i][p]*d->beta_run[p];
-		}
+	/* prob_p */
+	double Xpart_prob_p=0.0;
+	for (int p=0; p<d->NP; p++) {
+	    if (p!=k) {
+		Xpart_prob_p+=d->X[i][p]*d->beta_run[p];
 	    }
-	    Xpart_prob_p+=d->X[i][k]*beta_k;
-	    double prob_p=exp(Xpart_prob_p+d->rho_run[i]);
-	    /* log Likelihood */
-	    logL+=dpois(d->N_run[i],prob_p,1);
 	}
+	Xpart_prob_p+=d->X[i][k]*beta_k;
+	double prob_p=exp(Xpart_prob_p);
+	/* log Likelihood */
+	logL+=dpois(d->N_run[i],prob_p,1);
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(beta_k,d->mubeta[k],sqrt(d->Vbeta[k]),1);
@@ -161,60 +146,9 @@ static double Ndens (int N_i, void *dens_data) {
     for (int p=0; p<d->NP; p++) {
 	Xpart_prob_p+=d->X[i][p]*d->beta_run[p];
     }
-    double prob_p=exp(Xpart_prob_p+d->rho_run[i]);
+    double prob_p=exp(Xpart_prob_p);
     double logP=logL+dpois(N_i,prob_p,1); 
     return logP;
-}
-
-/* ************************************************************ */
-/* rhodens_visited */
-
-static double rhodens_visited (double rho_i, void *dens_data) {
-    // Pointer to the structure: d 
-    struct dens_par *d;
-    d=dens_data;
-    // Indicating the rank of the cell
-    int i=d->pos_rho; //
-    // logLikelihood
-    double logL=0;
-    /* prob_p */
-    double Xpart_prob_p=0.0;
-    for (int p=0; p<d->NP; p++) {
-	Xpart_prob_p+=d->X[i][p]*d->beta_run[p];
-    }
-    double prob_p=exp(Xpart_prob_p+rho_i);
-    /* log Likelihood */
-    logL=dpois(d->N_run[i],prob_p,1);
-    
-    // logPosterior=logL+logPrior
-    int nNeighbors=d->nNeigh[i];
-    double sumNeighbors=0.0;
-    for (int m=0;m<nNeighbors;m++) {
-	sumNeighbors+=d->rho_run[d->Neigh[i][m]];
-    }
-    double meanNeighbors=sumNeighbors/nNeighbors;
-    double logP=logL+dnorm(rho_i,meanNeighbors,sqrt(d->Vrho_run/nNeighbors),1); 
-    return logP;
-}
-
-/* ************************************************************ */
-/* rhodens_unvisited */
-
-static double rhodens_unvisited (void *dens_data) {
-    // Pointer to the structure: d 
-    struct dens_par *d;
-    d=dens_data;
-    // Indicating the rank of the cell
-    int i=d->pos_rho; //
-    // Draw directly in the posterior distribution
-    int nNeighbors=d->nNeigh[i];
-    double sumNeighbors=0.0;
-    for (int m=0;m<nNeighbors;m++) {
-	sumNeighbors+=d->rho_run[d->Neigh[i][m]];
-    }
-    double meanNeighbors=sumNeighbors/nNeighbors;
-    double sample=myrnorm(meanNeighbors,sqrt(d->Vrho_run/nNeighbors)); 
-    return sample;
 }
 
 /* ************************************************************ */
@@ -231,31 +165,22 @@ void hSDM_Nmixture (
     const int *Y_vect, // Number of successes (presences)
     const double *W_vect, // Observability covariates (nobs x nq)
     const double *X_vect, // Suitability covariates (ncell x np)
-    // Spatial correlation
+    // Spatial cells
     const int *C_vect, // Cell Id
-    const int *nNeigh, // Number of neighbors for each cell
-    const int *Neigh_vect, // Vector of neighbors sorted by cell
     // Predictions
     const int *npred, // Number of predictions
     const double *X_pred_vect, // Suitability covariates for predictions
-    const int *C_pred_vect, // Cell Id for predictions
     // Starting values for M-H
     const double *beta_start,
     const double *gamma_start,
-    const double *rho_start,
     const int *N_start,
     // Parameters
     double *beta_vect,
     double *gamma_vect,
-    double *rho_pred,
-    double *Vrho,
     int *N_pred,
     // Defining priors
     const double *mubeta, double *Vbeta,
     const double *mugamma, double *Vgamma,
-    const double *priorVrho,
-    const double *shape, double *rate,
-    const double *Vrho_max,
     // Diagnostic
     double *Deviance,
     double *prob_p_latent, // Latent proba of suitability (length NOBS)
@@ -265,8 +190,7 @@ void hSDM_Nmixture (
     const int *seed,
     // Verbose
     const int *verbose,
-    // Save rho and p
-    const int *save_rho,
+    // Save p and N
     const int *save_p,
     const int *save_N
 
@@ -332,7 +256,7 @@ void hSDM_Nmixture (
     }
     dens_data.pos_N=0;
 
-    /* Spatial correlation */
+    /* Spatial cells */
     // IdCell
     dens_data.IdCell=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
@@ -360,29 +284,6 @@ void hSDM_Nmixture (
 	    }
 	}
     }
-    // Number of neighbors by cell
-    dens_data.nNeigh=malloc(NCELL*sizeof(int));
-    for (int i=0; i<NCELL; i++) {
-	dens_data.nNeigh[i]=nNeigh[i];
-    }
-    // Neighbor identifiers by cell
-    int posNeigh=0;
-    dens_data.Neigh=malloc(NCELL*sizeof(int*));
-    for (int i=0; i<NCELL; i++) {
-	dens_data.Neigh[i]=malloc(nNeigh[i]*sizeof(int));
-        for (int m=0; m<nNeigh[i]; m++) {
-	    dens_data.Neigh[i][m]=Neigh_vect[posNeigh+m];
-	}
-	posNeigh+=nNeigh[i];
-    }
-    dens_data.pos_rho=0;
-    dens_data.rho_run=malloc(NCELL*sizeof(double));
-    for (int i=0; i<NCELL; i++) {
-	dens_data.rho_run[i]=rho_start[i];
-    }
-    dens_data.shape=shape[0];
-    dens_data.rate=rate[0];
-    dens_data.Vrho_run=Vrho[0];
 
     /* Suitability process */
     dens_data.NP=NP;
@@ -426,27 +327,7 @@ void hSDM_Nmixture (
 	dens_data.gamma_run[q]=gamma_start[q];
     }
 
-    /* Visited cell or not */
-    dens_data.viscell = malloc(NCELL*sizeof(int));
-    for (int i=0; i<NCELL; i++) {
-	dens_data.viscell[i]=0;
-    }
-    for (int n=0; n<NOBS; n++) {
-	dens_data.viscell[dens_data.IdCell[n]]++;
-    }
-    int NVISCELL=0;
-    for (int i=0; i<NCELL; i++) {
-	if (dens_data.viscell[i]>0) {
-	    NVISCELL++;
-	}
-    }
-
     /* Predictions */
-    // IdCell_pred
-    int *IdCell_pred=malloc(NPRED*sizeof(int));
-    for (int m=0; m<NPRED; m++) {
-	IdCell_pred[m]=C_pred_vect[m];
-    }
     // X_pred
     double **X_pred=malloc(NPRED*sizeof(double*));
     for (int m=0; m<NPRED; m++) {
@@ -477,16 +358,6 @@ void hSDM_Nmixture (
 	nA_gamma[q]=0;
 	sigmap_gamma[q]=1.0;
 	Ar_gamma[q]=0.0;
-    }
-
-    // rho
-    double *sigmap_rho = malloc(NCELL*sizeof(double));
-    int *nA_rho = malloc(NCELL*sizeof(int));
-    double *Ar_rho = malloc(NCELL*sizeof(double)); // Acceptance rate 
-    for (int i=0; i<NCELL; i++) {
-	nA_rho[i]=0;
-	sigmap_rho[i]=1.0;
-	Ar_rho[i]=0.0;
     }
 
     // N
@@ -549,103 +420,19 @@ void hSDM_Nmixture (
 
 
 	////////////////////////////////////////////////
-	// rho
-	
-        /* Sampling rho_run[i] */
-	for (int i=0; i<NCELL; i++) {
-	    dens_data.pos_rho=i; // Specifying the rank of the parameter of interest
-	    if (dens_data.viscell[i]>0) {
-		double x_now=dens_data.rho_run[i];
-		double x_prop=myrnorm(x_now,sigmap_rho[i]);
-		double p_now=rhodens_visited(x_now, &dens_data);
-		double p_prop=rhodens_visited(x_prop, &dens_data);
-		double r=exp(p_prop-p_now); // ratio
-		double z=myrunif();
-		// Actualization
-		if (z < r) {
-		    dens_data.rho_run[i]=x_prop;
-		    nA_rho[i]++;
-		}
-	    }
-	    if (dens_data.viscell[i]==0) {
-	    	dens_data.rho_run[i]=rhodens_unvisited(&dens_data);
-	    }
-	}
-
-	/* Centering rho_run[i] */
-	double rho_sum=0.0;
-	for (int i=0; i<NCELL; i++) {
-	    rho_sum+=dens_data.rho_run[i];
-	}
-	double rho_bar=rho_sum/NCELL;
-	for (int i=0; i<NCELL; i++) {
-	    dens_data.rho_run[i]=dens_data.rho_run[i]-rho_bar;
-	}
-
-
-	////////////////////////////////////////////////
-	// Vrho
-	
-	if (priorVrho[0]>0.0) { // fixed value for Vrho
-	    dens_data.Vrho_run=priorVrho[0];
-	}
-	else {
-	    double Sum=0.0;
-	    for (int i=0; i<NCELL; i++) {
-		double Sum_neigh=0.0;
-		double nNeigh=dens_data.nNeigh[i];
-		double rho_run=dens_data.rho_run[i];
-		for (int m=0; m<nNeigh; m++) {
-		    Sum_neigh += dens_data.rho_run[dens_data.Neigh[i][m]];
-		}
-		Sum += rho_run*(nNeigh*rho_run-Sum_neigh);
-	    }
-	    if (priorVrho[0]==-1.0) { // prior = 1/Gamma(shape,rate)
-		double Shape=shape[0]+0.5*(NCELL-1);
-		double Rate=rate[0]+0.5*Sum;
-		dens_data.Vrho_run=Rate/myrgamma1(Shape);
-	    }
-	    if (priorVrho[0]==-2.0) { // prior = Uniform(0,Vrho_max)
-		double Shape=0.5*NCELL-1;
-		double Rate=0.5*Sum;
-		dens_data.Vrho_run=1/myrtgamma_left(Shape,Rate,1/Vrho_max[0]);
-	    }
-	}
-
-
-	////////////////////////////////////////////////
 	// N
 	
 	for (int i=0; i<NCELL; i++) {
 	    dens_data.pos_N=i; // Specifying the rank of the parameter of interest
-	    if (dens_data.viscell[i]>0) {
-		int x_now=dens_data.N_run[i];
-		if (x_now==N_start[i]) {
-		    double s=myrunif();
-		    if (s < 0.5) {
-			dens_data.N_run[i]=x_now;
-		    }
-		    else {
-			// Proposal
-			int x_prop=x_now+1;
-			// Ratio
-			double p_now=Ndens(x_now, &dens_data);
-			double p_prop=Ndens(x_prop, &dens_data);
-			double r=exp(p_prop-p_now);
-			// Actualization
-			double z=myrunif();
-			if (z < r) {
-			    dens_data.N_run[i]=x_prop;
-			    nA_N[i]++;
-			}
-		    }
+	    int x_now=dens_data.N_run[i];
+	    if (x_now==N_start[i]) {
+		double s=myrunif();
+		if (s < 0.5) {
+		    dens_data.N_run[i]=x_now;
 		}
 		else {
 		    // Proposal
-		    double s=myrunif();
-		    int x_prop=0;
-		    if (s < 0.5) x_prop=x_now-1;
-		    else x_prop=x_now+1;
+		    int x_prop=x_now+1;
 		    // Ratio
 		    double p_now=Ndens(x_now, &dens_data);
 		    double p_prop=Ndens(x_prop, &dens_data);
@@ -656,6 +443,23 @@ void hSDM_Nmixture (
 			dens_data.N_run[i]=x_prop;
 			nA_N[i]++;
 		    }
+		}
+	    }
+	    else {
+		// Proposal
+		double s=myrunif();
+		int x_prop=0;
+		if (s < 0.5) x_prop=x_now-1;
+		else x_prop=x_now+1;
+		// Ratio
+		double p_now=Ndens(x_now, &dens_data);
+		double p_prop=Ndens(x_prop, &dens_data);
+		double r=exp(p_prop-p_now);
+		// Actualization
+		double z=myrunif();
+		if (z < r) {
+		    dens_data.N_run[i]=x_prop;
+		    nA_N[i]++;
 		}
 	    }
 	}
@@ -681,19 +485,17 @@ void hSDM_Nmixture (
 	    for (int p=0; p<NP; p++) {
 		Xpart_prob_p+=dens_data.X[dens_data.IdCell[n]][p]*dens_data.beta_run[p];
 	    }
-	    prob_p_run[n]=invlogit(Xpart_prob_p+dens_data.rho_run[dens_data.IdCell[n]]);
+	    prob_p_run[n]=invlogit(Xpart_prob_p);
 	}
 	double logL2=0.0;
 	for (int i=0; i<NCELL; i++) {
-	    if (dens_data.viscell[i]>0) {
-		/* prob_p */
-		double Xpart_prob_p=0.0;
-		for (int p=0; p<NP; p++) {
-		    Xpart_prob_p+=dens_data.X[i][p]*dens_data.beta_run[p];
-		}
-		double prob_p_now=invlogit(Xpart_prob_p+dens_data.rho_run[i]);
-		logL2+=dpois(dens_data.N_run[i],prob_p_now,1);
+	    /* prob_p */
+	    double Xpart_prob_p=0.0;
+	    for (int p=0; p<NP; p++) {
+		Xpart_prob_p+=dens_data.X[i][p]*dens_data.beta_run[p];
 	    }
+	    double prob_p_now=invlogit(Xpart_prob_p);
+	    logL2+=dpois(dens_data.N_run[i],prob_p_now,1);
 	}
 	double logL=logL1+logL2;
 
@@ -709,7 +511,7 @@ void hSDM_Nmixture (
 	    for (int p=0; p<NP; p++) {
 		Xpart_prob_p_pred+=X_pred[m][p]*dens_data.beta_run[p];
 	    }
-	    prob_p_pred_run[m]=invlogit(Xpart_prob_p_pred+dens_data.rho_run[IdCell_pred[m]]);
+	    prob_p_pred_run[m]=invlogit(Xpart_prob_p_pred);
 	}
 
 
@@ -731,17 +533,6 @@ void hSDM_Nmixture (
 		prob_p_latent[n]+=prob_p_run[n]/NSAMP; // We compute the mean of NSAMP values
 		prob_q_latent[n]+=prob_q_run[n]/NSAMP; // We compute the mean of NSAMP values
 	    }
-	    // rho
-	    if (save_rho[0]==0) { // We compute the mean of NSAMP values
-		for (int i=0; i<NCELL; i++) {
-		    rho_pred[i]+=dens_data.rho_run[i]/NSAMP; 
-		}
-	    }
-	    if (save_rho[0]==1) { // The NSAMP sampled values for rhos are saved
-		for (int i=0; i<NCELL; i++) {
-		    rho_pred[i*NSAMP+(isamp-1)]=dens_data.rho_run[i]; 
-		}
-	    }
 	    // prob.p
 	    if (save_p[0]==0) { // We compute the mean of NSAMP values
 		for (int m=0; m<NPRED; m++) {
@@ -753,21 +544,15 @@ void hSDM_Nmixture (
 		    prob_p_pred[m*NSAMP+(isamp-1)]=prob_p_pred_run[m]; 
 		}
 	    }
-	    // Vrho
-	    Vrho[isamp-1]=dens_data.Vrho_run;
 	    // N
 	    if (save_N[0]==0) { // We compute the mean of NSAMP values
 		for (int i=0; i<NCELL; i++) {
-		    if (dens_data.viscell[i]>0) {
-			N_pred_double[i]+= ((double) dens_data.N_run[i])/NSAMP;
-		    } 
+		    N_pred_double[i]+= ((double) dens_data.N_run[i])/NSAMP;
 		}
 	    }
 	    if (save_N[0]==1) { // The NSAMP sampled values for prob_p are saved
 		for (int i=0; i<NCELL; i++) {
-		    if (dens_data.viscell[i]>0) {
-			N_pred[i*NSAMP+(isamp-1)]=dens_data.N_run[i];
-		    } 
+		    N_pred[i*NSAMP+(isamp-1)]=dens_data.N_run[i];
 		}
 	    }
 	}
@@ -795,21 +580,10 @@ void hSDM_Nmixture (
 		else sigmap_gamma[q]=sigmap_gamma[q]/(2-Ar_gamma[q]/ropt);
 		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
 	    }
-	    // rho
-	    for (int i=0; i<NCELL; i++) {
-		if (dens_data.viscell[i]>0) {
-		    Ar_rho[i]=((double) nA_rho[i])/DIV;
-		    if(Ar_rho[i]>=ropt) sigmap_rho[i]=sigmap_rho[i]*(2-(1-Ar_rho[i])/(1-ropt));
-		    else sigmap_rho[i]=sigmap_rho[i]/(2-Ar_rho[i]/ropt);
-		    nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
-		}
-	    }
 	    // N
 	    for (int i=0; i<NCELL; i++) {
-		if (dens_data.viscell[i]>0) {
-		    Ar_N[i]=((double) nA_N[i])/DIV;
-		    nA_N[i]=0.0; // We reinitialize the number of acceptance to zero
-		}
+		Ar_N[i]=((double) nA_N[i])/DIV;
+		nA_N[i]=0.0; // We reinitialize the number of acceptance to zero
 	    }
 	}
         /* After the burnin period */
@@ -824,19 +598,10 @@ void hSDM_Nmixture (
 		Ar_gamma[q]=((double) nA_gamma[q])/DIV;
 		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
 	    }
-	    // rho
-	    for (int i=0; i<NCELL; i++) {
-		if (dens_data.viscell[i]>0) {
-		    Ar_rho[i]=((double) nA_rho[i])/DIV;
-		    nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
-		}
-	    }
 	    // N
 	    for (int i=0; i<NCELL; i++) {
-		if (dens_data.viscell[i]>0) {
-		    Ar_N[i]=((double) nA_N[i])/DIV;
-		    nA_N[i]=0.0; // We reinitialize the number of acceptance to zero
-		}
+		Ar_N[i]=((double) nA_N[i])/DIV;
+		nA_N[i]=0.0; // We reinitialize the number of acceptance to zero
 	    }
 	}
 
@@ -851,7 +616,6 @@ void hSDM_Nmixture (
 	    if (((g+1)%(NGIBBS/10))==0) {
 	    	double mAr_beta=0; // Mean acceptance rate
 	    	double mAr_gamma=0;
-	    	double mAr_rho=0;
 		double mAr_N=0;
 	    	// beta
 	    	for (int p=0; p<NP; p++) {
@@ -861,19 +625,11 @@ void hSDM_Nmixture (
 	    	for (int q=0; q<NQ; q++) {
 	    	    mAr_gamma+=Ar_gamma[q]/NQ;
 	    	}
-	    	// rho
-	    	for (int i=0; i<NCELL; i++) {
-		    if (dens_data.viscell[i]>0) {
-			mAr_rho+=Ar_rho[i]/NVISCELL;
-		    }
-	    	}
 		// N
 	    	for (int i=0; i<NCELL; i++) {
-		    if (dens_data.viscell[i]>0) {
-			mAr_N+=Ar_N[i]/NVISCELL;
-		    }
+		    mAr_N+=Ar_N[i]/NCELL;
 	    	}
-	    	Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, gamma:%.3f, rho:%.3f, N:%.3f\n",Perc,mAr_beta,mAr_gamma,mAr_rho,mAr_N);
+	    	Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, gamma:%.3f, N:%.3f\n",Perc,mAr_beta,mAr_gamma,mAr_N);
 	    	R_FlushConsole();
 	    	//R_ProcessEvents(); for windows
 	    }
@@ -887,12 +643,10 @@ void hSDM_Nmixture (
     } // Gibbs sampler
 
     //////////////////////////
-    // Rounding N if save.N==0
+    // Rounding N_pred if save.N==0
     if (save_N[0]==0) {
 	for (int i=0; i<NCELL; i++) {
-	    if (dens_data.viscell[i]>0) {
-		N_pred[i]= (int)(N_pred_double[i] < 0 ? (N_pred_double[i]-0.5):(N_pred_double[i]+0.5));
-	    }
+	    N_pred[i]= (int)(N_pred_double[i] < 0 ? (N_pred_double[i]-0.5):(N_pred_double[i]+0.5));
 	}
     }
 
@@ -908,13 +662,6 @@ void hSDM_Nmixture (
 	free(dens_data.PosCell[i]);
     }
     free(dens_data.PosCell);
-    /* Spatial correlation */
-    free(dens_data.nNeigh);
-    for (int i=0; i<NCELL; i++) {
-    	free(dens_data.Neigh[i]);
-    }
-    free(dens_data.Neigh);
-    free(dens_data.rho_run);
     /* Suitability */
     for (int n=0; n<NOBS; n++) {
     	free(dens_data.X[n]);
@@ -933,10 +680,7 @@ void hSDM_Nmixture (
     free(dens_data.Vgamma);
     free(dens_data.gamma_run);
     free(prob_q_run);
-    /* Visited cells */
-    free(dens_data.viscell);
     /* Predictions */
-    free(IdCell_pred);
     for (int m=0; m<NPRED; m++) {
     	free(X_pred[m]);
     }
@@ -949,9 +693,6 @@ void hSDM_Nmixture (
     free(sigmap_gamma);
     free(nA_gamma);
     free(Ar_gamma);
-    free(sigmap_rho);
-    free(nA_rho);
-    free(Ar_rho);
     free(nA_N);
     free(Ar_N);
 

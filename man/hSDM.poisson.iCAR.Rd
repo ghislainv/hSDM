@@ -1,13 +1,14 @@
 \name{hSDM.poisson.iCAR}
 \alias{hSDM.poisson.iCAR}
 
-\title{The \code{hSDM.poisson.iCAR} function performs a Poisson
+\title{Poisson regression model with CAR process}
+
+\description{The \code{hSDM.poisson.iCAR} function performs a Poisson
   regression in a hierarchical Bayesian framework. The suitability
   process includes a spatial correlation process. The spatial
-  correlation is modelled using an intrinsic CAR model.}
-
-\description{The \code{hSDM.poisson.iCAR} function calls a Gibbs sampler
-  written in C code which uses a Metropolis algorithm to estimate the
+  correlation is modelled using an intrinsic CAR model. The
+  \code{hSDM.poisson.iCAR} function calls a Gibbs sampler written in C
+  code which uses an adaptive Metropolis algorithm to estimate the
   conditional posterior distribution of model's parameters.}
 
 \usage{hSDM.poisson.iCAR(counts, visits, suitability, cells,

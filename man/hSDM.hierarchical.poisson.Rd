@@ -1,8 +1,10 @@
 \name{hSDM.hierarchical.poisson}
 \alias{hSDM.hierarchical.poisson}
 
-\title{The \code{hSDM.hierarchical.poisson} function can be used to
-  model species distribution including different processes in a
+\title{ZIP model with CAR process taking into account site alteration}
+
+\description{The \code{hSDM.hierarchical.poisson} function can be used
+  to model species distribution including different processes in a
   hierarchical Bayesian framework: (i) a Bernoulli suitability process
   (refering to environmental suitability) which takes into account the
   spatial dependence of the observations, (ii) an alteration process
@@ -10,12 +12,10 @@
   observability process (refering to various ecological and
   methodological issues explaining the species abundance). The model
   reduces to a ZIP (Zero-Inflated Poisson) model with spatial dependence
-  if the alteration is set to zero.}
-
-\description{The \code{hSDM.hierarchical.poisson} function calls a Gibbs
-  sampler written in C code which uses a Metropolis algorithm to
-  estimate the conditional posterior distribution of model's
-  parameters.}
+  if the alteration is set to zero. The \code{hSDM.hierarchical.poisson}
+  function calls a Gibbs sampler written in C code which uses an
+  adaptive Metropolis algorithm to estimate the conditional posterior
+  distribution of model's parameters.}
 
 \usage{hSDM.hierarchical.poisson(counts, visits, suitability, cells,
 n.neighbors, neighbors, alteration, observability, data, burnin = 5000,

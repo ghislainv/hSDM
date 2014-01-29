@@ -1,5 +1,4 @@
 \name{hSDM-package}
-\alias{hSDM-package}
 \alias{hSDM}
 \docType{package}
 

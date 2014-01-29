@@ -4,7 +4,7 @@
 //
 ////////////////////////////////////////////////////////////////////
 //
-// Original code by Ghislain Vieilledent, October 2011
+// Original code by Ghislain Vieilledent, November 2013
 // CIRAD UR B&SEF
 // ghislain.vieilledent@cirad.fr / ghislainv@gmail.com
 //
@@ -16,11 +16,6 @@
 //
 // Copyright (C) 2011 Ghislain Vieilledent
 // 
-////////////////////////////////////////////////////////////////////
-//
-// Revisions: 
-// - G. Vieilledent, on November 15th 2013
-//
 ////////////////////////////////////////////////////////////////////
 
 
@@ -60,7 +55,7 @@ struct dens_par {
     int pos_beta;
     double **X;
     double *mubeta, *Vbeta;
-    double *beta_run;  
+    double *beta_run; 
 };
 
 
@@ -76,19 +71,17 @@ static double betadens (double beta_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
-    	if (d->T[n]>0) {
-    	    /* prob_p */
-    	    double Xpart_prob_p=0.0;
-    	    for (int p=0; p<d->NP; p++) {
-    		if (p!=k) {
-    		    Xpart_prob_p+=d->X[n][p]*d->beta_run[p];
-    		}
-    	    }
-    	    Xpart_prob_p+=d->X[n][k]*beta_k;
-    	    double prob_p=invlogit(Xpart_prob_p+d->rho_run[d->IdCell[n]]);
-    	    /* log Likelihood */
-	    logL+=dbinom(d->Y[n],d->T[n],prob_p,1);
+	/* prob_p */
+	double Xpart_prob_p=0.0;
+	for (int p=0; p<d->NP; p++) {
+	    if (p!=k) {
+		Xpart_prob_p+=d->X[n][p]*d->beta_run[p];
+	    }
 	}
+	Xpart_prob_p+=d->X[n][k]*beta_k;
+	double prob_p=invlogit(Xpart_prob_p+d->rho_run[d->IdCell[n]]);
+	/* log Likelihood */
+	logL+=dbinom(d->Y[n],d->T[n],prob_p,1);
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(beta_k,d->mubeta[k],sqrt(d->Vbeta[k]),1);
@@ -104,21 +97,19 @@ static double rhodens_visited (double rho_i, void *dens_data) {
     struct dens_par *d;
     d=dens_data;
     // Indicating the rank of the parameter of interest
-    int i=d->pos_rho;
+    int i=d->pos_rho; //
     // logLikelihood
     double logL=0;
     for (int m=0; m<d->nObsCell[i]; m++) {
 	int w=d->PosCell[i][m]; // which observation
-	if (d->T[w]>0) {
-	    /* prob_p */
-	    double Xpart_prob_p=0.0;
-	    for (int p=0; p<d->NP; p++) {
-		Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
-	    }
-	    double prob_p=invlogit(Xpart_prob_p+rho_i);
-	    /* log Likelihood */
-	    logL+=dbinom(d->Y[w],d->T[w],prob_p,1);
+	/* prob_p */
+	double Xpart_prob_p=0.0;
+	for (int p=0; p<d->NP; p++) {
+	    Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
 	}
+	double prob_p=invlogit(Xpart_prob_p+rho_i);
+	/* log Likelihood */
+	logL+=dbinom(d->Y[w],d->T[w],prob_p,1);
     }
     // logPosterior=logL+logPrior
     int nNeighbors=d->nNeigh[i];
@@ -131,7 +122,6 @@ static double rhodens_visited (double rho_i, void *dens_data) {
     return logP;
 }
 
-
 /* ************************************************************ */
 /* rhodens_unvisited */
 
@@ -140,12 +130,12 @@ static double rhodens_unvisited (void *dens_data) {
     struct dens_par *d;
     d=dens_data;
     // Indicating the rank of the parameter of interest
-    int c=d->pos_rho;
+    int i=d->pos_rho; //
     // Draw directly in the posterior distribution
-    int nNeighbors=d->nNeigh[c];
+    int nNeighbors=d->nNeigh[i];
     double sumNeighbors=0.0;
     for (int m=0;m<nNeighbors;m++) {
-	sumNeighbors+=d->rho_run[d->Neigh[c][m]];
+	sumNeighbors+=d->rho_run[d->Neigh[i][m]];
     }
     double meanNeighbors=sumNeighbors/nNeighbors;
     double sample=myrnorm(meanNeighbors,sqrt(d->Vrho_run/nNeighbors)); 
@@ -160,7 +150,7 @@ void hSDM_binomial_iCAR (
     // Constants and data
     const int *ngibbs, int *nthin, int *nburn, // Number of iterations, burning and samples
     const int *nobs, // Number of observations
-    const int *ncell, // Number of cells
+    const int *ncell, // Constants
     const int *np, // Number of fixed effects for prob_p
     const int *Y_vect, // Number of successes (presences)
     const int *T_vect, // Number of trials
@@ -168,7 +158,11 @@ void hSDM_binomial_iCAR (
     // Spatial correlation
     const int *C_vect, // Cell Id
     const int *nNeigh, // Number of neighbors for each cell
-    const int *Neigh_vect, // Vector of neighbors sorted by cell  
+    const int *Neigh_vect, // Vector of neighbors sorted by cell
+    // Predictions
+    const int *npred, // Number of predictions
+    const double *X_pred_vect, // Suitability covariates for predictions
+    const int *C_pred_vect, // Cell Id for predictions
     // Starting values for M-H
     const double *beta_start,
     const double *rho_start,
@@ -183,14 +177,16 @@ void hSDM_binomial_iCAR (
     const double *Vrho_max,
     // Diagnostic
     double *Deviance,
-    double *prob_p_pred, // Proba of suitability
+    double *prob_p_latent, // Latent proba of suitability (length NOBS) 
+    double *prob_p_pred, // Proba of suitability for predictions (length NPRED)
     // Seeds
     const int *seed,
     // Verbose
     const int *verbose,
-    // Save rho
-    const int *save_rho
-    
+    // Save rho and p
+    const int *save_rho,
+    const int *save_p
+
     ) {
 	
     ////////////////////////////////////////////////////////////////////////////////
@@ -198,9 +194,9 @@ void hSDM_binomial_iCAR (
     // Defining and initializing objects
 
     ////////////////////////////////////////
-    // Initialize random number generator // 
-    srand(seed[0]);                       
-    
+    // Initialize random number generator //
+    srand(seed[0]);
+
     ///////////////////////////
     // Redefining constants //
     const int NGIBBS=ngibbs[0];
@@ -210,12 +206,17 @@ void hSDM_binomial_iCAR (
     const int NOBS=nobs[0];
     const int NCELL=ncell[0];
     const int NP=np[0];
+    const int NPRED=npred[0];
 
     ///////////////////////////////////
     // Declaring some useful objects //
-    double *prob_p=malloc(NOBS*sizeof(double));
+    double *prob_p_run=malloc(NOBS*sizeof(double));
     for (int n=0; n<NOBS; n++) {
-	prob_p[n]=0.0;
+	prob_p_run[n]=0.0;
+    }
+    double *prob_p_pred_run=malloc(NPRED*sizeof(double));
+    for (int m=0; m<NPRED; m++) {
+	prob_p_pred_run[m]=0.0;
     }
 
     //////////////////////////////////////////////////////////
@@ -225,7 +226,7 @@ void hSDM_binomial_iCAR (
     /* Data */
     dens_data.NOBS=NOBS;
     dens_data.NCELL=NCELL;
-    // Y
+   // Y
     dens_data.Y=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
 	dens_data.Y[n]=Y_vect[n];
@@ -309,49 +310,59 @@ void hSDM_binomial_iCAR (
 	dens_data.beta_run[p]=beta_start[p];
     }
 
+    /* Visited cell or not */
+    int *viscell = malloc(NCELL*sizeof(int));
+    for (int i=0; i<NCELL; i++) {
+	viscell[i]=0;
+    }
+    for (int n=0; n<NOBS; n++) {
+	viscell[dens_data.IdCell[n]]++;
+    }
+    int NVISCELL=0;
+    for (int i=0; i<NCELL; i++) {
+	if (viscell[i]>0) {
+	    NVISCELL++;
+	}
+    }
+
+    /* Predictions */
+    // IdCell_pred
+    int *IdCell_pred=malloc(NPRED*sizeof(int));
+    for (int m=0; m<NPRED; m++) {
+	IdCell_pred[m]=C_pred_vect[m];
+    }
+    // X_pred
+    double **X_pred=malloc(NPRED*sizeof(double*));
+    for (int m=0; m<NPRED; m++) {
+    	X_pred[m]=malloc(NP*sizeof(double));
+    	for (int p=0; p<NP; p++) {
+    	    X_pred[m][p]=X_pred_vect[p*NPRED+m];
+    	}
+    }
+
     ////////////////////////////////////////////////////////////
     // Proposal variance and acceptance for adaptive sampling //
 
     // beta
     double *sigmap_beta = malloc(NP*sizeof(double));
     int *nA_beta = malloc(NP*sizeof(int));
+    double *Ar_beta = malloc(NP*sizeof(double)); // Acceptance rate 
     for (int p=0; p<NP; p++) {
 	nA_beta[p]=0;
 	sigmap_beta[p]=1.0;
-    }
-    double *Ar_beta = malloc(NP*sizeof(double)); // Acceptance rate 
-    for (int p=0; p<NP; p++) {
 	Ar_beta[p]=0.0;
     }
 
     // rho
     double *sigmap_rho = malloc(NCELL*sizeof(double));
     int *nA_rho = malloc(NCELL*sizeof(int));
+    double *Ar_rho = malloc(NCELL*sizeof(double)); // Acceptance rate 
     for (int i=0; i<NCELL; i++) {
 	nA_rho[i]=0;
 	sigmap_rho[i]=1.0;
-    }
-    double *Ar_rho = malloc(NCELL*sizeof(double)); // Acceptance rate 
-    for (int i=0; i<NCELL; i++) {
 	Ar_rho[i]=0.0;
     }
-
-    // Visited cell or not
-    int NVISCELL=0;
-    int *viscell = malloc(NCELL*sizeof(int));
-    for (int i=0; i<NCELL; i++) {
-	viscell[i]=0;
-	for (int m=0; m<dens_data.nObsCell[i]; m++) {
-	    int w=dens_data.PosCell[i][m]; // which observation
-	    if (dens_data.T[w]>0) {
-		viscell[i]++;
-	    }
-	}
-	if (viscell[i]>0) {
-	    NVISCELL++;
-	}
-    }
-
+ 
     ////////////
     // Message//
     Rprintf("\nRunning the Gibbs sampler. It may be long, please keep cool :)\n\n");
@@ -362,7 +373,8 @@ void hSDM_binomial_iCAR (
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // Gibbs sampler
 
-    for (int g=0;g<NGIBBS;g++) {
+    for (int g=0; g<NGIBBS; g++) {
+
 
 	////////////////////////////////////////////////
 	// beta
@@ -374,7 +386,7 @@ void hSDM_binomial_iCAR (
 	    double p_now=betadens(x_now, &dens_data);
 	    double p_prop=betadens(x_prop, &dens_data);
 	    double r=exp(p_prop-p_now); // ratio
-	    double z=myrunif();	
+	    double z=myrunif();
 	    // Actualization
 	    if (z < r) {
 		dens_data.beta_run[p]=x_prop;
@@ -420,7 +432,7 @@ void hSDM_binomial_iCAR (
 
 	////////////////////////////////////////////////
 	// Vrho
-
+	
 	if (priorVrho[0]>0.0) {      // fixed value for Vrho
 	    dens_data.Vrho_run=priorVrho[0];
 	}
@@ -459,13 +471,25 @@ void hSDM_binomial_iCAR (
 	    for (int p=0; p<NP; p++) {
 		Xpart_prob_p+=dens_data.X[n][p]*dens_data.beta_run[p];
 	    }
-	    prob_p[n]=invlogit(Xpart_prob_p+dens_data.rho_run[dens_data.IdCell[n]]);
+	    prob_p_run[n]=invlogit(Xpart_prob_p+dens_data.rho_run[dens_data.IdCell[n]]);
 	    /* log Likelihood */
-	    logL+=dbinom(dens_data.Y[n],dens_data.T[n],prob_p[n],1);
+	    logL+=dbinom(dens_data.Y[n],dens_data.T[n],prob_p_run[n],1);
 	}
 
 	// Deviance
 	double Deviance_run=-2*logL;
+
+
+	//////////////////////////////////////////////////
+	// Predictions
+	for (int m=0; m<NPRED; m++) {
+	    /* prob_p_pred_run */
+	    double Xpart_prob_p_pred=0.0;
+	    for (int p=0; p<NP; p++) {
+		Xpart_prob_p_pred+=X_pred[m][p]*dens_data.beta_run[p];
+	    }
+	    prob_p_pred_run[m]=invlogit(Xpart_prob_p_pred+dens_data.rho_run[IdCell_pred[m]]);
+	}
 
 
 	//////////////////////////////////////////////////
@@ -477,7 +501,7 @@ void hSDM_binomial_iCAR (
 	    }
 	    Deviance[isamp-1]=Deviance_run;
 	    for (int n=0; n<NOBS; n++) {
-		prob_p_pred[n]+=prob_p[n]/NSAMP; // We compute the mean of NSAMP values
+		prob_p_latent[n]+=prob_p_run[n]/NSAMP; // We compute the mean of NSAMP values
 	    }
 	    // rho
 	    if (save_rho[0]==0) { // We compute the mean of NSAMP values
@@ -488,6 +512,17 @@ void hSDM_binomial_iCAR (
 	    if (save_rho[0]==1) { // The NSAMP sampled values for rhos are saved
 		for (int i=0; i<NCELL; i++) {
 		    rho_pred[i*NSAMP+(isamp-1)]=dens_data.rho_run[i]; 
+		}
+	    }
+	    // prob.p
+	    if (save_p[0]==0) { // We compute the mean of NSAMP values
+		for (int m=0; m<NPRED; m++) {
+		    prob_p_pred[m]+=prob_p_pred_run[m]/NSAMP; 
+		}
+	    }
+	    if (save_p[0]==1) { // The NSAMP sampled values for prob_p are saved
+		for (int m=0; m<NPRED; m++) {
+		    prob_p_pred[m*NSAMP+(isamp-1)]=prob_p_pred_run[m]; 
 		}
 	    }
 	    // Vrho
@@ -502,29 +537,37 @@ void hSDM_binomial_iCAR (
 	if (NGIBBS >=1000) DIV=100;
 	else DIV=NGIBBS/10;
 	/* During the burnin period */
-	if((g+1)%DIV==0 && (g+1)<=NBURN){
+	if ((g+1)%DIV==0 && (g+1)<=NBURN) {
+	    // beta
 	    for (int p=0; p<NP; p++) {
 		Ar_beta[p]=((double) nA_beta[p])/DIV;
-		if(Ar_beta[p]>=ropt) sigmap_beta[p]=sigmap_beta[p]*(2-(1-Ar_beta[p])/(1-ropt));
+		if (Ar_beta[p]>=ropt) sigmap_beta[p]=sigmap_beta[p]*(2-(1-Ar_beta[p])/(1-ropt));
 		else sigmap_beta[p]=sigmap_beta[p]/(2-Ar_beta[p]/ropt);
 		nA_beta[p]=0.0; // We reinitialize the number of acceptance to zero
 	    }
+	    // rho
 	    for (int i=0; i<NCELL; i++) {
-		Ar_rho[i]=((double) nA_rho[i])/DIV;
-		if(Ar_rho[i]>=ropt) sigmap_rho[i]=sigmap_rho[i]*(2-(1-Ar_rho[i])/(1-ropt));
-		else sigmap_rho[i]=sigmap_rho[i]/(2-Ar_rho[i]/ropt);
-		nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		if (viscell[i]>0) {
+		    Ar_rho[i]=((double) nA_rho[i])/DIV;
+		    if (Ar_rho[i]>=ropt) sigmap_rho[i]=sigmap_rho[i]*(2-(1-Ar_rho[i])/(1-ropt));
+		    else sigmap_rho[i]=sigmap_rho[i]/(2-Ar_rho[i]/ropt);
+		    nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		}
 	    }
 	}
         /* After the burnin period */
-	if((g+1)%DIV==0 && (g+1)>NBURN){
+	if ((g+1)%DIV==0 && (g+1)>NBURN) {
+	    // beta
 	    for (int p=0; p<NP; p++) {
 		Ar_beta[p]=((double) nA_beta[p])/DIV;
 		nA_beta[p]=0.0; // We reinitialize the number of acceptance to zero
 	    }
+	    // rho
 	    for (int i=0; i<NCELL; i++) {
-		Ar_rho[i]=((double) nA_rho[i])/DIV;
-		nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		if (viscell[i]>0) {
+		    Ar_rho[i]=((double) nA_rho[i])/DIV;
+		    nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		}
 	    }
 	}
 
@@ -532,26 +575,28 @@ void hSDM_binomial_iCAR (
 	//////////////////////////////////////////////////
 	// Progress bar
 	double Perc=100*(g+1)/(NGIBBS);
-	if (((g+1)%(NGIBBS/100))==0 && verbose[0]==1) {  
+	if (((g+1)%(NGIBBS/100))==0 && verbose[0]==1) {
 	    Rprintf("*");
 	    R_FlushConsole();
 	    //R_ProcessEvents(); for windows
-	    if(((g+1)%(NGIBBS/10))==0){
-		double mAr_beta=0; // Mean acceptance rate
-		double mAr_rho=0;
-		for (int p=0; p<NP; p++) {
-		    mAr_beta+=Ar_beta[p]/NP;
-		}
-		for (int i=0; i<NCELL; i++) {
+	    if (((g+1)%(NGIBBS/10))==0) {
+	    	double mAr_beta=0; // Mean acceptance rate
+	    	double mAr_rho=0;
+	    	// beta
+	    	for (int p=0; p<NP; p++) {
+	    	    mAr_beta+=Ar_beta[p]/NP;
+	    	}
+	    	// rho
+	    	for (int i=0; i<NCELL; i++) {
 		    if (viscell[i]>0) {
 			mAr_rho+=Ar_rho[i]/NVISCELL;
 		    }
-		}
-		Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, rho:%.3f\n",Perc,mAr_beta,mAr_rho);
-		R_FlushConsole();
-		//R_ProcessEvents(); for windows
+	    	}
+	    	Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, rho:%.3f\n",Perc,mAr_beta,mAr_rho);
+	    	R_FlushConsole();
+	    	//R_ProcessEvents(); for windows
 	    }
-	} 
+	}
 
 
 	//////////////////////////////////////////////////
@@ -559,6 +604,7 @@ void hSDM_binomial_iCAR (
 	R_CheckUserInterrupt(); // allow user interrupt 	    
 	
     } // Gibbs sampler
+
 
     ///////////////
     // Delete memory allocation (see malloc())
@@ -586,7 +632,16 @@ void hSDM_binomial_iCAR (
     free(dens_data.mubeta);
     free(dens_data.Vbeta);
     free(dens_data.beta_run);
-    free(prob_p);
+    free(prob_p_run);
+    /* Visited cells */
+    free(viscell);
+    /* Predictions */
+    free(IdCell_pred);
+    for (int m=0; m<NPRED; m++) {
+    	free(X_pred[m]);
+    }
+    free(X_pred);
+    free(prob_p_pred_run);
     /* Adaptive MH */
     free(sigmap_beta);
     free(nA_beta);
