@@ -1,0 +1,86 @@
+\documentclass[nojss]{jss}
+%% need no \usepackage{Sweave.sty}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bm}
+\usepackage{lscape}
+\usepackage{rotating}
+\usepackage{longtable}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%% declarations for jss.cls
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\SweaveOpts{width=60}
+% \VignetteIndexEntry{hSDM vignette}
+
+%% almost as usual
+\author{Ghislain Vieilledent\\Cirad}
+\title{Hierarchical Bayesian species distribution models: the \pkg{hSDM} \proglang{R} Package}
+
+%% for pretty printing and a nice hypersummary also set:
+\Plainauthor{Ghislain Vieilledent} %% comma-separated
+\Plaintitle{Hierarchical Bayesian species distribution models: the hSDM R Package} %% without formatting
+\Shorttitle{hSDM} %% a short title (if necessary)
+
+%% an abstract and keywords
+\Abstract{Bla bla bla} 
+
+\Keywords{\proglang{R}} 
+
+\Plainkeywords{R} %% without formatting
+
+%% at least one keyword must be supplied
+
+%% publication information
+%% NOTE: Typically, this can be left commented and will be filled out by the technical editor
+%% \Volume{13}
+%% \Issue{9}
+%% \Month{September}
+%% \Year{2004}
+%% \Submitdate{2004-09-29}
+%% \Acceptdate{2004-09-29}
+
+%% The address of (at least) one author should be given
+%% in the following format:
+\Address{
+  Ghislain Vieilledent\\
+  Cirad\\
+  UPR BSEF\\
+  34 398 Montpellier, FRANCE\\
+  E-mail: \email{ghislain.vieilledent@cirad.fr}\\
+  URL: \url{http://ghislain.vieilledent.free.fr}
+}
+%% It is also possible to add a telephone and fax number
+%% before the e-mail in the following format:
+%% Telephone: +43/1/31336-5053
+%% Fax: +43/1/31336-734
+
+%% for those who use Sweave please include the following line (with % symbols):
+%% need no \usepackage{Sweave.sty}
+
+%% end of declarations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+\section{Introduction}
+
+% \begin{Schunk}
+% \begin{Sinput}
+% random = ~ us(1+age):individual
+% \end{Sinput}
+% \end{Schunk}
+
+Bla bla bla
+
+<<>>=
+x <- c(0,5)
+@ 
+
+Bla bla bla
+
+\end{document}
