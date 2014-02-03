@@ -1,7 +1,7 @@
 Package: hSDM
 Type: Package
 Title: hierarchical Bayesian species distribution models
-Version: 1.2
+Version: 1.3
 Date: 2013-10-15
 Depends: coda
 Author: Ghislain Vieilledent, Andrew M. Latimer, Alan E. Gelfand, Cory Merow, Adam M. Wilson, Frederic Mortier and John A. Silander Jr.

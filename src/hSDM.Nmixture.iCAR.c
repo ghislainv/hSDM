@@ -911,8 +911,8 @@ void hSDM_Nmixture_iCAR (
     free(dens_data.Neigh);
     free(dens_data.rho_run);
     /* Suitability */
-    for (int n=0; n<NOBS; n++) {
-    	free(dens_data.X[n]);
+    for (int i=0; i<NCELL; i++) {
+    	free(dens_data.X[i]);
     }
     free(dens_data.X);
     free(dens_data.mubeta);

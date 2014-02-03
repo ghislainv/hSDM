@@ -1,69 +1,58 @@
-\name{hSDM.Nmixture.iCAR}
-\alias{hSDM.Nmixture.iCAR}
+\name{hSDM.ZIB.iCAR.alteration}
+\alias{hSDM.ZIB.iCAR.alteration}
 
-\title{N-mixture model with CAR process}
+\title{ZIB (Zero-Inflated Binomial or site occupancy) model with CAR
+process taking into account site alteration}
 
-\description{The \code{hSDM.Nmixture.iCAR} function can be used to model
-  species distribution including different processes in a hierarchical
-  Bayesian framework: a \eqn{\mathcal{P}oisson}{Poisson} suitability
-  process (refering to environmental suitability) which takes into
-  account the spatial dependence of the observations, and a
+\description{The \code{hSDM.ZIB.iCAR.alteration} function can
+  be used to model species distribution including different processes in
+  a hierarchical Bayesian framework: (i) a
+  \eqn{\mathcal{B}ernoulli}{Bernoulli} suitability process (refering to
+  environmental suitability) which takes into account the spatial
+  dependence of the observations, (ii) an alteration process (refering
+  to anthropogenic disturbances), and a
   \eqn{\mathcal{B}inomial}{Binomial} observability process (refering to
   various ecological and methodological issues explaining the species
-  detection). The \code{hSDM.Nmixture.iCAR} function calls a Gibbs
-  sampler written in C code which uses an adaptive Metropolis algorithm
-  to estimate the conditional posterior distribution of hierarchical
-  model's parameters.}
+  detection). The \code{hSDM.ZIB.iCAR.alteration} function
+  calls a Gibbs sampler written in C code which uses an adaptive
+  Metropolis algorithm to estimate the conditional posterior
+  distribution of hierarchical model's parameters.}
 
-\usage{hSDM.Nmixture.iCAR(# Observations
-                     counts, observability, spatial.entity, data.observability,
-                     # Habitat
-                     suitability, data.suitability,
-                     # Spatial structure
-                     n.neighbors, neighbors,
-                     # Predictions
-                     suitability.pred = NULL, spatial.entity.pred = NULL,
-                     # Chains
-                     burnin = 5000, mcmc = 10000, thin = 10,
-                     # Starting values
-                     beta.start,
-                     gamma.start,
-                     Vrho.start,
-                     # Priors
-                     mubeta = 0, Vbeta = 1.0E6,
-                     mugamma = 0, Vgamma = 1.0E6,
-                     priorVrho = "1/Gamma",
-                     shape = 0.5, rate = 0.0005,
-                     Vrho.max = 1000,
-                     # Various
-                     seed = 1234, verbose = 1,
-                     save.rho = 0, save.p = 0, save.N = 0)}
+\usage{hSDM.ZIB.iCAR.alteration(presences, trials, suitability,
+observability, spatial.entity, alteration, data, n.neighbors, neighbors,
+suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
+10000, thin = 10, beta.start, gamma.start, Vrho.start, mubeta = 0, Vbeta
+= 1e+06, mugamma = 0, Vgamma = 1e+06, priorVrho = "1/Gamma", shape =
+0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1, save.rho =
+0, save.p = 0)}
 
 \arguments{
   
-  \item{counts}{A vector indicating the count (or abundance) for each
-    observation.}
+  \item{presences}{A vector indicating the number of successes (or
+    presences) for each observation.}
 
-  \item{observability}{A one-sided formula of the form
-    \eqn{\sim w_1+...+w_q}{'~w_1+...+w_q'} with \eqn{q} terms specifying the
-    explicative variables for the observability process.}
-  
-  \item{spatial.entity}{A vector of integer indicating the spatial
-    entity identifier (in the interval [1,total number of spatial
-    entities]) for each observation. Several observations can occur in
-    one spatial entity. A spatial entity can be a raster cell for
-    example.}
-
-  \item{data.observability}{A data frame containing the model's
-    variables for the observability process.}
+  \item{trials}{A vector indicating the number of trials for each
+    observation. \eqn{t_i} should be superior to zero and superior or
+    equal to \eqn{y_i}, the number of successes for observation \eqn{i}.}
 
   \item{suitability}{A one-sided formula of the form
     \eqn{\sim x_1+...+x_p}{'~x_1+...+x_p'} with \eqn{p} terms specifying the
     explicative variables for the suitability process.}
 
-  \item{data.suitability}{A data frame containing the model's variables
-    for the suitability process. The number of rows of the data frame
-    should be equal to the total number of spatial entities.}
+  \item{observability}{A one-sided formula of the form
+    \eqn{\sim w_1+...+w_q}{'~w_1+...+w_q'} with \eqn{q} terms specifying the
+    explicative variables for the observability process.}
+  
+  \item{spatial.entity}{A vector indicating the spatial entity
+    identifier (from one to the total number of entities) for each
+    observation. Several observations can occur in one spatial entity. A
+    spatial entity can be a raster cell for example.}
+
+  \item{alteration}{A vector indicating the proportion of area in the
+    spatial cell which is transformed (by anthropogenic activities for
+    example) for each observation. Must be between 0 and 1.}
+
+  \item{data}{A data frame containing the model's variables.}
 
   \item{n.neighbors}{A vector of integers that indicates the number of
     neighbors (adjacent entities) of each spatial
@@ -77,8 +66,8 @@
     equal to \code{sum(n.neighbors)}.}
 
   \item{suitability.pred}{An optional data frame in which to look for
-    variables with which to predict. If NULL, the data frame
-    \code{data.suitability} for observations is used.}
+    variables with which to predict. If NULL, the observations are
+    used.}
 
   \item{spatial.entity.pred}{An optional vector indicating the spatial
     entity identifier (from one to the total number of entities) for
@@ -169,13 +158,6 @@
     vector. Be careful, setting \code{save.p} to 1 might require a large
     amount of memory.}
 
-  \item{save.N}{A switch (0,1) which determines whether or not the
-    sampled values for the latent count variable N for each observed
-    cells are saved. Default is 0: the mean (rounded to the closest
-    integer) is computed and returned in the \code{N.pred} vector. Be
-    careful, setting \code{save.N} to 1 might require a large amount of
-    memory.}
-
 }
 
 \value{
@@ -183,8 +165,8 @@
   \item{mcmc}{An mcmc object that contains the posterior sample. This
     object can be summarized by functions provided by the coda
     package. The posterior sample of the deviance \eqn{D}{D}, with
-    \eqn{D=-2\log(\prod_{it} P(y_{it},N_i|...))}{%
-      D=-2log(prod_it P(y_it,N_i|...))}, is also
+    \eqn{D=-2\log(\prod_i P(y_i,z_i|...))}{%
+      D=-2log(prod_i P(y_i,z_i|...))}, is also
     provided.}
 
   \item{rho.pred}{If \code{save.rho} is set to 0 (default),
@@ -200,12 +182,6 @@
     prediction. If \code{save.p} is set to 1, \code{prob.p.pred} is an
     \code{mcmc} object with sampled values of the probability associated
     to the suitability process for each prediction.}
-
-  \item{N.pred}{If \code{save.N} is set to 0 (default), \code{N.pred} is
-    the posterior mean (rounded to the closest integer) of the latent
-    count variable N for each observed cell. If \code{save.N} is set to 1,
-    \code{N.pred} is an \code{mcmc} object with sampled values of the
-    latent count variable N for each observed cell.}
   
   \item{prob.p.latent}{Predictive posterior mean of the probability
     associated to the suitability process for each observation.}
@@ -228,26 +204,29 @@
   sites.
 
   \bold{Ecological process:}
-  \deqn{N_i \sim \mathcal{P}oisson(\lambda_i)}{N_i ~ Poisson(lambda_i)}
-  \deqn{log(\lambda_i) = X_i \beta + \rho_i}{log(lambda_i) = X_i *
-    beta + rho_i}
-  \eqn{\rho_i}{rho_i}: spatial random effect
+  \deqn{z_i \sim \mathcal{B}ernoulli(\theta_i)}{z_i ~ Bernoulli(theta_i)}
+  \deqn{logit(\theta_i) = X_i \beta + \rho_{j(i)}}{logit(theta_i) = X_i *
+    beta + rho_j(i)}
+  \eqn{\rho_j}{rho_j}: spatial random effect
+  
+  \eqn{j(i)}: index of the spatial entity for observation \eqn{i}.
   
   \bold{Spatial autocorrelation:}
   
   An intrinsic conditional autoregressive model (iCAR) is assumed:
-  \deqn{\rho_i \sim \mathcal{N}ormal(\mu_i,V_{\rho} / n_i)}{rho_i ~
-    Normal(mu_i,V_rho / n_i)}
-  \eqn{\mu_i}{mu_i}: mean of \eqn{\rho_{i'}}{rho_i'} in the
-  neighborhood of \eqn{i}.
+  \deqn{\rho_j \sim \mathcal{N}ormal(\mu_j,V_{\rho} / n_j)}{rho_j ~
+    Normal(mu_j,V_rho / n_j)}
+  \eqn{\mu_j}{mu_j}: mean of \eqn{\rho_{j'}}{rho_j'} in the
+  neighborhood of \eqn{j}.
   
   \eqn{V_{\rho}}{V_rho}: variance of the spatial random effects.
   
-  \eqn{n_i}{n_i}: number of neighbors for spatial entity \eqn{i}.
+  \eqn{n_j}{n_j}: number of neighbors for spatial entity \eqn{j}.
   
   \bold{Observation process:}
-  \deqn{y_{it} \sim \mathcal{B}inomial(N_i, \delta_{it})}{y_it ~ Binomial(N_i, delta_it)}
-  \deqn{logit(\delta_{it}) = W_{it} \gamma}{logit(delta_it) = W_it * gamma} 
+  \deqn{y_i \sim \mathcal{B}inomial(z_i * \delta_i, t_i)}{y_i ~ Binomial(z_i
+    * delta_i, t_i)}
+  \deqn{logit(\delta_i) = W_i \gamma}{logit(delta_i) = W_i * gamma} 
 
 }
 
@@ -256,13 +235,14 @@
   Gelfand, A. E.; Schmidt, A. M.; Wu, S.; Silander, J. A.; Latimer, A. and
   Rebelo, A. G. (2005) Modelling species diversity through species level
   hierarchical modelling. \emph{Applied Statistics}, 54, 1-20.
-  
+   
   Latimer, A. M.; Wu, S. S.; Gelfand, A. E. and Silander, J. A. (2006) Building
   statistical models to analyze species distributions. \emph{Ecological
     Applications}, 16, 33-50.
 
-  Royle, J. A. (2004) N-mixture models for estimating population size from
-  spatially replicated counts. \emph{Biometrics}, 60, 108-115.
+  MacKenzie, D. I.; Nichols, J. D.; Lachman, G. B.; Droege, S.; Andrew
+  Royle, J. and Langtimm, C. A. (2002) Estimating site occupancy rates when
+  detection probabilities are less than one. \emph{Ecology}, 83, 2248-2255.
 
 }
 
@@ -276,10 +256,10 @@
 
 \examples{
 
-\dontrun{
+\dontrun{ 
 
 #==============================================
-# hSDM.Nmixture.iCAR()
+# hSDM.ZIB.iCAR.alteration()
 # Example with simulated data
 #==============================================
 
@@ -300,7 +280,7 @@ seed <- 1234
 beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
 gamma.target <- matrix(c(1),ncol=1) #= This means that theta.2~0.75: 75\% of chance to detect the species
 ## Uncomment if you want covariates on the observability process
-## gamma.target <- matrix(c(1,0.5,0.5),ncol=1)
+## gamma.target <- matrix(c(0.2,0.5,0.5),ncol=1)
 Vrho.target <- 1 # Spatial Variance
 
 # Landscape
@@ -345,10 +325,15 @@ coords <- xyFromCell(Landscape,cells) # Get coordinates
 
 # Covariates for "suitability" process
 set.seed(seed)
-X1 <- rnorm(n=ncell,0,1) # Here, we decided to define one habitat by spatial entity (raster cell)
+X1.cell <- rnorm(n=ncell,0,1) # Here, we decided to define one habitat by spatial entity (raster cell)
 set.seed(2*seed)
-X2 <- rnorm(n=ncell,0,1)
-X <- cbind(rep(1,ncell),X1,X2)
+X2.cell <- rnorm(n=ncell,0,1)
+X1 <- X1.cell[cells]
+X2 <- X2.cell[cells]
+X <- cbind(rep(1,nobs),X1,X2)
+
+# Alteration
+U <- runif(n=nobs,min=0,max=1)
 
 # Covariates for "observability" process
 W <- cbind(rep(1,nobs))
@@ -362,89 +347,82 @@ W <- cbind(rep(1,nobs))
 #== Simulating latent variables
 
 # Suitability
-log.lambda <- vector()
-log.lambda <- X\%*\%beta.target+rho
-lambda <- exp(log.lambda)
+logit.theta.1 <- vector()
+for (n in 1:nobs) {
+  logit.theta.1[n] <- X[n,]\%*\%beta.target+rho[cells[n]]
+}
+theta.1 <- inv.logit(logit.theta.1)
 set.seed(seed)
-N <- rpois(ncell,lambda)
+y.1 <- rbinom(nobs,1,theta.1)
+
+# Alteration
+u <- rbinom(nobs,1,U)
 
 # Observability
-logit.theta <- W\%*\%gamma.target
-theta <- inv.logit(logit.theta)
+set.seed(seed)
+trials <- rpois(nobs,5)	# Number of trial associated to each observation
+trials[trials==0] <- 1
+logit.theta.2 <- W\%*\%gamma.target
+theta.2 <- inv.logit(logit.theta.2)
+set.seed(seed)
+y.2 <- rbinom(nobs,trials,theta.2)
 
 #== Simulating response variable
-set.seed(seed)
-Y <- rbinom(nobs,N[cells],theta)
+Y <- y.2*(1-u)*y.1
 
-#== Data-sets
-Data.obs <- data.frame(Y,cells)
+#== Data-set
+Data <- data.frame(Y,trials,cells,X1,X2,U)
 ## Uncomment if you want covariates on the observability process 
-## Data.obs <- data.frame(Y,cells,W1,W2)
-Data.suit <- data.frame(cells=c(1:ncell),X1,X2)
-Data.obs <- SpatialPointsDataFrame(coords=coords,data=Data.obs)
-plot(Data.obs)
-Data.pred <- Data.suit
+## Data <- data.frame(Y,trials,cells,X1,X2,W1,W2,U)
+Data <- SpatialPointsDataFrame(coords=coords,data=Data)
+plot(Data)
+
+#== Data-set for predictions (suitability on each spatial cell)
+Data.pred <- data.frame(X1=X1.cell,X2=X2.cell,cells=c(1:ncell))
 
 #==================================
-#== N-mixture model
+#== Site-occupancy model
 
-mod.hSDM.Nmixture.iCAR <- hSDM.Nmixture.iCAR(# Observations
-                                   counts=Data.obs$Y, observability=~1,
-                                   spatial.entity=Data.obs$cells, data.observability=Data.obs,
-                                   # Habitat
-                                   suitability=~X1+X2, data.suitability=Data.suit,
-                                   # Spatial structure
-                                   n.neighbors=n.neighbors, neighbors=adj,
-                                   # Predictions
-                                   suitability.pred=Data.pred, spatial.entity.pred=Data.pred$cells,
-                                   # Chains
-                                   burnin=10000, mcmc=10000, thin=10,
-                                   # Starting values
-                                   beta.start=0,
-                                   gamma.start=0,
-                                   Vrho.start=10,
-                                   # Priors
-                                   mubeta=0, Vbeta=1.0E6,
-                                   mugamma=0, Vgamma=1.0E6,
-                                   priorVrho="1/Gamma",
-                                   #priorVrho="Uniform",
-                                   #priorVrho=10,
-                                   shape=0.5, rate=0.0005,
-                                   #Vrho.max=1000,
-                                   # Various
-                                   seed=1234, verbose=1,
-                                   save.rho=0, save.p=0, save.N=1)
+mod.hSDM.ZIB.iCAR.alteration <- hSDM.ZIB.iCAR.alteration(presences=Data$Y,
+                                               trials=Data$trials,
+                                               suitability=~X1+X2,
+                                               observability=~1,
+                                               spatial.entity=Data$cells,
+                                               alteration=Data$U,
+                                               data=Data,
+                                               n.neighbors=n.neighbors,
+                                               neighbors=adj,
+                                               ## suitability.pred=NULL,
+                                               ## spatial.entity.pred=NULL,
+                                               suitability.pred=Data.pred,
+                                               spatial.entity.pred=Data.pred$cells,
+                                               burnin=5000, mcmc=5000, thin=5,
+                                               beta.start=0,
+                                               gamma.start=0,
+                                               Vrho.start=10,
+                                               priorVrho="1/Gamma",
+                                               #priorVrho="Uniform",
+                                               #priorVrho=10,
+                                               mubeta=0, Vbeta=1.0E6,
+                                               mugamma=0, Vgamma=1.0E6,
+                                               shape=0.5, rate=0.0005,
+                                               #Vrho.max=1000,
+                                               seed=1234, verbose=1,
+                                               save.rho=1, save.p=0)
 
 #==========
 #== Outputs
 
 #= Parameter estimates
-summary(mod.hSDM.Nmixture.iCAR$mcmc)
+summary(mod.hSDM.ZIB.iCAR.alteration$mcmc)
 
 #= MCMC and posteriors
-pdf(file="Posteriors_hSDM.Nmixture.iCAR.pdf")
-plot(mod.hSDM.Nmixture.iCAR$mcmc)
+pdf(file="Posteriors_hSDM.ZIB.iCAR.alteration.pdf")
+plot(mod.hSDM.ZIB.iCAR.alteration$mcmc)
 dev.off()
 
-pdf(file="Posteriors.rho_hSDM.Nmixture.iCAR.pdf")
-plot(mod.hSDM.Nmixture.iCAR$rho.pred)
-dev.off()
-
-pdf(file="Posteriors.N_hSDM.Nmixture.iCAR.pdf")
-plot(mod.hSDM.Nmixture.iCAR$N.pred)
-dev.off()
-
-#= Check that Ns are correctly estimated
-M <- as.matrix(mod.hSDM.Nmixture.iCAR$N.pred)
-N.est <- apply(M,2,mean)
-Y.by.cell <- tapply(Data.obs$Y,Data.obs$cells,mean)
-pdf(file="Check_N.pdf",width=10,height=5)
-par(mfrow=c(1,2))
-plot(Y.by.cell, N.est) ## More individuals are expected in reality (N > Y) due to detection process
-abline(a=0,b=1,col="red")
-plot(N[visited.cells], N.est) ## N are well estimated
-abline(a=0,b=1,col="red")
-cor(N[visited.cells], N.est) ## Close to 1
+pdf(file="Posteriors.rho_hSDM.ZIB.iCAR.alteration.pdf")
+plot(mod.hSDM.ZIB.iCAR.alteration$rho.pred)
 dev.off()
 
 #= Summary plots
@@ -452,19 +430,19 @@ dev.off()
 # rho
 r.rho <- r.rho.pred <- r.visited <- Landscape
 r.rho[] <- rho
-rho.pred <- mod.hSDM.Nmixture.iCAR$rho.pred # apply(mod.hSDM.Nmixture.iCAR$rho.pred,2,mean)
+rho.pred <- apply(mod.hSDM.ZIB.iCAR.alteration$rho.pred,2,mean)
 r.rho.pred[] <- rho.pred
 r.visited[] <- 0
 r.visited[visited.cells] <- 1
 # prob.p
 r.prob.p <- Landscape
-r.prob.p[] <- mod.hSDM.Nmixture.iCAR$prob.p.pred
+r.prob.p[] <- mod.hSDM.ZIB.iCAR.alteration$prob.p.pred
 
-pdf(file="Summary_hSDM.Nmixture.iCAR.pdf")
+pdf(file="Summary_hSDM.ZIB.iCAR.alteration.pdf")
 par(mfrow=c(3,2))
 plot(r.rho, main="rho target")
 plot(r.visited,main="Visited cells and presences")
-plot(Data.obs[Y>0,],add=TRUE,pch=16,cex=0.5)
+plot(Data[Y>0,],add=TRUE,pch=16,cex=0.5)
 plot(r.rho.pred, main="rho estimated")
 plot(rho[visited.cells],rho.pred[visited.cells],
      xlab="rho target",
@@ -473,7 +451,7 @@ points(rho[notvisited.cells],rho.pred[notvisited.cells],pch=16,col="blue")
 legend(x=-4,y=3.5,legend="Unvisited cells",col="blue",pch=16,bty="n")
 abline(a=0,b=1,col="red")
 plot(r.prob.p,main="Proba of presence")
-plot(Data.obs[Y>0,],add=TRUE,pch=16,cex=0.5)
+plot(Data[Y>0,],add=TRUE,pch=16,cex=0.5)
 dev.off()
 
 }
@@ -483,10 +461,11 @@ dev.off()
 \keyword{biodiversity}
 \keyword{species distribution models}
 \keyword{hierarchical Bayesian models}
-\keyword{N-mixture models}
+\keyword{site occupancy models}
 \keyword{spatial correlation}
 \keyword{intrinsic CAR model}
 \keyword{conditional autoregressive model}
 \keyword{MCMC}
 \keyword{Markov Chains Monte Carlo}
 \keyword{Metropolis algorithm}
+\keyword{ZIB models}

@@ -59,10 +59,10 @@ hSDM.Nmixture <- function (# Observations
   #= Observability
   mf.obs <- model.frame(formula=observability,data=data.observability)
   W <- model.matrix(attr(mf.obs,"terms"),data=mf.obs)
-  #= Spatial correlation
+  #= Spatial entity
   Levels.spatial.entity <- sort(unique(spatial.entity))
-  cells <- as.numeric(as.factor(spatial.entity))
   ncell <- length(Levels.spatial.entity)
+  cells <- as.numeric(as.factor(spatial.entity))
 
   #= Predictions
   if (is.null(suitability.pred)) {

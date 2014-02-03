@@ -227,15 +227,16 @@ Vrho.target <- 1 # Spatial Variance
 nobs <- 300
 
 # Cell vector
+ntotcell <- 100
 set.seed(seed)
-cells <- sample(c(1:100),nobs,replace=TRUE)
-Ident.cells <- as.numeric(as.factor(cells))
+cells <- sample(c(1:ntotcell),nobs,replace=TRUE)
 Levels.cells <- sort(unique(cells))
 ncell <- length(Levels.cells)
+Ident.cells <- as.numeric(as.factor(cells))
 
 # Covariates for "suitability" process
 set.seed(seed)
-X1 <- rnorm(n=ncell,0,1) # Here, we decided to define one habitat by spatial entity (raster cell)
+X1 <- rnorm(n=ncell,0,1)
 set.seed(2*seed)
 X2 <- rnorm(n=ncell,0,1)
 X <- cbind(rep(1,ncell),X1,X2)
@@ -318,9 +319,9 @@ pdf(file="Check_N.pdf",width=10,height=5)
 par(mfrow=c(1,2))
 plot(Y.by.cell, N.est) ## More individuals are expected in reality (N > Y) due to detection process
 abline(a=0,b=1,col="red")
-plot(N[visited.cells], N.est) ## N are well estimated
+plot(N, N.est) ## N are well estimated
 abline(a=0,b=1,col="red")
-cor(N[visited.cells], N.est) ## Close to 1
+cor(N, N.est) ## Close to 1
 dev.off()
 
 }

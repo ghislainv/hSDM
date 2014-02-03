@@ -1,10 +1,10 @@
 ####################################################################
 ##
-## hSDM.hierarchical.binomial.R
+## hSDM.ZIB.iCAR.alteration.R
 ##
 ####################################################################
 ##
-## Original code by Ghislain Vieilledent, October 2011
+## Original code by Ghislain Vieilledent, November 2013
 ## CIRAD UR B&SEF
 ## ghislain.vieilledent@cirad.fr / ghislainv@gmail.com
 ##
@@ -17,31 +17,30 @@
 ## Copyright (C) 2011 Ghislain Vieilledent
 ## 
 ####################################################################
-##
-## Revisions: 
-## - G. Vieilledent, on November 19th 2012
-##
-####################################################################
 
 
-hSDM.hierarchical.binomial <- function (presences, trials,
-                               suitability,
-                               cells,
-                               n.neighbors,
-                               neighbors,
-                               alteration,
-                               observability,    
-                               data, burnin=5000,
-                               mcmc=10000, thin=10,
-                               beta.start,
-                               gamma.start,
-                               Vrho.start,
-                               mubeta=0, Vbeta=1.0E6,
-                               mugamma=0, Vgamma=1.0E6,
-                               priorVrho="1/Gamma",
-                               shape=0.5, rate=0.0005,
-                               Vrho.max=1000,
-                               seed=1234, verbose=1, save.rho=0)
+hSDM.ZIB.iCAR.alteration <- function (# Observations
+                                 presences, trials,
+                                 suitability, observability, spatial.entity, alteration, data,
+                                 # Spatial structure
+                                 n.neighbors, neighbors,
+                                 # Predictions
+                                 suitability.pred=NULL, spatial.entity.pred=NULL,
+                                 # Chains
+                                 burnin=5000, mcmc=10000, thin=10,
+                                 # Starting values
+                                 beta.start,
+                                 gamma.start,
+                                 Vrho.start,
+                                 # Priors
+                                 mubeta=0, Vbeta=1.0E6,
+                                 mugamma=0, Vgamma=1.0E6,
+                                 priorVrho="1/Gamma",
+                                 shape=0.5, rate=0.0005,
+                                 Vrho.max=1000,
+                                 # Various
+                                 seed=1234, verbose=1,
+                                 save.rho=0, save.p=0)
 
 {   
   #========
@@ -50,6 +49,7 @@ hSDM.hierarchical.binomial <- function (presences, trials,
   check.mcmc.parameters(burnin, mcmc, thin)
   check.verbose(verbose)
   check.save.rho(save.rho)
+  check.save.p(save.p)
    
   #======== 
   # Form response, covariate matrices and model parameters
@@ -68,10 +68,20 @@ hSDM.hierarchical.binomial <- function (presences, trials,
   mf.obs <- model.frame(formula=observability,data=data)
   W <- model.matrix(attr(mf.obs,"terms"),data=mf.obs)
   #= Spatial correlation
-  cells <- cells
-  ncell <- length(unique(cells))
-  n.neighbors <- n.neighbors
-  neighbors <- neighbors
+  ncell <- length(n.neighbors)
+  cells <- spatial.entity
+  #= Predictions
+  if (is.null(suitability.pred) | is.null(spatial.entity.pred)) {
+      X.pred <- X
+      cells.pred <- cells
+      npred <- nobs
+  }
+  if (!is.null(suitability.pred) & !is.null(spatial.entity.pred)) {
+      mf.pred <- model.frame(formula=suitability,data=suitability.pred)
+      X.pred <- model.matrix(attr(mf.pred,"terms"),data=mf.pred)
+      cells.pred <- spatial.entity.pred
+      npred <- length(cells.pred)
+  }
   #= Model parameters
   np <- ncol(X)
   nq <- ncol(W)
@@ -83,7 +93,7 @@ hSDM.hierarchical.binomial <- function (presences, trials,
   #========== 
   # Check data
   #==========
-  check.T.binomial(T,nobs)
+  check.T.binomial.2(T,nobs) #= This version (.2) of the function assumes T>0
   check.Y.binomial(Y,T)
   check.U(U,nobs)
   check.X(X,nobs)
@@ -118,14 +128,16 @@ hSDM.hierarchical.binomial <- function (presences, trials,
   if (save.rho==0) {rho_pred <- rho.start}
   if (save.rho==1) {rho_pred <- rep(rho.start,nsamp)}
   Vrho <- rep(Vrho.start,nsamp)
-  prob_p_pred <- rep(0,nobs)
-  prob_q_pred <- rep(0,nobs)
+  prob_p_latent <- rep(0,nobs)
+  prob_q_latent <- rep(0,nobs)
+  if (save.p==0) {prob_p_pred <- rep(0,npred)}
+  if (save.p==1) {prob_p_pred <- rep(0,npred*nsamp)}
   Deviance <- rep(0,nsamp)
 
   #========
   # call C++ code to draw sample
   #========
-  Sample <- .C("hSDM_hierarchical_binomial",
+  Sample <- .C("hSDM_ZIB_iCAR_alteration",
                #= Constants and data
                ngibbs=as.integer(ngibbs), nthin=as.integer(nthin), nburn=as.integer(nburn), ## Number of iterations, burning and samples
                nobs=as.integer(nobs),
@@ -141,6 +153,10 @@ hSDM.hierarchical.binomial <- function (presences, trials,
                C_vect=as.integer(c(cells)-1), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term. 
                nNeigh=as.integer(c(n.neighbors)),
                Neigh_vect=as.integer(c(neighbors-1)), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term.
+               #= Predictions
+               npred=as.integer(npred),
+               X_pred_vect=as.double(c(X.pred)),
+               C_pred_vect=as.integer(c(cells.pred)-1),
                #= Starting values for M-H
                beta_start=as.double(c(beta.start)),
                gamma_start=as.double(c(gamma.start)),
@@ -158,14 +174,16 @@ hSDM.hierarchical.binomial <- function (presences, trials,
                Vrho.max=as.double(Vrho.max),
                #= Diagnostic
                Deviance.nonconst=as.double(Deviance),
-               prob_p_pred.nonconst=as.double(prob_p_pred), ## Predictive posterior mean
-               prob_q_pred.nonconst=as.double(prob_q_pred), ## Predictive posterior mean
+               prob_p_latent.nonconst=as.double(prob_p_latent), ## Predictive posterior mean
+               prob_q_latent.nonconst=as.double(prob_q_latent), ## Predictive posterior mean
+               prob_p_pred.nonconst=as.double(prob_p_pred), 
                #= Seed
                seed=as.integer(seed), 
                #= Verbose
                verbose=as.integer(verbose),
-               #= Save rho
+               #= Save rho and p
                save_rho=as.integer(save.rho),
+               save_p=as.integer(save.p),
                PACKAGE="hSDM")
  
   #= Matrix of MCMC samples
@@ -174,24 +192,34 @@ hSDM.hierarchical.binomial <- function (presences, trials,
   colnames(Matrix) <- c(names.fixed,"Vrho","Deviance")
   
   #= Filling-in the matrix
-  Matrix[,c(1:np)] <- matrix(Sample[[19]],ncol=np)
-  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[20]],ncol=nq)
-  Matrix[,ncol(Matrix)-1] <- Sample[[22]]
-  Matrix[,ncol(Matrix)] <- Sample[[31]]
+  Matrix[,c(1:np)] <- matrix(Sample[[22]],ncol=np)
+  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[23]],ncol=nq)
+  Matrix[,ncol(Matrix)-1] <- Sample[[25]]
+  Matrix[,ncol(Matrix)] <- Sample[[34]]
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save rho
-  if (save.rho==0) {rho.pred=Sample[[21]]}
+  if (save.rho==0) {rho.pred <- Sample[[24]]}
   if (save.rho==1) {
-      Matrix.rho.pred=matrix(Sample[[21]],ncol=ncell)
+      Matrix.rho.pred <- matrix(Sample[[24]],ncol=ncell)
       colnames(Matrix.rho.pred) <- paste("rho.",c(1:ncell),sep="")
-      rho.pred=mcmc(Matrix.rho.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      rho.pred <- mcmc(Matrix.rho.pred,start=nburn+1,end=ngibbs,thin=nthin)
+  }
+
+  #= Save pred
+  if (save.p==0) {prob.p.pred <- Sample[[37]]}
+  if (save.p==1) {
+      Matrix.p.pred <- matrix(Sample[[37]],ncol=npred)
+      colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
+      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Output
-  return (list(mcmc=MCMC,rho.pred=rho.pred,prob.p.pred=Sample[[32]],prob.q.pred=Sample[[33]]))
+  return (list(mcmc=MCMC,
+               rho.pred=rho.pred, prob.p.pred=prob.p.pred,
+               prob.p.latent=Sample[[35]], prob.q.latent=Sample[[36]]))
 
 }
 

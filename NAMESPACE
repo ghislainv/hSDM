@@ -3,9 +3,9 @@ import(coda)
 
 export(hSDM.binomial,
        hSDM.binomial.iCAR,
-       hSDM.site.occupancy,
-       hSDM.site.occupancy.iCAR,
-       hSDM.hierarchical.binomial,
+       hSDM.ZIB,
+       hSDM.ZIB.iCAR,
+       hSDM.ZIB.iCAR.alteration,
        hSDM.poisson,
        hSDM.poisson.iCAR,
        hSDM.Nmixture,

@@ -1,20 +1,20 @@
-\name{hSDM.site.occupancy}
-\alias{hSDM.site.occupancy}
+\name{hSDM.ZIB}
+\alias{hSDM.ZIB}
 
-\title{Site occupancy model}
+\title{ZIB (Zero-Inflated Binomial or site occupancy) model}
 
-\description{The \code{hSDM.site.occupancy} function can be used to
+\description{The \code{hSDM.ZIB} function can be used to
   model species distribution including different processes in a
   hierarchical Bayesian framework: a
   \eqn{\mathcal{B}ernoulli}{Bernoulli} suitability process (refering to
   environmental suitability) and a \eqn{\mathcal{B}inomial}{Binomial}
   observability process (refering to various ecological and
   methodological issues explaining the species detection). The
-  \code{hSDM.site.occupancy} function calls a Gibbs sampler written in C
+  \code{hSDM.ZIB} function calls a Gibbs sampler written in C
   code which uses a Metropolis algorithm to estimate the conditional
   posterior distribution of hierarchical model's parameters.}
 
-\usage{hSDM.site.occupancy(presences, trials, suitability,
+\usage{hSDM.ZIB(presences, trials, suitability,
 observability, data, suitability.pred=NULL, burnin = 5000, mcmc = 10000,
 thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
 0, Vgamma = 1e+06, seed = 1234, verbose = 1, save.p = 0)}
@@ -173,7 +173,7 @@ thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
 \dontrun{ 
 
 #==============================================
-# hSDM.site.occupancy()
+# hSDM.ZIB()
 # Example with simulated data
 #==============================================
 
@@ -240,34 +240,34 @@ Data <- data.frame(Y,trials,X1,X2)
 #==================================
 #== Site-occupancy model
 
-mod.hSDM.site.occupancy <- hSDM.site.occupancy(presences=Data$Y,
-                                               trials=Data$trials,
-                                               suitability=~X1+X2,
-                                               observability=~1, #=~1+W1+W2 if covariates
-                                               data=Data,
-                                               suitability.pred=NULL,
-                                               burnin=1000, mcmc=1000, thin=5,
-                                               beta.start=0,
-                                               gamma.start=0,
-                                               mubeta=0, Vbeta=1.0E6,
-                                               mugamma=0, Vgamma=1.0E6,
-                                               seed=1234, verbose=1,
-                                               save.p=0)
+mod.hSDM.ZIB <- hSDM.ZIB(presences=Data$Y,
+                         trials=Data$trials,
+                         suitability=~X1+X2,
+                         observability=~1, #=~1+W1+W2 if covariates
+                         data=Data,
+                         suitability.pred=NULL,
+                         burnin=1000, mcmc=1000, thin=5,
+                         beta.start=0,
+                         gamma.start=0,
+                         mubeta=0, Vbeta=1.0E6,
+                         mugamma=0, Vgamma=1.0E6,
+                         seed=1234, verbose=1,
+                         save.p=0)
 
 #==========
 #== Outputs
-pdf(file="Posteriors_hSDM.site.occupancy.pdf")
-plot(mod.hSDM.site.occupancy$mcmc)
+pdf(file="Posteriors_hSDM.ZIB.pdf")
+plot(mod.hSDM.ZIB$mcmc)
 dev.off()
-summary(mod.hSDM.site.occupancy$prob.p.latent)
-summary(mod.hSDM.site.occupancy$prob.q.latent)
-summary(mod.hSDM.site.occupancy$prob.p.pred)
+summary(mod.hSDM.ZIB$prob.p.latent)
+summary(mod.hSDM.ZIB$prob.q.latent)
+summary(mod.hSDM.ZIB$prob.p.pred)
 
 }
 
 }
 
-\keyword{Site occupancy models}
+\keyword{site occupancy models}
 \keyword{biodiversity}
 \keyword{species distribution models}
 \keyword{hierarchical Bayesian models}
