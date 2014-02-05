@@ -85,7 +85,7 @@ hSDM.binomial.iCAR <- function (# Observations
   #========== 
   # Check data
   #==========
-  check.T.binomial.2(T,nobs) #= This version (.2) of the function assumes T>0
+  check.T.binomial(T,nobs)
   check.Y.binomial(Y,T)
   check.X(X,nobs)
   check.cells(cells,nobs)

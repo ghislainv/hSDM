@@ -85,7 +85,7 @@ hSDM.Nmixture <- function (# Observations
   #========== 
   # Check data
   #==========
-  check.Y.poisson.2(Y) # No argument T for this second function...
+  check.Y.poisson(Y)
   check.X(X,ncell) # X must be of dim (ncell x np) for the N-mixture model
   check.W(W,nobs)
   check.cells(cells,nobs)

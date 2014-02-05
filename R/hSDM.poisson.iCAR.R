@@ -4,7 +4,7 @@
 ##
 ####################################################################
 ##
-## Original code by Ghislain Vieilledent, October 2011
+## Original code by Ghislain Vieilledent, November 2013
 ## CIRAD UR B&SEF
 ## ghislain.vieilledent@cirad.fr / ghislainv@gmail.com
 ##
@@ -17,27 +17,28 @@
 ## Copyright (C) 2011 Ghislain Vieilledent
 ## 
 ####################################################################
-##
-## Revisions: 
-## - G. Vieilledent, on November 19th 2012
-##
-####################################################################
 
 
-hSDM.poisson.iCAR <- function (counts, visits,
-                               suitability,
-                               cells,
-                               n.neighbors,
-                               neighbors,  
-                               data, burnin=5000,
-                               mcmc=10000, thin=10, 
-                               beta.start,
-                               Vrho.start,
-                               mubeta=0, Vbeta=1.0E6,
-                               priorVrho="1/Gamma",
-                               shape=0.5, rate=0.0005,
-                               Vrho.max=1000,
-                               seed=1234, verbose=1, save.rho=0)
+hSDM.poisson.iCAR <- function (# Observations
+                                 counts,
+                                 suitability, spatial.entity, data,
+                                 # Spatial structure
+                                 n.neighbors, neighbors,
+                                 # Predictions
+                                 suitability.pred=NULL, spatial.entity.pred=NULL,
+                                 # Chains
+                                 burnin=5000, mcmc=10000, thin=10,
+                                 # Starting values
+                                 beta.start,
+                                 Vrho.start,
+                                 # Priors
+                                 mubeta=0, Vbeta=1.0E6,
+                                 priorVrho="1/Gamma",
+                                 shape=0.5, rate=0.0005,
+                                 Vrho.max=1000,
+                                 # Various
+                                 seed=1234, verbose=1,
+                                 save.rho=0, save.p=0)
 
 {   
   #========
@@ -46,6 +47,7 @@ hSDM.poisson.iCAR <- function (counts, visits,
   check.mcmc.parameters(burnin, mcmc, thin)
   check.verbose(verbose)
   check.save.rho(save.rho)
+  check.save.p(save.p)
    
   #======== 
   # Form response, covariate matrices and model parameters
@@ -54,15 +56,24 @@ hSDM.poisson.iCAR <- function (counts, visits,
   #= Response
   Y <- counts
   nobs <- length(Y)
-  T <- visits
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
   #= Spatial correlation
-  cells <- cells
-  ncell <- length(unique(cells))
-  n.neighbors <- n.neighbors
-  neighbors <- neighbors
+  ncell <- length(n.neighbors)
+  cells <- spatial.entity
+  #= Predictions
+  if (is.null(suitability.pred) | is.null(spatial.entity.pred)) {
+      X.pred <- X
+      cells.pred <- cells
+      npred <- nobs
+  }
+  if (!is.null(suitability.pred) & !is.null(spatial.entity.pred)) {
+      mf.pred <- model.frame(formula=suitability,data=suitability.pred)
+      X.pred <- model.matrix(attr(mf.pred,"terms"),data=mf.pred)
+      cells.pred <- spatial.entity.pred
+      npred <- length(cells.pred)
+  }
   #= Model parameters
   np <- ncol(X)
   ngibbs <- mcmc+burnin
@@ -73,12 +84,11 @@ hSDM.poisson.iCAR <- function (counts, visits,
   #========== 
   # Check data
   #==========
-  check.T.poisson(T,nobs)
-  check.Y.poisson(Y,T)
+  check.Y.poisson(Y)
   check.X(X,nobs)
   check.cells(cells,nobs)
   check.neighbors(n.neighbors,ncell,neighbors)
-  
+
   #========
   # Initial starting values for M-H
   #========
@@ -102,7 +112,10 @@ hSDM.poisson.iCAR <- function (counts, visits,
   if (save.rho==0) {rho_pred <- rho.start}
   if (save.rho==1) {rho_pred <- rep(rho.start,nsamp)}
   Vrho <- rep(Vrho.start,nsamp)
-  prob_p_pred <- rep(0,nobs)
+  prob_p_latent <- rep(0,nobs)
+  prob_q_latent <- rep(0,nobs)
+  if (save.p==0) {prob_p_pred <- rep(0,npred)}
+  if (save.p==1) {prob_p_pred <- rep(0,npred*nsamp)}
   Deviance <- rep(0,nsamp)
 
   #========
@@ -115,19 +128,22 @@ hSDM.poisson.iCAR <- function (counts, visits,
                ncell=as.integer(ncell),
                np=as.integer(np),
                Y_vect=as.integer(c(Y)),
-               T_vect=as.integer(c(T)),
                X_vect=as.double(c(X)),
                #= Spatial correlation
                C_vect=as.integer(c(cells)-1), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term. 
                nNeigh=as.integer(c(n.neighbors)),
-               Neigh_vect=as.integer(c(neighbors-1)), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term. 
+               Neigh_vect=as.integer(c(neighbors-1)), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term.
+               #= Predictions
+               npred=as.integer(npred),
+               X_pred_vect=as.double(c(X.pred)),
+               C_pred_vect=as.integer(c(cells.pred)-1),
                #= Starting values for M-H
                beta_start=as.double(c(beta.start)),
                rho_start=as.double(c(rho.start)),
                #= Parameters to save
                beta.nonconst=as.double(beta), ## Fixed parameters of the regression
-               rho_pred.nonconst=as.double(rho_pred),
-               Vrho.nonconst=as.double(Vrho),
+               rho_pred.nonconst=as.double(rho_pred), 
+               Vrho.nonconst=as.double(Vrho), 
                #= Defining priors
                mubeta=as.double(c(mubeta)), Vbeta=as.double(c(Vbeta)),
                priorVrho=as.double(priorVrho),
@@ -135,13 +151,15 @@ hSDM.poisson.iCAR <- function (counts, visits,
                Vrho.max=as.double(Vrho.max),
                #= Diagnostic
                Deviance.nonconst=as.double(Deviance),
-               prob_p_pred.nonconst=as.double(prob_p_pred), ## Predictive posterior mean
+               prob_p_latent.nonconst=as.double(prob_p_latent), ## Predictive posterior mean
+               prob_p_pred.nonconst=as.double(prob_p_pred), 
                #= Seed
                seed=as.integer(seed), 
                #= Verbose
                verbose=as.integer(verbose),
-               #= Save rho
+               #= Save rho and p
                save_rho=as.integer(save.rho),
+               save_p=as.integer(save.p),
                PACKAGE="hSDM")
  
   #= Matrix of MCMC samples
@@ -150,23 +168,33 @@ hSDM.poisson.iCAR <- function (counts, visits,
   colnames(Matrix) <- c(names.fixed,"Vrho","Deviance")
   
   #= Filling-in the matrix
-  Matrix[,c(1:np)] <- matrix(Sample[[15]],ncol=np)
-  Matrix[,ncol(Matrix)-1] <- Sample[[17]]
-  Matrix[,ncol(Matrix)] <- Sample[[24]]
+  Matrix[,c(1:np)] <- matrix(Sample[[17]],ncol=np)
+  Matrix[,ncol(Matrix)-1] <- Sample[[19]]
+  Matrix[,ncol(Matrix)] <- Sample[[26]]
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save rho
-  if (save.rho==0) {rho.pred=Sample[[16]]}
+  if (save.rho==0) {rho.pred <- Sample[[18]]}
   if (save.rho==1) {
-      Matrix.rho.pred=matrix(Sample[[16]],ncol=ncell)
+      Matrix.rho.pred <- matrix(Sample[[18]],ncol=ncell)
       colnames(Matrix.rho.pred) <- paste("rho.",c(1:ncell),sep="")
-      rho.pred=mcmc(Matrix.rho.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      rho.pred <- mcmc(Matrix.rho.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
-  
+
+  #= Save pred
+  if (save.p==0) {prob.p.pred <- Sample[[28]]}
+  if (save.p==1) {
+      Matrix.p.pred <- matrix(Sample[[28]],ncol=npred)
+      colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
+      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
+  }
+
   #= Output
-  return (list(mcmc=MCMC,rho.pred=rho.pred,prob.p.pred=Sample[[25]]))
+  return (list(mcmc=MCMC,
+               rho.pred=rho.pred, prob.p.pred=prob.p.pred,
+               prob.p.latent=Sample[[27]]))
 
 }
 

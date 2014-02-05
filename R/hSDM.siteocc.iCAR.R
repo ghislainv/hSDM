@@ -1,6 +1,6 @@
 ####################################################################
 ##
-## hSDM.ZIB.iCAR.R
+## hSDM.siteocc.iCAR.R
 ##
 ####################################################################
 ##
@@ -19,7 +19,7 @@
 ####################################################################
 
 
-hSDM.ZIB.iCAR <- function (# Observations
+hSDM.siteocc.iCAR <- function (# Observations
                                  presences, trials,
                                  suitability, observability, spatial.entity, data,
                                  # Spatial structure
@@ -91,7 +91,7 @@ hSDM.ZIB.iCAR <- function (# Observations
   #========== 
   # Check data
   #==========
-  check.T.binomial.2(T,nobs) #= This version (.2) of the function assumes T>0
+  check.T.binomial(T,nobs)
   check.Y.binomial(Y,T)
   check.X(X,nobs)
   check.W(W,nobs)
@@ -134,7 +134,7 @@ hSDM.ZIB.iCAR <- function (# Observations
   #========
   # call C++ code to draw sample
   #========
-  Sample <- .C("hSDM_ZIB_iCAR",
+  Sample <- .C("hSDM_siteocc_iCAR",
                #= Constants and data
                ngibbs=as.integer(ngibbs), nthin=as.integer(nthin), nburn=as.integer(nburn), ## Number of iterations, burning and samples
                nobs=as.integer(nobs),

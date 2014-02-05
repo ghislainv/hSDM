@@ -60,19 +60,17 @@ static double betadens (double beta_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
-    	if (d->T[n]>0) {
-    	    /* prob_p */
-    	    double Xpart_prob_p=0.0;
-    	    for (int p=0; p<d->NP; p++) {
-    		if (p!=k) {
-    		    Xpart_prob_p+=d->X[n][p]*d->beta_run[p];
-    		}
-    	    }
-    	    Xpart_prob_p+=d->X[n][k]*beta_k;
-    	    double prob_p=invlogit(Xpart_prob_p);
-    	    /* log Likelihood */
-	    logL+=dbinom(d->Y[n],d->T[n],prob_p,1);
+	/* prob_p */
+	double Xpart_prob_p=0.0;
+	for (int p=0; p<d->NP; p++) {
+	    if (p!=k) {
+		Xpart_prob_p+=d->X[n][p]*d->beta_run[p];
+	    }
 	}
+	Xpart_prob_p+=d->X[n][k]*beta_k;
+	double prob_p=invlogit(Xpart_prob_p);
+	/* log Likelihood */
+	logL+=dbinom(d->Y[n],d->T[n],prob_p,1);
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(beta_k,d->mubeta[k],sqrt(d->Vbeta[k]),1);
@@ -109,7 +107,7 @@ void hSDM_binomial (
     const int *seed,
     // Verbose
     const int *verbose,
-    // Save and p
+    // Save p
     const int *save_p
     
     ) {

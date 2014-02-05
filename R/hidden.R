@@ -152,7 +152,31 @@ check.T.poisson <- function (T,nobs) {
   return(0)
 }
 
-check.Y.poisson <- function (Y,T) {
+## check.Y.poisson.old <- function (Y,T) {
+##   if(!is.numeric(Y)) {
+##     cat("Error: 'counts' must be a vector of numeric values.\n")
+##     stop("Please respecify and call ", calling.function(), " again.",
+##          call.=FALSE)
+##   }
+##   if (sum(is.na(Y))>0) {
+##     cat("Error: 'counts' must not contain missing values.\n")
+##     stop("Please respecify and call ", calling.function(), " again.",
+##          call.=FALSE)
+##   }
+##   if (sum(Y<0 | Y%%1!=0)>0) {
+##     cat("Error: 'counts' must be a vector of positive integers.\n")
+##     stop("Please respecify and call ", calling.function(), " again.",
+##          call.=FALSE)
+##   }
+##   if (sum(Y!=0 & T==0)>0) {
+##     cat("Error: 'counts' must be zero when 'trials' equals zero.\n")
+##     stop("Please respecify and call ", calling.function(), " again.",
+##          call.=FALSE)
+##   }
+##   return(0)
+## }
+
+check.Y.poisson <- function (Y) {
   if(!is.numeric(Y)) {
     cat("Error: 'counts' must be a vector of numeric values.\n")
     stop("Please respecify and call ", calling.function(), " again.",
@@ -168,58 +192,10 @@ check.Y.poisson <- function (Y,T) {
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
-  if (sum(Y!=0 & T==0)>0) {
-    cat("Error: 'counts' must be zero when 'trials' equals zero.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
   return(0)
 }
 
-check.Y.poisson.2 <- function (Y) {
-  if(!is.numeric(Y)) {
-    cat("Error: 'counts' must be a vector of numeric values.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
-  if (sum(is.na(Y))>0) {
-    cat("Error: 'counts' must not contain missing values.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
-  if (sum(Y<0 | Y%%1!=0)>0) {
-    cat("Error: 'counts' must be a vector of positive integers.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
-  return(0)
-}
-
-check.T.binomial <- function (T,nobs) {
-  if(length(T)!=nobs) {
-    cat("Error: 'trials' must have the same length as the response variable.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
-  if(!is.numeric(T)) {
-    cat("Error: 'trials' must be a vector of numeric values.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
-  if (sum(is.na(T))>0) {
-    cat("Error: 'trials' must not contain missing values.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
-  if (sum(T<0 | T%%1!=0)>0) {
-    cat("Error: 'trials' must be a vector of positive integers.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
-  return(0)
-}
-
-check.T.binomial.2 <- function (T,nobs) { #= This version of the function assumes T>0
+check.T.binomial <- function (T,nobs) { #= This version of the function assumes T>0
   if(length(T)!=nobs) {
     cat("Error: 'trials' must have the same length as the response variable.\n")
     stop("Please respecify and call ", calling.function(), " again.",

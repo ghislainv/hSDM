@@ -1,40 +1,35 @@
-\name{hSDM.ZIB}
-\alias{hSDM.ZIB}
+\name{hSDM.ZIP}
+\alias{hSDM.ZIP}
 
-\title{ZIB (Zero-Inflated Binomial or site occupancy) model}
+\title{ZIP (Zero-Inflated Poisson) model}
 
-\description{The \code{hSDM.ZIB} function can be used to
-  model species distribution including different processes in a
-  hierarchical Bayesian framework: a
-  \eqn{\mathcal{B}ernoulli}{Bernoulli} suitability process (refering to
-  environmental suitability) and a \eqn{\mathcal{B}inomial}{Binomial}
-  observability process (refering to various ecological and
-  methodological issues explaining the species detection). The
-  \code{hSDM.ZIB} function calls a Gibbs sampler written in C
-  code which uses a Metropolis algorithm to estimate the conditional
-  posterior distribution of hierarchical model's parameters.}
+\description{The \code{hSDM.ZIP} function can be used to model species
+  distribution including different processes in a hierarchical Bayesian
+  framework: a \eqn{\mathcal{B}ernoulli}{Bernoulli} suitability process
+  (refering to various ecological variables explaining environmental
+  suitability or not) and a \eqn{\mathcal{P}oisson}{Poisson} abundance
+  process (refering to various ecological variables explaining the
+  species abundance when the habitat is suitable). The \code{hSDM.ZIP}
+  function calls a Gibbs sampler written in C code which uses a
+  Metropolis algorithm to estimate the conditional posterior
+  distribution of hierarchical model's parameters.}
 
-\usage{hSDM.ZIB(presences, trials, suitability,
-observability, data, suitability.pred=NULL, burnin = 5000, mcmc = 10000,
-thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
-0, Vgamma = 1e+06, seed = 1234, verbose = 1, save.p = 0)}
+\usage{hSDM.ZIP(counts, suitability, abundance, data,
+suitability.pred=NULL, burnin = 5000, mcmc = 10000, thin = 10,
+beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma = 0, Vgamma
+= 1e+06, seed = 1234, verbose = 1, save.p = 0)}
 
 \arguments{
   
-  \item{presences}{A vector indicating the number of successes (or
-    presences) for each observation.}
-
-  \item{trials}{A vector indicating the number of trials for each
-    observation. \eqn{t_i} should be superior to zero and superior or
-    equal to \eqn{y_i}, the number of successes for observation \eqn{i}.}
+  \item{counts}{A vector indicating the count for each observation.}
 
   \item{suitability}{A one-sided formula of the form
     \eqn{\sim x_1+...+x_p}{'~x_1+...+x_p'} with \eqn{p} terms specifying the
     explicative variables for the suitability process.}
 
-  \item{observability}{A one-sided formula of the form
+  \item{abundance}{A one-sided formula of the form
     \eqn{\sim w_1+...+w_q}{'~w_1+...+w_q'} with \eqn{q} terms specifying the
-    explicative variables for the observability process.}
+    explicative variables for the abundance process.}
   
   \item{data}{A data frame containing the model's variables.}
 
@@ -57,7 +52,7 @@ thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
     \eqn{p}-length vector.}
 
   \item{gamma.start}{Starting values for \eqn{\beta}{gamma} parameters
-    of the observability process. This can either be a scalar or a
+    of the abundance process. This can either be a scalar or a
     \eqn{q}-length vector.}
   
   \item{mubeta}{Means of the priors for the \eqn{\beta}{beta} parameters
@@ -74,13 +69,13 @@ thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
   uninformative flat prior.}
 
   \item{mugamma}{Means of the Normal priors for the \eqn{\gamma}{gamma}
-  parameters of the observability process. \code{mugamma} must be either
+  parameters of the abundance process. \code{mugamma} must be either
   a scalar or a p-length vector. If \code{mugamma} takes a scalar value,
   then that value will serve as the prior mean for all of the
   gammas. The default value is set to 0 for an uninformative prior.}
 
   \item{Vgamma}{Variances of the Normal priors for the
-  \eqn{\gamma}{gamma} parameters of the observability
+  \eqn{\gamma}{gamma} parameters of the abundance
   process. \code{Vgamma} must be either a scalar or a p-length
   vector. If \code{Vgamma} takes a scalar value, then that value will
   serve as the prior variance for all of the gammas. The default
@@ -122,25 +117,25 @@ thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
     associated to the suitability process for each observation.}
   
   \item{prob.q.latent}{Predictive posterior mean of the probability
-  associated to the observability process for each observation.}
+  associated to the abundance process for each observation.}
   
 }
 
 \details{
 
   The model integrates two processes, an ecological process associated
-  to the presence or absence of the species due to habitat suitability
-  and an observation process that takes into account the fact that the
-  probability of detection of the species is inferior to one.
+  to habitat suitability (habitat is suitable or not for the species)
+  and an abundance process that takes into account ecological variables
+  explaining the species abundance when the habitat is suitable.
 
-  \bold{Ecological process:}
+  \bold{Suitability process:}
   \deqn{z_i \sim \mathcal{B}ernoulli(\theta_i)}{z_i ~ Bernoulli(theta_i)}
   \deqn{logit(\theta_i) = X_i \beta}{logit(theta_i) = X_i * beta}
    
-  \bold{Observation process:}
-  \deqn{y_i \sim \mathcal{B}inomial(z_i * \delta_i, t_i)}{y_i ~ Binomial(z_i
-    * delta_i, t_i)}
-  \deqn{logit(\delta_i) = W_i \gamma}{logit(delta_i) = W_i * gamma} 
+  \bold{Abundance process:}
+  \deqn{y_i \sim \mathcal{P}oisson(z_i * \lambda_i)}{y_i ~ Poisson(z_i
+    * lambda_i)}
+  \deqn{log(\lambda_i) = W_i \gamma}{log(lambda_i) = W_i * gamma} 
 
 }
 
@@ -153,10 +148,6 @@ thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
   Latimer, A. M.; Wu, S. S.; Gelfand, A. E. and Silander, J. A. (2006) Building
   statistical models to analyze species distributions. \emph{Ecological
     Applications}, 16, 33-50.
-
-  MacKenzie, D. I.; Nichols, J. D.; Lachman, G. B.; Droege, S.; Andrew
-  Royle, J. and Langtimm, C. A. (2002) Estimating site occupancy rates when
-  detection probabilities are less than one. \emph{Ecology}, 83, 2248-2255.
 
 }
 
@@ -173,7 +164,7 @@ thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
 \dontrun{ 
 
 #==============================================
-# hSDM.ZIB()
+# hSDM.ZIP()
 # Example with simulated data
 #==============================================
 
@@ -192,8 +183,8 @@ nobs <- 1000
 
 # Target parameters
 beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-gamma.target <- matrix(c(1),ncol=1) #= This means that theta.2~0.75: 75\% of chance to detect the species
-## Uncomment if you want covariates on the observability process
+gamma.target <- matrix(c(1),ncol=1)
+## Uncomment if you want covariates on the abundance process
 ## gamma.target <- matrix(c(0.2,0.5,0.5),ncol=1)
 
 # Covariates for "suitability" process
@@ -203,9 +194,9 @@ set.seed(2*seed)
 X2 <- rnorm(n=nobs,0,1)
 X <- cbind(rep(1,nobs),X1,X2)
 
-# Covariates for "observability" process
+# Covariates for "abundance" process
 W <- cbind(rep(1,nobs))
-## Uncomment if you want covariates on the observability process 
+## Uncomment if you want covariates on the abundance process 
 ## set.seed(3*seed)
 ## W1 <- rnorm(n=nobs,0,1)
 ## set.seed(4*seed)
@@ -215,35 +206,32 @@ W <- cbind(rep(1,nobs))
 #== Simulating latent variables
 
 # Suitability
-logit.theta.1 <- X \%*\% beta.target
-theta.1 <- inv.logit(logit.theta.1)
+logit.theta <- X \%*\% beta.target
+theta <- inv.logit(logit.theta)
 set.seed(seed)
-y.1 <- rbinom(nobs,1,theta.1)
+y.1 <- rbinom(nobs,1,theta)
 
-# Observability
+# Abundance
 set.seed(seed)
-trials <- rpois(nobs,5)	# Number of trial associated to each observation
-trials[trials==0] <- 1
-logit.theta.2 <- W \%*\% gamma.target
-theta.2 <- inv.logit(logit.theta.2)
+log.lambda <- W \%*\% gamma.target
+lambda <- exp(log.lambda)
 set.seed(seed)
-y.2 <- rbinom(nobs,trials,theta.2)
+y.2 <- rpois(nobs,lambda)
 
 #== Simulating response variable
 Y <- y.2*y.1
 
 #== Data-set
-Data <- data.frame(Y,trials,X1,X2)
-## Uncomment if you want covariates on the observability process 
-## Data <- data.frame(Y,trials,X1,X2,W1,W2)
+Data <- data.frame(Y,X1,X2)
+## Uncomment if you want covariates on the abundance process 
+## Data <- data.frame(Y,X1,X2,W1,W2)
 
 #==================================
-#== Site-occupancy model
+#== ZIP model
 
-mod.hSDM.ZIB <- hSDM.ZIB(presences=Data$Y,
-                         trials=Data$trials,
+mod.hSDM.ZIP <- hSDM.ZIP(counts=Data$Y,
                          suitability=~X1+X2,
-                         observability=~1, #=~1+W1+W2 if covariates
+                         abundance=~1, #=~1+W1+W2 if covariates
                          data=Data,
                          suitability.pred=NULL,
                          burnin=1000, mcmc=1000, thin=5,
@@ -256,22 +244,21 @@ mod.hSDM.ZIB <- hSDM.ZIB(presences=Data$Y,
 
 #==========
 #== Outputs
-pdf(file="Posteriors_hSDM.ZIB.pdf")
-plot(mod.hSDM.ZIB$mcmc)
+pdf(file="Posteriors_hSDM.ZIP.pdf")
+plot(mod.hSDM.ZIP$mcmc)
 dev.off()
-summary(mod.hSDM.ZIB$prob.p.latent)
-summary(mod.hSDM.ZIB$prob.q.latent)
-summary(mod.hSDM.ZIB$prob.p.pred)
+summary(mod.hSDM.ZIP$prob.p.latent)
+summary(mod.hSDM.ZIP$prob.q.latent)
+summary(mod.hSDM.ZIP$prob.p.pred)
 
 }
 
 }
 
-\keyword{site occupancy models}
 \keyword{biodiversity}
 \keyword{species distribution models}
 \keyword{hierarchical Bayesian models}
 \keyword{MCMC}
 \keyword{Markov Chains Monte Carlo}
 \keyword{Metropolis algorithm}
-\keyword{ZIB models}
+\keyword{ZIP models}

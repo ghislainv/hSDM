@@ -289,42 +289,23 @@ X1 <- X1.cell[cells]
 X2 <- X2.cell[cells]
 X <- cbind(rep(1,nobs),X1,X2)
 
-# Covariates for "observability" process
-## Uncomment if you want covariates on the observability process 
-## set.seed(3*seed)
-## W1 <- rnorm(n=nobs,0,1)
-## set.seed(4*seed)
-## W2 <- rnorm(n=nobs,0,1)
-## W <- cbind(rep(1,nobs),W1,W2)
-W <- cbind(rep(1,nobs))
-
 #== Simulating latent variables
 
 # Suitability
-logit.theta.1 <- vector()
+logit.theta <- vector()
 for (n in 1:nobs) {
-  logit.theta.1[n] <- X[n,]\%*\%beta.target+rho[cells[n]]
+  logit.theta[n] <- X[n,]\%*\%beta.target+rho[cells[n]]
 }
-theta.1 <- inv.logit(logit.theta.1)
-set.seed(seed)
-y.1 <- rbinom(nobs,1,theta.1)
-
-# Observability
-set.seed(seed)
-trials <- rpois(nobs,5)	# Number of trial associated to each observation
-trials[trials==0] <- 1
-logit.theta.2 <- W\%*\%gamma.target
-theta.2 <- inv.logit(logit.theta.2)
-set.seed(seed)
-y.2 <- rbinom(nobs,trials,theta.2)
+theta <- inv.logit(logit.theta)
 
 #== Simulating response variable
-Y <- y.2*y.1
+trials <- rpois(nobs,5)	# Number of trial associated to each observation
+trials[trials==0] <- 1
+set.seed(seed)
+Y <- rbinom(nobs,trials,theta)
 
 #== Data-set
 Data <- data.frame(Y,trials,cells,X1,X2)
-## Uncomment if you want covariates on the observability process 
-## Data <- data.frame(Y,trials,cells,X1,X2,W1,W2)
 Data <- SpatialPointsDataFrame(coords=coords,data=Data)
 plot(Data)
 
@@ -337,18 +318,14 @@ Data.pred <- data.frame(X1=X1.cell,X2=X2.cell,cells=c(1:ncell))
 mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=Data$Y,
                                                trials=Data$trials,
                                                suitability=~X1+X2,
-                                               observability=~1,
                                                spatial.entity=Data$cells,
                                                data=Data,
                                                n.neighbors=n.neighbors,
                                                neighbors=adj,
-                                               ## suitability.pred=NULL,
-                                               ## spatial.entity.pred=NULL,
                                                suitability.pred=Data.pred,
                                                spatial.entity.pred=Data.pred$cells,
                                                burnin=5000, mcmc=5000, thin=5,
                                                beta.start=0,
-                                               gamma.start=0,
                                                Vrho.start=10,
                                                priorVrho="1/Gamma",
                                                #priorVrho="Uniform",

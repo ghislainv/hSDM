@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////
 //
-// hSDM.ZIB.iCAR.alteration.c
+// hSDM.ZIP.iCAR.c
 //
 ////////////////////////////////////////////////////////////////////
 //
@@ -39,12 +39,9 @@ struct dens_par {
     int NOBS;
     int NCELL;
     int *Y;
-    int *T;
     int *IdCell;
     int *nObsCell;
     int **PosCell;
-    /* Alteration */
-    double *U;
     /* Spatial correlation */
     int *nNeigh;
     int **Neigh;
@@ -89,17 +86,17 @@ static double betadens (double beta_k, void *dens_data) {
 	Xpart_prob_p+=d->X[n][k]*beta_k;
 	double prob_p=invlogit(Xpart_prob_p+d->rho_run[d->IdCell[n]]);
 	/* prob_q */
-	double logit_prob_q=0.0;
+	double log_prob_q=0.0;
 	for (int q=0; q<d->NQ; q++) {
-	    logit_prob_q+=d->W[n][q]*d->gamma_run[q];
+	    log_prob_q+=d->W[n][q]*d->gamma_run[q];
 	}
-	double prob_q=invlogit(logit_prob_q);
+	double prob_q=exp(log_prob_q);
 	/* log Likelihood */
 	if (d->Y[n]>0) {
-	    logL+=dbinom(d->Y[n],d->T[n],prob_q,1)+log(1-d->U[n])+log(prob_p);
+	    logL+=dpois(d->Y[n],prob_q,1)+log(prob_p);
 	}
 	if (d->Y[n]==0) {
-	    logL+=log(pow(1-prob_q,d->T[n])*(1-d->U[n])*prob_p+(1-(1-d->U[n])*prob_p));
+	    logL+=log(exp(-prob_q)*prob_p+(1-prob_p));
 	}
     }
     // logPosterior=logL+logPrior
@@ -126,20 +123,20 @@ static double gammadens (double gamma_k, void *dens_data) {
 	}
 	double prob_p=invlogit(Xpart_prob_p+d->rho_run[d->IdCell[n]]);
 	/* prob_q */
-	double logit_prob_q=0.0;
+	double log_prob_q=0.0;
 	for (int q=0; q<d->NQ; q++) {
 	    if (q!=k) {
-		logit_prob_q+=d->W[n][q]*d->gamma_run[q];
+		log_prob_q+=d->W[n][q]*d->gamma_run[q];
 	    }
 	}
-	logit_prob_q+=d->W[n][k]*gamma_k;
-	double prob_q=invlogit(logit_prob_q);
+	log_prob_q+=d->W[n][k]*gamma_k;
+	double prob_q=exp(log_prob_q);
 	/* log Likelihood */
 	if (d->Y[n]>0) {
-	    logL+=dbinom(d->Y[n],d->T[n],prob_q,1)+log(1-d->U[n])+log(prob_p);
+	    logL+=dpois(d->Y[n],prob_q,1)+log(prob_p);
 	}
 	if (d->Y[n]==0) {
-	    logL+=log(pow(1-prob_q,d->T[n])*(1-d->U[n])*prob_p+(1-(1-d->U[n])*prob_p));
+	    logL+=log(exp(-prob_q)*prob_p+(1-prob_p));
 	}
     }
     // logPosterior=logL+logPrior
@@ -167,17 +164,17 @@ static double rhodens_visited (double rho_i, void *dens_data) {
 	}
 	double prob_p=invlogit(Xpart_prob_p+rho_i);
 	/* prob_q */
-	double logit_prob_q=0.0;
+	double log_prob_q=0.0;
 	for (int q=0; q<d->NQ; q++) {
-	    logit_prob_q+=d->W[w][q]*d->gamma_run[q];
+	    log_prob_q+=d->W[w][q]*d->gamma_run[q];
 	}
-	double prob_q=invlogit(logit_prob_q);
+	double prob_q=exp(log_prob_q);
 	/* log Likelihood */
 	if (d->Y[w]>0) {
-	    logL+=dbinom(d->Y[w],d->T[w],prob_q,1)+log(1-d->U[w])+log(prob_p);
+	    logL+=dpois(d->Y[w],prob_q,1)+log(prob_p);
 	}
 	if (d->Y[w]==0) {
-	    logL+=log(pow(1-prob_q,d->T[w])*(1-d->U[w])*prob_p+(1-(1-d->U[w])*prob_p));
+	    logL+=log(exp(-prob_q)*prob_p+(1-prob_p));
 	}
     }
     // logPosterior=logL+logPrior
@@ -214,7 +211,7 @@ static double rhodens_unvisited (void *dens_data) {
 /* ************************************************************ */
 /* Gibbs sampler function */
 
-void hSDM_ZIB_iCAR_alteration (
+void hSDM_ZIP_iCAR (
 	
     // Constants and data
     const int *ngibbs, int *nthin, int *nburn, // Number of iterations, burning and samples
@@ -223,10 +220,8 @@ void hSDM_ZIB_iCAR_alteration (
     const int *np, // Number of fixed effects for prob_p
     const int *nq, // Number of fixed effects for prob_q
     const int *Y_vect, // Number of successes (presences)
-    const int *T_vect, // Number of trials
     const double *X_vect, // Suitability covariates
     const double *W_vect, // Observability covariates
-    const double *U_vect, // Alteration percentage between [0,1]
     // Spatial correlation
     const int *C_vect, // Cell Id
     const int *nNeigh, // Number of neighbors for each cell
@@ -307,21 +302,10 @@ void hSDM_ZIB_iCAR_alteration (
     /* Data */
     dens_data.NOBS=NOBS;
     dens_data.NCELL=NCELL;
-   // Y
+    // Y
     dens_data.Y=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
 	dens_data.Y[n]=Y_vect[n];
-    }
-    // T
-    dens_data.T=malloc(NOBS*sizeof(int));
-    for (int n=0; n<NOBS; n++) {
-	dens_data.T[n]=T_vect[n];
-    }
-
-    /* Alteration */
-    dens_data.U=malloc(NOBS*sizeof(double));
-    for (int n=0; n<NOBS; n++) {
-	dens_data.U[n]=U_vect[n];
     }
 
     /* Spatial correlation */
@@ -610,17 +594,17 @@ void hSDM_ZIB_iCAR_alteration (
 	    }
 	    prob_p_run[n]=invlogit(Xpart_prob_p+dens_data.rho_run[dens_data.IdCell[n]]);
 	    /* prob_q */
-	    double logit_prob_q=0.0;
+	    double log_prob_q=0.0;
 	    for (int q=0; q<NQ; q++) {
-		logit_prob_q+=dens_data.W[n][q]*dens_data.gamma_run[q];
+		log_prob_q+=dens_data.W[n][q]*dens_data.gamma_run[q];
 	    }
-	    prob_q_run[n]=invlogit(logit_prob_q);
+	    prob_q_run[n]=exp(log_prob_q);
 	    /* log Likelihood */
 	    if (dens_data.Y[n]>0) {
-		logL+=dbinom(dens_data.Y[n],dens_data.T[n],prob_q_run[n],1)+log(1-dens_data.U[n])+log(prob_p_run[n]);
+	        logL+=dpois(dens_data.Y[n],prob_q_run[n],1)+log(prob_p_run[n]);
 	    }
 	    if (dens_data.Y[n]==0) {
-		logL+=log(pow(1-prob_q_run[n],dens_data.T[n])*(1-dens_data.U[n])*prob_p_run[n]+(1-(1-dens_data.U[n])*prob_p_run[n]));
+	        logL+=log(exp(-prob_q_run[n])*prob_p_run[n]+(1-prob_p_run[n]));
 	    }
 	}
 
@@ -779,8 +763,6 @@ void hSDM_ZIB_iCAR_alteration (
     // Delete memory allocation (see malloc())
     /* Data */
     free(dens_data.Y);
-    free(dens_data.T);
-    free(dens_data.U);
     free(dens_data.IdCell);
     free(dens_data.nObsCell);
     for (int i=0; i<NCELL; i++) {

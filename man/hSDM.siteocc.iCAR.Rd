@@ -1,9 +1,9 @@
-\name{hSDM.ZIB.iCAR}
-\alias{hSDM.ZIB.iCAR}
+\name{hSDM.siteocc.iCAR}
+\alias{hSDM.siteocc.iCAR}
 
-\title{ZIB (Zero-Inflated Binomial or site occupancy) model with CAR process}
+\title{Site occupancy (or Zero-Inflated Binomial - ZIB) model with CAR process}
 
-\description{The \code{hSDM.ZIB.iCAR} function can be used to
+\description{The \code{hSDM.siteocc.iCAR} function can be used to
   model species distribution including different processes in a
   hierarchical Bayesian framework: a
   \eqn{\mathcal{B}ernoulli}{Bernoulli} suitability process (refering to
@@ -11,12 +11,12 @@
   dependence of the observations, and a
   \eqn{\mathcal{B}inomial}{Binomial} observability process (refering to
   various ecological and methodological issues explaining the species
-  detection). The \code{hSDM.ZIB.iCAR} function calls a Gibbs
+  detection). The \code{hSDM.siteocc.iCAR} function calls a Gibbs
   sampler written in C code which uses an adaptive Metropolis algorithm
   to estimate the conditional posterior distribution of hierarchical
   model's parameters.}
 
-\usage{hSDM.ZIB.iCAR(presences, trials, suitability,
+\usage{hSDM.siteocc.iCAR(presences, trials, suitability,
 observability, spatial.entity, data, n.neighbors, neighbors,
 suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
 10000, thin = 10, beta.start, gamma.start, Vrho.start, mubeta = 0, Vbeta
@@ -253,7 +253,7 @@ suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
 \dontrun{ 
 
 #==============================================
-# hSDM.ZIB.iCAR()
+# hSDM.siteocc.iCAR()
 # Example with simulated data
 #==============================================
 
@@ -371,7 +371,7 @@ Data.pred <- data.frame(X1=X1.cell,X2=X2.cell,cells=c(1:ncell))
 #==================================
 #== Site-occupancy model
 
-mod.hSDM.ZIB.iCAR <- hSDM.ZIB.iCAR(presences=Data$Y,
+mod.hSDM.siteocc.iCAR <- hSDM.siteocc.iCAR(presences=Data$Y,
                                    trials=Data$trials,
                                    suitability=~X1+X2,
                                    observability=~1,
@@ -401,15 +401,15 @@ mod.hSDM.ZIB.iCAR <- hSDM.ZIB.iCAR(presences=Data$Y,
 #== Outputs
 
 #= Parameter estimates
-summary(mod.hSDM.ZIB.iCAR$mcmc)
+summary(mod.hSDM.siteocc.iCAR$mcmc)
 
 #= MCMC and posteriors
-pdf(file="Posteriors_hSDM.ZIB.iCAR.pdf")
-plot(mod.hSDM.ZIB.iCAR$mcmc)
+pdf(file="Posteriors_hSDM.siteocc.iCAR.pdf")
+plot(mod.hSDM.siteocc.iCAR$mcmc)
 dev.off()
 
-pdf(file="Posteriors.rho_hSDM.ZIB.iCAR.pdf")
-plot(mod.hSDM.ZIB.iCAR$rho.pred)
+pdf(file="Posteriors.rho_hSDM.siteocc.iCAR.pdf")
+plot(mod.hSDM.siteocc.iCAR$rho.pred)
 dev.off()
 
 #= Summary plots
@@ -417,15 +417,15 @@ dev.off()
 # rho
 r.rho <- r.rho.pred <- r.visited <- Landscape
 r.rho[] <- rho
-rho.pred <- apply(mod.hSDM.ZIB.iCAR$rho.pred,2,mean)
+rho.pred <- apply(mod.hSDM.siteocc.iCAR$rho.pred,2,mean)
 r.rho.pred[] <- rho.pred
 r.visited[] <- 0
 r.visited[visited.cells] <- 1
 # prob.p
 r.prob.p <- Landscape
-r.prob.p[] <- mod.hSDM.ZIB.iCAR$prob.p.pred
+r.prob.p[] <- mod.hSDM.siteocc.iCAR$prob.p.pred
 
-pdf(file="Summary_hSDM.ZIB.iCAR.pdf")
+pdf(file="Summary_hSDM.siteocc.iCAR.pdf")
 par(mfrow=c(3,2))
 plot(r.rho, main="rho target")
 plot(r.visited,main="Visited cells and presences")
@@ -456,3 +456,4 @@ dev.off()
 \keyword{Markov Chains Monte Carlo}
 \keyword{Metropolis algorithm}
 \keyword{ZIB models}
+\keyword{Zero-Inflated Binomial models}

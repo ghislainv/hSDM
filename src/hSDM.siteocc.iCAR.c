@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////
 //
-// hSDM.ZIB.iCAR.c
+// hSDM.siteocc.iCAR.c
 //
 ////////////////////////////////////////////////////////////////////
 //
@@ -212,7 +212,7 @@ static double rhodens_unvisited (void *dens_data) {
 /* ************************************************************ */
 /* Gibbs sampler function */
 
-void hSDM_ZIB_iCAR (
+void hSDM_siteocc_iCAR (
 	
     // Constants and data
     const int *ngibbs, int *nthin, int *nburn, // Number of iterations, burning and samples

@@ -4,7 +4,7 @@
 \title{Binomial logistic regression model}
 
 \description{The \code{hSDM.binomial} function performs a Binomial
-  logistic regression model in a Bayesian framework. The function calls
+  logistic regression in a Bayesian framework. The function calls
   a Gibbs sampler written in C code which uses an adaptive Metropolis
   algorithm to estimate the conditional posterior distribution of
   model's parameters.}
