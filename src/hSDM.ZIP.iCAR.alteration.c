@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////
 //
-// hSDM.hierarchical.poisson.c
+// hSDM.ZIP.iCAR.alteration.c
 //
 ////////////////////////////////////////////////////////////////////
 //
-// Original code by Ghislain Vieilledent, October 2011
+// Original code by Ghislain Vieilledent, November 2013
 // CIRAD UR B&SEF
 // ghislain.vieilledent@cirad.fr / ghislainv@gmail.com
 //
@@ -16,11 +16,6 @@
 //
 // Copyright (C) 2011 Ghislain Vieilledent
 // 
-////////////////////////////////////////////////////////////////////
-//
-// Revisions: 
-// - G. Vieilledent, on November 15th 2012
-//
 ////////////////////////////////////////////////////////////////////
 
 
@@ -44,7 +39,6 @@ struct dens_par {
     int NOBS;
     int NCELL;
     int *Y;
-    int *T;
     int *IdCell;
     int *nObsCell;
     int **PosCell;
@@ -63,7 +57,7 @@ struct dens_par {
     double **X;
     double *mubeta, *Vbeta;
     double *beta_run;
-    /* Availability */
+    /* Observability */
     int NQ;
     int pos_gamma;
     double **W;
@@ -84,7 +78,6 @@ static double betadens (double beta_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
-      if (d->T[n]>0) {
 	/* prob_p */
 	double Xpart_prob_p=0.0;
 	for (int p=0; p<d->NP; p++) {
@@ -107,7 +100,6 @@ static double betadens (double beta_k, void *dens_data) {
 	if (d->Y[n]==0) {
 	    logL+=log(exp(-prob_q)*(1-d->U[n])*prob_p+(1-(1-d->U[n])*prob_p));
 	}
-      }
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(beta_k,d->mubeta[k],sqrt(d->Vbeta[k]),1);
@@ -126,7 +118,6 @@ static double gammadens (double gamma_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
-      if (d->T[n]>0) {
 	/* prob_p */
 	double Xpart_prob_p=0.0;
 	for (int p=0; p<d->NP; p++) {
@@ -149,7 +140,6 @@ static double gammadens (double gamma_k, void *dens_data) {
 	if (d->Y[n]==0) {
 	    logL+=log(exp(-prob_q)*(1-d->U[n])*prob_p+(1-(1-d->U[n])*prob_p));
 	}
-      }
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(gamma_k,d->mugamma[k],sqrt(d->Vgamma[k]),1); 
@@ -157,9 +147,9 @@ static double gammadens (double gamma_k, void *dens_data) {
 }
 
 /* ************************************************************ */
-/* rhodens */
+/* rhodens_visited */
 
-static double rhodens (double rho_i, void *dens_data) {
+static double rhodens_visited (double rho_i, void *dens_data) {
     // Pointer to the structure: d 
     struct dens_par *d;
     d=dens_data;
@@ -169,26 +159,24 @@ static double rhodens (double rho_i, void *dens_data) {
     double logL=0;
     for (int m=0; m<d->nObsCell[i]; m++) {
 	int w=d->PosCell[i][m]; // which observation
-	if (d->T[w]>0) {
-	    /* prob_p */
-	    double Xpart_prob_p=0.0;
-	    for (int p=0; p<d->NP; p++) {
-		Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
-	    }
-	    double prob_p=invlogit(Xpart_prob_p+rho_i);
-	    /* prob_q */
-	    double log_prob_q=0.0;
-	    for (int q=0; q<d->NQ; q++) {
-		log_prob_q+=d->W[w][q]*d->gamma_run[q];
-	    }
-	    double prob_q=exp(log_prob_q);
-	    /* log Likelihood */
-	    if (d->Y[w]>0) {
-		logL+=dpois(d->Y[w],prob_q,1)+log(1-d->U[w])+log(prob_p);
-	    }
-	    if (d->Y[w]==0) {
-		logL+=log(exp(-prob_q)*(1-d->U[w])*prob_p+(1-(1-d->U[w])*prob_p));
-	    }
+	/* prob_p */
+	double Xpart_prob_p=0.0;
+	for (int p=0; p<d->NP; p++) {
+	    Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
+	}
+	double prob_p=invlogit(Xpart_prob_p+rho_i);
+	/* prob_q */
+	double log_prob_q=0.0;
+	for (int q=0; q<d->NQ; q++) {
+	    log_prob_q+=d->W[w][q]*d->gamma_run[q];
+	}
+	double prob_q=exp(log_prob_q);
+	/* log Likelihood */
+	if (d->Y[w]>0) {
+	    logL+=dpois(d->Y[w],prob_q,1)+log(1-d->U[w])+log(prob_p);
+	}
+	if (d->Y[w]==0) {
+	    logL+=log(exp(-prob_q)*(1-d->U[w])*prob_p+(1-(1-d->U[w])*prob_p));
 	}
     }
     // logPosterior=logL+logPrior
@@ -202,11 +190,30 @@ static double rhodens (double rho_i, void *dens_data) {
     return logP;
 }
 
+/* ************************************************************ */
+/* rhodens_unvisited */
+
+static double rhodens_unvisited (void *dens_data) {
+    // Pointer to the structure: d 
+    struct dens_par *d;
+    d=dens_data;
+    // Indicating the rank of the parameter of interest
+    int i=d->pos_rho; //
+    // Draw directly in the posterior distribution
+    int nNeighbors=d->nNeigh[i];
+    double sumNeighbors=0.0;
+    for (int m=0;m<nNeighbors;m++) {
+	sumNeighbors+=d->rho_run[d->Neigh[i][m]];
+    }
+    double meanNeighbors=sumNeighbors/nNeighbors;
+    double sample=myrnorm(meanNeighbors,sqrt(d->Vrho_run/nNeighbors)); 
+    return sample;
+}
 
 /* ************************************************************ */
 /* Gibbs sampler function */
 
-void hSDM_hierarchical_poisson (
+void hSDM_ZIP_iCAR_alteration (
 	
     // Constants and data
     const int *ngibbs, int *nthin, int *nburn, // Number of iterations, burning and samples
@@ -214,15 +221,18 @@ void hSDM_hierarchical_poisson (
     const int *ncell, // Constants
     const int *np, // Number of fixed effects for prob_p
     const int *nq, // Number of fixed effects for prob_q
-    const int *Y_vect, // Counts
-    const int *T_vect, // Number of trials
+    const int *Y_vect, // Number of successes (presences)
     const double *X_vect, // Suitability covariates
     const double *W_vect, // Observability covariates
     const double *U_vect, // Alteration percentage between [0,1]
     // Spatial correlation
     const int *C_vect, // Cell Id
     const int *nNeigh, // Number of neighbors for each cell
-    const int *Neigh_vect, // Vector of neighbors sorted by cell  
+    const int *Neigh_vect, // Vector of neighbors sorted by cell
+    // Predictions
+    const int *npred, // Number of predictions
+    const double *X_pred_vect, // Suitability covariates for predictions
+    const int *C_pred_vect, // Cell Id for predictions
     // Starting values for M-H
     const double *beta_start,
     const double *gamma_start,
@@ -240,15 +250,17 @@ void hSDM_hierarchical_poisson (
     const double *Vrho_max,
     // Diagnostic
     double *Deviance,
-    double *prob_p_pred, // Proba of suitability
-    double *prob_q_pred, // Proba of observability
+    double *prob_p_latent, // Latent proba of suitability (length NOBS) 
+    double *prob_q_latent, // Latent proba of observability (length NOBS)
+    double *prob_p_pred, // Proba of suitability for predictions (length NPRED)
     // Seeds
     const int *seed,
     // Verbose
     const int *verbose,
-    // Save rho
-    const int *save_rho
-    
+    // Save rho and p
+    const int *save_rho,
+    const int *save_p
+
     ) {
 	
     ////////////////////////////////////////////////////////////////////////////////
@@ -269,16 +281,21 @@ void hSDM_hierarchical_poisson (
     const int NCELL=ncell[0];
     const int NP=np[0];
     const int NQ=nq[0];
+    const int NPRED=npred[0];
 
     ///////////////////////////////////
     // Declaring some useful objects //
-    double *prob_p=malloc(NOBS*sizeof(double));
+    double *prob_p_run=malloc(NOBS*sizeof(double));
     for (int n=0; n<NOBS; n++) {
-	prob_p[n]=0.0;
+	prob_p_run[n]=0.0;
     }
-    double *prob_q=malloc(NOBS*sizeof(double));
+    double *prob_q_run=malloc(NOBS*sizeof(double));
     for (int n=0; n<NOBS; n++) {
-	prob_q[n]=0.0;
+	prob_q_run[n]=0.0;
+    }
+    double *prob_p_pred_run=malloc(NPRED*sizeof(double));
+    for (int m=0; m<NPRED; m++) {
+	prob_p_pred_run[m]=0.0;
     }
 
     //////////////////////////////////////////////////////////
@@ -292,11 +309,6 @@ void hSDM_hierarchical_poisson (
     dens_data.Y=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
 	dens_data.Y[n]=Y_vect[n];
-    }
-    // T
-    dens_data.T=malloc(NOBS*sizeof(int));
-    for (int n=0; n<NOBS; n++) {
-	dens_data.T[n]=T_vect[n];
     }
 
     /* Alteration */
@@ -399,42 +411,66 @@ void hSDM_hierarchical_poisson (
 	dens_data.gamma_run[q]=gamma_start[q];
     }
 
+    /* Visited cell or not */
+    int *viscell = malloc(NCELL*sizeof(int));
+    for (int i=0; i<NCELL; i++) {
+	viscell[i]=0;
+    }
+    for (int n=0; n<NOBS; n++) {
+	viscell[dens_data.IdCell[n]]++;
+    }
+    int NVISCELL=0;
+    for (int i=0; i<NCELL; i++) {
+	if (viscell[i]>0) {
+	    NVISCELL++;
+	}
+    }
+
+    /* Predictions */
+    // IdCell_pred
+    int *IdCell_pred=malloc(NPRED*sizeof(int));
+    for (int m=0; m<NPRED; m++) {
+	IdCell_pred[m]=C_pred_vect[m];
+    }
+    // X_pred
+    double **X_pred=malloc(NPRED*sizeof(double*));
+    for (int m=0; m<NPRED; m++) {
+    	X_pred[m]=malloc(NP*sizeof(double));
+    	for (int p=0; p<NP; p++) {
+    	    X_pred[m][p]=X_pred_vect[p*NPRED+m];
+    	}
+    }
+
     ////////////////////////////////////////////////////////////
     // Proposal variance and acceptance for adaptive sampling //
 
     // beta
     double *sigmap_beta = malloc(NP*sizeof(double));
     int *nA_beta = malloc(NP*sizeof(int));
+    double *Ar_beta = malloc(NP*sizeof(double)); // Acceptance rate 
     for (int p=0; p<NP; p++) {
 	nA_beta[p]=0;
 	sigmap_beta[p]=1.0;
-    }
-    double *Ar_beta = malloc(NP*sizeof(double)); // Acceptance rate 
-    for (int p=0; p<NP; p++) {
 	Ar_beta[p]=0.0;
     }
 
     // gamma
     double *sigmap_gamma = malloc(NQ*sizeof(double));
     int *nA_gamma = malloc(NQ*sizeof(int));
+    double *Ar_gamma = malloc(NQ*sizeof(double)); // Acceptance rate 
     for (int q=0; q<NQ; q++) {
 	nA_gamma[q]=0;
 	sigmap_gamma[q]=1.0;
-    }
-    double *Ar_gamma = malloc(NQ*sizeof(double)); // Acceptance rate 
-    for (int q=0; q<NQ; q++) {
 	Ar_gamma[q]=0.0;
     }
 
     // rho
     double *sigmap_rho = malloc(NCELL*sizeof(double));
     int *nA_rho = malloc(NCELL*sizeof(int));
+    double *Ar_rho = malloc(NCELL*sizeof(double)); // Acceptance rate 
     for (int i=0; i<NCELL; i++) {
 	nA_rho[i]=0;
 	sigmap_rho[i]=1.0;
-    }
-    double *Ar_rho = malloc(NCELL*sizeof(double)); // Acceptance rate 
-    for (int i=0; i<NCELL; i++) {
 	Ar_rho[i]=0.0;
     }
  
@@ -448,7 +484,7 @@ void hSDM_hierarchical_poisson (
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // Gibbs sampler
 
-    for (int g=0;g<NGIBBS;g++) {
+    for (int g=0; g<NGIBBS; g++) {
 
 
 	////////////////////////////////////////////////
@@ -495,16 +531,21 @@ void hSDM_hierarchical_poisson (
         /* Sampling rho_run[i] */
 	for (int i=0; i<NCELL; i++) {
 	    dens_data.pos_rho=i; // Specifying the rank of the parameter of interest
-	    double x_now=dens_data.rho_run[i];
-	    double x_prop=myrnorm(x_now,sigmap_rho[i]);
-	    double p_now=rhodens(x_now, &dens_data);
-	    double p_prop=rhodens(x_prop, &dens_data);
-	    double r=exp(p_prop-p_now); // ratio
-	    double z=myrunif();
-	    // Actualization
-	    if (z < r) {
-		dens_data.rho_run[i]=x_prop;
-		nA_rho[i]++;
+	    if (viscell[i]>0) {
+		double x_now=dens_data.rho_run[i];
+		double x_prop=myrnorm(x_now,sigmap_rho[i]);
+		double p_now=rhodens_visited(x_now, &dens_data);
+		double p_prop=rhodens_visited(x_prop, &dens_data);
+		double r=exp(p_prop-p_now); // ratio
+		double z=myrunif();
+		// Actualization
+		if (z < r) {
+		    dens_data.rho_run[i]=x_prop;
+		    nA_rho[i]++;
+		}
+	    }
+	    if (viscell[i]==0) {
+	    	dens_data.rho_run[i]=rhodens_unvisited(&dens_data);
 	    }
 	}
 
@@ -555,27 +596,25 @@ void hSDM_hierarchical_poisson (
 	// logLikelihood
 	double logL=0.0;
 	for (int n=0; n<NOBS; n++) {
-	  if (dens_data.T[n]>0) {
 	    /* prob_p */
 	    double Xpart_prob_p=0.0;
 	    for (int p=0; p<NP; p++) {
 		Xpart_prob_p+=dens_data.X[n][p]*dens_data.beta_run[p];
 	    }
-	    prob_p[n]=invlogit(Xpart_prob_p+dens_data.rho_run[dens_data.IdCell[n]]);
+	    prob_p_run[n]=invlogit(Xpart_prob_p+dens_data.rho_run[dens_data.IdCell[n]]);
 	    /* prob_q */
 	    double log_prob_q=0.0;
 	    for (int q=0; q<NQ; q++) {
 		log_prob_q+=dens_data.W[n][q]*dens_data.gamma_run[q];
 	    }
-	    prob_q[n]=exp(log_prob_q);
+	    prob_q_run[n]=exp(log_prob_q);
 	    /* log Likelihood */
 	    if (dens_data.Y[n]>0) {
-	        logL+=dpois(dens_data.Y[n],prob_q[n],1)+log(1-dens_data.U[n])+log(prob_p[n]);
+		logL+=dpois(dens_data.Y[n],prob_q_run[n],1)+log(1-dens_data.U[n])+log(prob_p_run[n]);
 	    }
 	    if (dens_data.Y[n]==0) {
-	        logL+=log(exp(-prob_q[n])*(1-dens_data.U[n])*prob_p[n]+(1-(1-dens_data.U[n])*prob_p[n]));
+		logL+=log(exp(-prob_q_run[n])*(1-dens_data.U[n])*prob_p_run[n]+(1-(1-dens_data.U[n])*prob_p_run[n]));
 	    }
-	  }
 	}
 
 	// Deviance
@@ -583,8 +622,20 @@ void hSDM_hierarchical_poisson (
 
 
 	//////////////////////////////////////////////////
+	// Predictions
+	for (int m=0; m<NPRED; m++) {
+	    /* prob_p_pred_run */
+	    double Xpart_prob_p_pred=0.0;
+	    for (int p=0; p<NP; p++) {
+		Xpart_prob_p_pred+=X_pred[m][p]*dens_data.beta_run[p];
+	    }
+	    prob_p_pred_run[m]=invlogit(Xpart_prob_p_pred+dens_data.rho_run[IdCell_pred[m]]);
+	}
+
+
+	//////////////////////////////////////////////////
 	// Output
-	if(((g+1)>NBURN) && (((g+1)%(NTHIN))==0)){
+	if (((g+1)>NBURN) && (((g+1)%(NTHIN))==0)) {
 	    int isamp=((g+1)-NBURN)/(NTHIN);
 	    for (int p=0; p<NP; p++) {
 		beta_vect[p*NSAMP+(isamp-1)]=dens_data.beta_run[p];
@@ -594,8 +645,8 @@ void hSDM_hierarchical_poisson (
 	    }
 	    Deviance[isamp-1]=Deviance_run;
 	    for (int n=0; n<NOBS; n++) {
-		prob_p_pred[n]+=prob_p[n]/NSAMP; // We compute the mean of NSAMP values
-		prob_q_pred[n]+=prob_q[n]/NSAMP; // We compute the mean of NSAMP values
+		prob_p_latent[n]+=prob_p_run[n]/NSAMP; // We compute the mean of NSAMP values
+		prob_q_latent[n]+=prob_q_run[n]/NSAMP; // We compute the mean of NSAMP values
 	    }
 	    // rho
 	    if (save_rho[0]==0) { // We compute the mean of NSAMP values
@@ -606,6 +657,17 @@ void hSDM_hierarchical_poisson (
 	    if (save_rho[0]==1) { // The NSAMP sampled values for rhos are saved
 		for (int i=0; i<NCELL; i++) {
 		    rho_pred[i*NSAMP+(isamp-1)]=dens_data.rho_run[i]; 
+		}
+	    }
+	    // prob.p
+	    if (save_p[0]==0) { // We compute the mean of NSAMP values
+		for (int m=0; m<NPRED; m++) {
+		    prob_p_pred[m]+=prob_p_pred_run[m]/NSAMP; 
+		}
+	    }
+	    if (save_p[0]==1) { // The NSAMP sampled values for prob_p are saved
+		for (int m=0; m<NPRED; m++) {
+		    prob_p_pred[m*NSAMP+(isamp-1)]=prob_p_pred_run[m]; 
 		}
 	    }
 	    // Vrho
@@ -620,31 +682,33 @@ void hSDM_hierarchical_poisson (
 	if (NGIBBS >=1000) DIV=100;
 	else DIV=NGIBBS/10;
 	/* During the burnin period */
-	if((g+1)%DIV==0 && (g+1)<=NBURN){
+	if ((g+1)%DIV==0 && (g+1)<=NBURN) {
 	    // beta
 	    for (int p=0; p<NP; p++) {
 		Ar_beta[p]=((double) nA_beta[p])/DIV;
-		if(Ar_beta[p]>=ropt) sigmap_beta[p]=sigmap_beta[p]*(2-(1-Ar_beta[p])/(1-ropt));
+		if (Ar_beta[p]>=ropt) sigmap_beta[p]=sigmap_beta[p]*(2-(1-Ar_beta[p])/(1-ropt));
 		else sigmap_beta[p]=sigmap_beta[p]/(2-Ar_beta[p]/ropt);
 		nA_beta[p]=0.0; // We reinitialize the number of acceptance to zero
 	    }
 	    // gamma
 	    for (int q=0; q<NQ; q++) {
 		Ar_gamma[q]=((double) nA_gamma[q])/DIV;
-		if(Ar_gamma[q]>=ropt) sigmap_gamma[q]=sigmap_gamma[q]*(2-(1-Ar_gamma[q])/(1-ropt));
+		if (Ar_gamma[q]>=ropt) sigmap_gamma[q]=sigmap_gamma[q]*(2-(1-Ar_gamma[q])/(1-ropt));
 		else sigmap_gamma[q]=sigmap_gamma[q]/(2-Ar_gamma[q]/ropt);
 		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
 	    }
 	    // rho
 	    for (int i=0; i<NCELL; i++) {
-		Ar_rho[i]=((double) nA_rho[i])/DIV;
-		if(Ar_rho[i]>=ropt) sigmap_rho[i]=sigmap_rho[i]*(2-(1-Ar_rho[i])/(1-ropt));
-		else sigmap_rho[i]=sigmap_rho[i]/(2-Ar_rho[i]/ropt);
-		nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		if (viscell[i]>0) {
+		    Ar_rho[i]=((double) nA_rho[i])/DIV;
+		    if (Ar_rho[i]>=ropt) sigmap_rho[i]=sigmap_rho[i]*(2-(1-Ar_rho[i])/(1-ropt));
+		    else sigmap_rho[i]=sigmap_rho[i]/(2-Ar_rho[i]/ropt);
+		    nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		}
 	    }
 	}
         /* After the burnin period */
-	if((g+1)%DIV==0 && (g+1)>NBURN){
+	if ((g+1)%DIV==0 && (g+1)>NBURN) {
 	    // beta
 	    for (int p=0; p<NP; p++) {
 		Ar_beta[p]=((double) nA_beta[p])/DIV;
@@ -657,8 +721,10 @@ void hSDM_hierarchical_poisson (
 	    }
 	    // rho
 	    for (int i=0; i<NCELL; i++) {
-		Ar_rho[i]=((double) nA_rho[i])/DIV;
-		nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		if (viscell[i]>0) {
+		    Ar_rho[i]=((double) nA_rho[i])/DIV;
+		    nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+		}
 	    }
 	}
 
@@ -670,7 +736,7 @@ void hSDM_hierarchical_poisson (
 	    Rprintf("*");
 	    R_FlushConsole();
 	    //R_ProcessEvents(); for windows
-	    if(((g+1)%(NGIBBS/10))==0){
+	    if (((g+1)%(NGIBBS/10))==0) {
 	    	double mAr_beta=0; // Mean acceptance rate
 	    	double mAr_gamma=0;
 	    	double mAr_rho=0;
@@ -684,7 +750,9 @@ void hSDM_hierarchical_poisson (
 	    	}
 	    	// rho
 	    	for (int i=0; i<NCELL; i++) {
-	    	    mAr_rho+=Ar_rho[i]/NCELL;
+		    if (viscell[i]>0) {
+			mAr_rho+=Ar_rho[i]/NVISCELL;
+		    }
 	    	}
 	    	Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, gamma:%.3f, rho:%.3f\n",Perc,mAr_beta,mAr_gamma,mAr_rho);
 	    	R_FlushConsole();
@@ -726,8 +794,8 @@ void hSDM_hierarchical_poisson (
     free(dens_data.mubeta);
     free(dens_data.Vbeta);
     free(dens_data.beta_run);
-    free(prob_p);
-    /* Availability */
+    free(prob_p_run);
+    /* Observability */
     for (int n=0; n<NOBS; n++) {
     	free(dens_data.W[n]);
     }
@@ -735,7 +803,16 @@ void hSDM_hierarchical_poisson (
     free(dens_data.mugamma);
     free(dens_data.Vgamma);
     free(dens_data.gamma_run);
-    free(prob_q);
+    free(prob_q_run);
+    /* Visited cells */
+    free(viscell);
+    /* Predictions */
+    free(IdCell_pred);
+    for (int m=0; m<NPRED; m++) {
+    	free(X_pred[m]);
+    }
+    free(X_pred);
+    free(prob_p_pred_run);
     /* Adaptive MH */
     free(sigmap_beta);
     free(nA_beta);

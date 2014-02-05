@@ -180,11 +180,11 @@ hSDM.Nmixture <- function (# Observations
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save pred
-  if (save.p==0) {prob.p.pred <- Sample[[27]]}
+  if (save.p==0) {lambda.pred <- Sample[[27]]}
   if (save.p==1) {
       Matrix.p.pred <- matrix(Sample[[27]],ncol=npred)
       colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
-      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      lambda.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Save N
@@ -199,8 +199,8 @@ hSDM.Nmixture <- function (# Observations
 
   #= Output
   return (list(mcmc=MCMC,
-               prob.p.pred=prob.p.pred, N.pred=N.pred,
-               prob.p.latent=Sample[[25]], prob.q.latent=Sample[[26]]))
+               lambda.pred=lambda.pred, N.pred=N.pred,
+               lambda.latent=Sample[[25]], theta.latent=Sample[[26]]))
 
 }
 

@@ -4,19 +4,19 @@
 \title{Site occupancy (or Zero-Inflated Binomial - ZIB) model with CAR
 process taking into account site alteration}
 
-\description{The \code{hSDM.siteocc.iCAR.alteration} function can
-  be used to model species distribution including different processes in
-  a hierarchical Bayesian framework: (i) a
+\description{The \code{hSDM.siteocc.iCAR.alteration} function can be
+  used to model species distribution including different processes in a
+  hierarchical Bayesian framework: (i) a
   \eqn{\mathcal{B}ernoulli}{Bernoulli} suitability process (refering to
   environmental suitability) which takes into account the spatial
   dependence of the observations, (ii) an alteration process (refering
-  to anthropogenic disturbances), and a
+  to anthropogenic disturbances), and (iii) a
   \eqn{\mathcal{B}inomial}{Binomial} observability process (refering to
   various ecological and methodological issues explaining the species
-  detection). The \code{hSDM.siteocc.iCAR.alteration} function
-  calls a Gibbs sampler written in C code which uses an adaptive
-  Metropolis algorithm to estimate the conditional posterior
-  distribution of hierarchical model's parameters.}
+  detection). The \code{hSDM.siteocc.iCAR.alteration} function calls a
+  Gibbs sampler written in C code which uses an adaptive Metropolis
+  algorithm to estimate the conditional posterior distribution of
+  hierarchical model's parameters.}
 
 \usage{hSDM.siteocc.iCAR.alteration(presences, trials, suitability,
 observability, spatial.entity, alteration, data, n.neighbors, neighbors,

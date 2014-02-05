@@ -70,17 +70,17 @@ static double betadens (double beta_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
-	/* prob_p */
-	double Xpart_prob_p=0.0;
+	/* lambda */
+	double Xpart_lambda=0.0;
 	for (int p=0; p<d->NP; p++) {
 	    if (p!=k) {
-		Xpart_prob_p+=d->X[n][p]*d->beta_run[p];
+		Xpart_lambda+=d->X[n][p]*d->beta_run[p];
 	    }
 	}
-	Xpart_prob_p+=d->X[n][k]*beta_k;
-	double prob_p=exp(Xpart_prob_p+d->rho_run[d->IdCell[n]]);
+	Xpart_lambda+=d->X[n][k]*beta_k;
+	double lambda=exp(Xpart_lambda+d->rho_run[d->IdCell[n]]);
 	/* log Likelihood */
-	logL+=dpois(d->Y[n],prob_p,1);
+	logL+=dpois(d->Y[n],lambda,1);
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(beta_k,d->mubeta[k],sqrt(d->Vbeta[k]),1);
@@ -101,14 +101,14 @@ static double rhodens_visited (double rho_i, void *dens_data) {
     double logL=0;
     for (int m=0; m<d->nObsCell[i]; m++) {
 	int w=d->PosCell[i][m]; // which observation
-	/* prob_p */
-	double Xpart_prob_p=0.0;
+	/* lambda */
+	double Xpart_lambda=0.0;
 	for (int p=0; p<d->NP; p++) {
-	    Xpart_prob_p+=d->X[w][p]*d->beta_run[p];
+	    Xpart_lambda+=d->X[w][p]*d->beta_run[p];
 	}
-	double prob_p=exp(Xpart_prob_p+rho_i);
+	double lambda=exp(Xpart_lambda+rho_i);
 	/* log Likelihood */
-	logL+=dpois(d->Y[w],prob_p,1);
+	logL+=dpois(d->Y[w],lambda,1);
     }
     // logPosterior=logL+logPrior
     int nNeighbors=d->nNeigh[i];
@@ -150,7 +150,7 @@ void hSDM_poisson_iCAR (
     const int *ngibbs, int *nthin, int *nburn, // Number of iterations, burning and samples
     const int *nobs, // Number of observations
     const int *ncell, // Constants
-    const int *np, // Number of fixed effects for prob_p
+    const int *np, // Number of fixed effects for lambda
     const int *Y_vect, // Number of successes (presences)
     const double *X_vect, // Suitability covariates
     // Spatial correlation
@@ -175,8 +175,8 @@ void hSDM_poisson_iCAR (
     const double *Vrho_max,
     // Diagnostic
     double *Deviance,
-    double *prob_p_latent, // Latent proba of suitability (length NOBS) 
-    double *prob_p_pred, // Proba of suitability for predictions (length NPRED)
+    double *lambda_latent, // Latent proba of suitability (length NOBS) 
+    double *lambda_pred, // Proba of suitability for predictions (length NPRED)
     // Seeds
     const int *seed,
     // Verbose
@@ -208,13 +208,13 @@ void hSDM_poisson_iCAR (
 
     ///////////////////////////////////
     // Declaring some useful objects //
-    double *prob_p_run=malloc(NOBS*sizeof(double));
+    double *lambda_run=malloc(NOBS*sizeof(double));
     for (int n=0; n<NOBS; n++) {
-	prob_p_run[n]=0.0;
+	lambda_run[n]=0.0;
     }
-    double *prob_p_pred_run=malloc(NPRED*sizeof(double));
+    double *lambda_pred_run=malloc(NPRED*sizeof(double));
     for (int m=0; m<NPRED; m++) {
-	prob_p_pred_run[m]=0.0;
+	lambda_pred_run[m]=0.0;
     }
 
     //////////////////////////////////////////////////////////
@@ -459,14 +459,14 @@ void hSDM_poisson_iCAR (
 	// logLikelihood
 	double logL=0.0;
 	for (int n=0; n<NOBS; n++) {
-	    /* prob_p */
-	    double Xpart_prob_p=0.0;
+	    /* lambda */
+	    double Xpart_lambda=0.0;
 	    for (int p=0; p<NP; p++) {
-		Xpart_prob_p+=dens_data.X[n][p]*dens_data.beta_run[p];
+		Xpart_lambda+=dens_data.X[n][p]*dens_data.beta_run[p];
 	    }
-	    prob_p_run[n]=exp(Xpart_prob_p+dens_data.rho_run[dens_data.IdCell[n]]);
+	    lambda_run[n]=exp(Xpart_lambda+dens_data.rho_run[dens_data.IdCell[n]]);
 	    /* log Likelihood */
-	    logL+=dpois(dens_data.Y[n],prob_p_run[n],1);
+	    logL+=dpois(dens_data.Y[n],lambda_run[n],1);
 	}
 
 	// Deviance
@@ -476,12 +476,12 @@ void hSDM_poisson_iCAR (
 	//////////////////////////////////////////////////
 	// Predictions
 	for (int m=0; m<NPRED; m++) {
-	    /* prob_p_pred_run */
-	    double Xpart_prob_p_pred=0.0;
+	    /* lambda_pred_run */
+	    double Xpart_lambda_pred=0.0;
 	    for (int p=0; p<NP; p++) {
-		Xpart_prob_p_pred+=X_pred[m][p]*dens_data.beta_run[p];
+		Xpart_lambda_pred+=X_pred[m][p]*dens_data.beta_run[p];
 	    }
-	    prob_p_pred_run[m]=exp(Xpart_prob_p_pred+dens_data.rho_run[IdCell_pred[m]]);
+	    lambda_pred_run[m]=exp(Xpart_lambda_pred+dens_data.rho_run[IdCell_pred[m]]);
 	}
 
 
@@ -494,7 +494,7 @@ void hSDM_poisson_iCAR (
 	    }
 	    Deviance[isamp-1]=Deviance_run;
 	    for (int n=0; n<NOBS; n++) {
-		prob_p_latent[n]+=prob_p_run[n]/NSAMP; // We compute the mean of NSAMP values
+		lambda_latent[n]+=lambda_run[n]/NSAMP; // We compute the mean of NSAMP values
 	    }
 	    // rho
 	    if (save_rho[0]==0) { // We compute the mean of NSAMP values
@@ -507,15 +507,15 @@ void hSDM_poisson_iCAR (
 		    rho_pred[i*NSAMP+(isamp-1)]=dens_data.rho_run[i]; 
 		}
 	    }
-	    // prob.p
+	    // lambda
 	    if (save_p[0]==0) { // We compute the mean of NSAMP values
 		for (int m=0; m<NPRED; m++) {
-		    prob_p_pred[m]+=prob_p_pred_run[m]/NSAMP; 
+		    lambda_pred[m]+=lambda_pred_run[m]/NSAMP; 
 		}
 	    }
-	    if (save_p[0]==1) { // The NSAMP sampled values for prob_p are saved
+	    if (save_p[0]==1) { // The NSAMP sampled values for lambda are saved
 		for (int m=0; m<NPRED; m++) {
-		    prob_p_pred[m*NSAMP+(isamp-1)]=prob_p_pred_run[m]; 
+		    lambda_pred[m*NSAMP+(isamp-1)]=lambda_pred_run[m]; 
 		}
 	    }
 	    // Vrho
@@ -624,7 +624,7 @@ void hSDM_poisson_iCAR (
     free(dens_data.mubeta);
     free(dens_data.Vbeta);
     free(dens_data.beta_run);
-    free(prob_p_run);
+    free(lambda_run);
     /* Visited cells */
     free(viscell);
     /* Predictions */
@@ -633,7 +633,7 @@ void hSDM_poisson_iCAR (
     	free(X_pred[m]);
     }
     free(X_pred);
-    free(prob_p_pred_run);
+    free(lambda_pred_run);
     /* Adaptive MH */
     free(sigmap_beta);
     free(nA_beta);

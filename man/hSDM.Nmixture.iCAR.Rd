@@ -107,41 +107,41 @@
     variance of the spatial random effects.}
 
   \item{mubeta}{Means of the priors for the \eqn{\beta}{beta} parameters
-  of the suitability process. \code{mubeta} must be either a scalar or a
-  p-length vector. If \code{mubeta} takes a scalar value, then that value will
-  serve as the prior mean for all of the betas. The default value is set
-  to 0 for an uninformative prior.}
+    of the suitability process. \code{mubeta} must be either a scalar or a
+    p-length vector. If \code{mubeta} takes a scalar value, then that value will
+    serve as the prior mean for all of the betas. The default value is set
+    to 0 for an uninformative prior.}
 
   \item{Vbeta}{Variances of the Normal priors for the \eqn{\beta}{beta}
-  parameters of the suitability process. \code{Vbeta} must be either a
-  scalar or a p-length vector. If \code{Vbeta} takes a scalar value,
-  then that value will serve as the prior variance for all of the
-  betas. The default variance is large and set to 1.0E6 for an
-  uninformative flat prior.}
+    parameters of the suitability process. \code{Vbeta} must be either a
+    scalar or a p-length vector. If \code{Vbeta} takes a scalar value,
+    then that value will serve as the prior variance for all of the
+    betas. The default variance is large and set to 1.0E6 for an
+    uninformative flat prior.}
 
   \item{mugamma}{Means of the Normal priors for the \eqn{\gamma}{gamma}
-  parameters of the observability process. \code{mugamma} must be either
-  a scalar or a p-length vector. If \code{mugamma} takes a scalar value,
-  then that value will serve as the prior mean for all of the
-  gammas. The default value is set to 0 for an uninformative prior.}
+    parameters of the observability process. \code{mugamma} must be either
+    a scalar or a p-length vector. If \code{mugamma} takes a scalar value,
+    then that value will serve as the prior mean for all of the
+    gammas. The default value is set to 0 for an uninformative prior.}
 
   \item{Vgamma}{Variances of the Normal priors for the
-  \eqn{\gamma}{gamma} parameters of the observability
-  process. \code{Vgamma} must be either a scalar or a p-length
-  vector. If \code{Vgamma} takes a scalar value, then that value will
-  serve as the prior variance for all of the gammas. The default
-  variance is large and set to 1.0E6 for an uninformative flat prior.}
+    \eqn{\gamma}{gamma} parameters of the observability
+    process. \code{Vgamma} must be either a scalar or a p-length
+    vector. If \code{Vgamma} takes a scalar value, then that value will
+    serve as the prior variance for all of the gammas. The default
+    variance is large and set to 1.0E6 for an uninformative flat prior.}
 
   \item{priorVrho}{Type of prior for the variance of the spatial random
-  effects. Can be set to a fixed positive scalar, or to an inverse-gamma
-  distribution ("1/Gamma") with parameters \code{shape} and \code{rate},
-  or to a uniform distribution ("Uniform") on the interval
-  [0,\code{Vrho.max}]. Default set to "1/Gamma".}
-
+    effects. Can be set to a fixed positive scalar, or to an inverse-gamma
+    distribution ("1/Gamma") with parameters \code{shape} and \code{rate},
+    or to a uniform distribution ("Uniform") on the interval
+    [0,\code{Vrho.max}]. Default set to "1/Gamma".}
+  
   \item{shape}{The shape parameter for the Gamma prior on the precision
-  of the spatial random effects. Default value is \code{shape=0.05} for
-  uninformative prior.}
-
+    of the spatial random effects. Default value is \code{shape=0.05} for
+    uninformative prior.}
+  
   \item{rate}{The rate (1/scale) parameter for the Gamma prior on the
     precision of the spatial random effects. Default value is
     \code{rate=0.0005} for uninformative prior.}
@@ -165,7 +165,7 @@
 
   \item{save.p}{A switch (0,1) which determines whether or not the
     sampled values for predictions are saved. Default is 0: the
-    posterior mean is computed and returned in the \code{prob.p.pred}
+    posterior mean is computed and returned in the \code{lambda.pred}
     vector. Be careful, setting \code{save.p} to 1 might require a large
     amount of memory.}
 
@@ -194,12 +194,12 @@
     values for each spatial random effect associated to each spatial
     entity.}
 
-  \item{prob.p.pred}{If \code{save.p} is set to 0 (default),
-    \code{prob.p.pred} is the predictive posterior mean of the
-    probability associated to the suitability process for each
-    prediction. If \code{save.p} is set to 1, \code{prob.p.pred} is an
-    \code{mcmc} object with sampled values of the probability associated
-    to the suitability process for each prediction.}
+  \item{lambda.pred}{If \code{save.p} is set to 0 (default),
+    \code{lambda.pred} is the predictive posterior mean of the abundance
+    associated to the suitability process for each prediction. If
+    \code{save.p} is set to 1, \code{lambda.pred} is an \code{mcmc}
+    object with sampled values of the abundance associated to the
+    suitability process for each prediction.}
 
   \item{N.pred}{If \code{save.N} is set to 0 (default), \code{N.pred} is
     the posterior mean (rounded to the closest integer) of the latent
@@ -207,10 +207,10 @@
     \code{N.pred} is an \code{mcmc} object with sampled values of the
     latent count variable N for each observed cell.}
   
-  \item{prob.p.latent}{Predictive posterior mean of the probability
+  \item{lambda.latent}{Predictive posterior mean of the abundance
     associated to the suitability process for each observation.}
   
-  \item{prob.q.latent}{Predictive posterior mean of the probability
+  \item{theta.latent}{Predictive posterior mean of the probability
   associated to the observability process for each observation.}
   
 }
@@ -413,7 +413,7 @@ mod.hSDM.Nmixture.iCAR <- hSDM.Nmixture.iCAR(# Observations
                                    #Vrho.max=1000,
                                    # Various
                                    seed=1234, verbose=1,
-                                   save.rho=0, save.p=0, save.N=1)
+                                   save.rho=1, save.p=0, save.N=1)
 
 #==========
 #== Outputs
@@ -452,18 +452,18 @@ dev.off()
 # rho
 r.rho <- r.rho.pred <- r.visited <- Landscape
 r.rho[] <- rho
-rho.pred <- mod.hSDM.Nmixture.iCAR$rho.pred # apply(mod.hSDM.Nmixture.iCAR$rho.pred,2,mean)
+rho.pred <- apply(mod.hSDM.Nmixture.iCAR$rho.pred,2,mean)
 r.rho.pred[] <- rho.pred
 r.visited[] <- 0
-r.visited[visited.cells] <- 1
-# prob.p
-r.prob.p <- Landscape
-r.prob.p[] <- mod.hSDM.Nmixture.iCAR$prob.p.pred
+r.visited[visited.cells] <- tapply(Data.obs$Y,Data.obs$cells,mean)
+# lambda
+r.lambda <- Landscape
+r.lambda[] <- mod.hSDM.Nmixture.iCAR$lambda.pred
 
 pdf(file="Summary_hSDM.Nmixture.iCAR.pdf")
 par(mfrow=c(3,2))
 plot(r.rho, main="rho target")
-plot(r.visited,main="Visited cells and presences")
+plot(r.visited,main="Visited cells and abundance")
 plot(Data.obs[Y>0,],add=TRUE,pch=16,cex=0.5)
 plot(r.rho.pred, main="rho estimated")
 plot(rho[visited.cells],rho.pred[visited.cells],
@@ -472,7 +472,7 @@ plot(rho[visited.cells],rho.pred[visited.cells],
 points(rho[notvisited.cells],rho.pred[notvisited.cells],pch=16,col="blue")
 legend(x=-4,y=3.5,legend="Unvisited cells",col="blue",pch=16,bty="n")
 abline(a=0,b=1,col="red")
-plot(r.prob.p,main="Proba of presence")
+plot(r.lambda,main="Predicted abundance")
 plot(Data.obs[Y>0,],add=TRUE,pch=16,cex=0.5)
 dev.off()
 

@@ -21,7 +21,7 @@
 
 hSDM.ZIP.iCAR <- function (# Observations
                                  counts,
-                                 suitability, observability, spatial.entity, data,
+                                 suitability, abundance, spatial.entity, data,
                                  # Spatial structure
                                  n.neighbors, neighbors,
                                  # Predictions
@@ -61,8 +61,8 @@ hSDM.ZIP.iCAR <- function (# Observations
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
-  #= Observability
-  mf.obs <- model.frame(formula=observability,data=data)
+  #= Abundance
+  mf.obs <- model.frame(formula=abundance,data=data)
   W <- model.matrix(attr(mf.obs,"terms"),data=mf.obs)
   #= Spatial correlation
   ncell <- length(n.neighbors)

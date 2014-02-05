@@ -1,27 +1,31 @@
-\name{hSDM.ZIP.iCAR}
-\alias{hSDM.ZIP.iCAR}
+\name{hSDM.ZIP.iCAR.alteration}
+\alias{hSDM.ZIP.iCAR.alteration}
 
-\title{ZIP (Zero-Inflated Poisson) model with CAR process}
+\title{ZIP (Zero-Inflated Poisson) model with CAR process taking into
+account site alteration}
 
-\description{The \code{hSDM.ZIP.iCAR} function can be used to model
-  species distribution including different processes in a hierarchical
-  Bayesian framework: a \eqn{\mathcal{B}ernoulli}{Bernoulli} suitability
-  process (refering to various ecological variables explaining
-  environmental suitability or not) which takes into account the spatial
-  dependence of the observations, and a \eqn{\mathcal{P}oisson}{Poisson}
-  abundance process (refering to various ecological variables explaining
-  the species abundance when the habitat is suitable). The
-  \code{hSDM.ZIP.iCAR} function calls a Gibbs sampler written in C code
-  which uses an adaptive Metropolis algorithm to estimate the
+\description{The \code{hSDM.ZIP.iCAR.alteration} function can be used to
+  model species distribution including different processes in a
+  hierarchical Bayesian framework: (i) a
+  \eqn{\mathcal{B}ernoulli}{Bernoulli} suitability process (refering to
+  various ecological variables explaining environmental suitability or
+  not) which takes into account the spatial dependence of the
+  observations, (ii) an alteration process (refering to anthropogenic
+  disturbances), and (iii) a \eqn{\mathcal{P}oisson}{Poisson} abundance
+  process (refering to various ecological variables explaining the
+  species abundance when the habitat is suitable). The
+  \code{hSDM.ZIP.iCAR.alteration} function calls a Gibbs sampler written
+  in C code which uses an adaptive Metropolis algorithm to estimate the
   conditional posterior distribution of hierarchical model's
   parameters.}
 
-\usage{hSDM.ZIP.iCAR(counts, suitability, abundance, spatial.entity,
-data, n.neighbors, neighbors, suitability.pred=NULL,
-spatial.entity.pred=NULL, burnin = 5000, mcmc = 10000, thin = 10,
-beta.start, gamma.start, Vrho.start, mubeta = 0, Vbeta = 1e+06, mugamma
-= 0, Vgamma = 1e+06, priorVrho = "1/Gamma", shape = 0.5, rate = 0.0005,
-Vrho.max=1000, seed = 1234, verbose = 1, save.rho = 0, save.p = 0)}
+\usage{hSDM.ZIP.iCAR.alteration(counts, suitability, abundance,
+spatial.entity, alteration, data, n.neighbors, neighbors,
+suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
+10000, thin = 10, beta.start, gamma.start, Vrho.start, mubeta = 0, Vbeta
+= 1e+06, mugamma = 0, Vgamma = 1e+06, priorVrho = "1/Gamma", shape =
+0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1, save.rho =
+0, save.p = 0)}
 
 \arguments{
   
@@ -39,6 +43,10 @@ Vrho.max=1000, seed = 1234, verbose = 1, save.rho = 0, save.p = 0)}
     identifier (from one to the total number of entities) for each
     observation. Several observations can occur in one spatial entity. A
     spatial entity can be a raster cell for example.}
+
+  \item{alteration}{A vector indicating the proportion of area in the
+    spatial cell which is transformed (by anthropogenic activities for
+    example) for each observation. Must be between 0 and 1.}
 
   \item{data}{A data frame containing the model's variables.}
 
@@ -182,15 +190,16 @@ Vrho.max=1000, seed = 1234, verbose = 1, save.rho = 0, save.p = 0)}
 \details{
 
   The model integrates two processes, an ecological process associated
-  to habitat suitability (habitat is suitable or not for the species)
-  and an abundance process that takes into account ecological variables
-  explaining the species abundance when the habitat is suitable. The
-  suitability process includes an intrinsic conditional autoregressive
+  to the presence or absence of the species due to habitat suitability
+  and an observation process that takes into account the fact that the
+  probability of detection of the species is inferior to one. The
+  ecological process includes an intrinsic conditional autoregressive
   model (iCAR) model for spatial autocorrelation between observations,
-  assuming that the suitability at one site depends on the suitability
-  on neighboring sites.
+  assuming that the probability of presence of the species at one site
+  depends on the probability of presence of the species on neighboring
+  sites.
 
-  \bold{Suitability process:}
+  \bold{Ecological process:}
   \deqn{z_i \sim \mathcal{B}ernoulli(\theta_i)}{z_i ~ Bernoulli(theta_i)}
   \deqn{logit(\theta_i) = X_i \beta + \rho_{j(i)}}{logit(theta_i) = X_i *
     beta + rho_j(i)}
@@ -209,11 +218,11 @@ Vrho.max=1000, seed = 1234, verbose = 1, save.rho = 0, save.p = 0)}
   \eqn{V_{\rho}}{V_rho}: variance of the spatial random effects.
   
   \eqn{n_j}{n_j}: number of neighbors for spatial entity \eqn{j}.
-
-  \bold{Abundance process:}
-  \deqn{y_i \sim \mathcal{P}oisson(z_i * \lambda_i)}{y_i ~ Poisson(z_i
-    * lambda_i)}
-  \deqn{log(\lambda_i) = W_i \gamma}{log(lambda_i) = W_i * gamma}
+  
+  \bold{Observation process:}
+  \deqn{y_i \sim \mathcal{B}inomial(z_i * \delta_i, t_i)}{y_i ~ Binomial(z_i
+    * delta_i, t_i)}
+  \deqn{logit(\delta_i) = W_i \gamma}{logit(delta_i) = W_i * gamma} 
 
 }
 
@@ -222,7 +231,7 @@ Vrho.max=1000, seed = 1234, verbose = 1, save.rho = 0, save.p = 0)}
   Gelfand, A. E.; Schmidt, A. M.; Wu, S.; Silander, J. A.; Latimer, A. and
   Rebelo, A. G. (2005) Modelling species diversity through species level
   hierarchical modelling. \emph{Applied Statistics}, 54, 1-20.
-    
+   
   Latimer, A. M.; Wu, S. S.; Gelfand, A. E. and Silander, J. A. (2006) Building
   statistical models to analyze species distributions. \emph{Ecological
     Applications}, 16, 33-50.
@@ -242,7 +251,7 @@ Vrho.max=1000, seed = 1234, verbose = 1, save.rho = 0, save.p = 0)}
 \dontrun{ 
 
 #==============================================
-# hSDM.ZIP.iCAR()
+# hSDM.ZIP.iCAR.alteration()
 # Example with simulated data
 #==============================================
 
@@ -315,6 +324,9 @@ X1 <- X1.cell[cells]
 X2 <- X2.cell[cells]
 X <- cbind(rep(1,nobs),X1,X2)
 
+# Alteration
+U <- runif(n=nobs,min=0,max=1)
+
 # Covariates for "abundance" process
 W <- cbind(rep(1,nobs))
 ## Uncomment if you want covariates on the observability process 
@@ -335,6 +347,9 @@ theta <- inv.logit(logit.theta)
 set.seed(seed)
 y.1 <- rbinom(nobs,1,theta)
 
+# Alteration
+u <- rbinom(nobs,1,U)
+
 # Abundance
 set.seed(seed)
 log.lambda <- W \%*\% gamma.target
@@ -343,12 +358,12 @@ set.seed(seed)
 y.2 <- rpois(nobs,lambda)
 
 #== Simulating response variable
-Y <- y.2*y.1
+Y <- y.2*(1-u)*y.1
 
 #== Data-set
-Data <- data.frame(Y,cells,X1,X2)
+Data <- data.frame(Y,cells,X1,X2,U)
 ## Uncomment if you want covariates on the observability process 
-## Data <- data.frame(Y,cells,X1,X2,W1,W2)
+## Data <- data.frame(Y,cells,X1,X2,W1,W2,U)
 Data <- SpatialPointsDataFrame(coords=coords,data=Data)
 plot(Data)
 
@@ -356,44 +371,47 @@ plot(Data)
 Data.pred <- data.frame(X1=X1.cell,X2=X2.cell,cells=c(1:ncell))
 
 #==================================
-#== ZIP model with CAR
+#== Site-occupancy model
 
-mod.hSDM.ZIP.iCAR <- hSDM.ZIP.iCAR(counts=Data$Y,
-                                   suitability=~X1+X2,
-                                   abundance=~1,
-                                   spatial.entity=Data$cells,
-                                   data=Data,
-                                   n.neighbors=n.neighbors,
-                                   neighbors=adj,
-                                   suitability.pred=Data.pred,
-                                   spatial.entity.pred=Data.pred$cells,
-                                   burnin=5000, mcmc=5000, thin=5,
-                                   beta.start=0,
-                                   gamma.start=0,
-                                   Vrho.start=10,
-                                   priorVrho="1/Gamma",
-                                   #priorVrho="Uniform",
-                                   #priorVrho=10,
-                                   mubeta=0, Vbeta=1.0E6,
-                                   mugamma=0, Vgamma=1.0E6,
-                                   shape=0.5, rate=0.0005,
-                                   #Vrho.max=1000,
-                                   seed=1234, verbose=1,
-                                   save.rho=1, save.p=0)
+mod.hSDM.ZIP.iCAR.alteration <- hSDM.ZIP.iCAR.alteration(counts=Data$Y,
+                                               suitability=~X1+X2,
+                                               abundance=~1,
+                                               spatial.entity=Data$cells,
+                                               alteration=Data$U,
+                                               data=Data,
+                                               n.neighbors=n.neighbors,
+                                               neighbors=adj,
+                                               ## suitability.pred=NULL,
+                                               ## spatial.entity.pred=NULL,
+                                               suitability.pred=Data.pred,
+                                               spatial.entity.pred=Data.pred$cells,
+                                               burnin=5000, mcmc=5000, thin=5,
+                                               beta.start=0,
+                                               gamma.start=0,
+                                               Vrho.start=10,
+                                               priorVrho="1/Gamma",
+                                               #priorVrho="Uniform",
+                                               #priorVrho=10,
+                                               mubeta=0, Vbeta=1.0E6,
+                                               mugamma=0, Vgamma=1.0E6,
+                                               shape=0.5, rate=0.0005,
+                                               #Vrho.max=1000,
+                                               seed=1234, verbose=1,
+                                               save.rho=1, save.p=0)
 
 #==========
 #== Outputs
 
 #= Parameter estimates
-summary(mod.hSDM.ZIP.iCAR$mcmc)
+summary(mod.hSDM.ZIP.iCAR.alteration$mcmc)
 
 #= MCMC and posteriors
-pdf(file="Posteriors_hSDM.ZIP.iCAR.pdf")
-plot(mod.hSDM.ZIP.iCAR$mcmc)
+pdf(file="Posteriors_hSDM.ZIP.iCAR.alteration.pdf")
+plot(mod.hSDM.ZIP.iCAR.alteration$mcmc)
 dev.off()
 
-pdf(file="Posteriors.rho_hSDM.ZIP.iCAR.pdf")
-plot(mod.hSDM.ZIP.iCAR$rho.pred)
+pdf(file="Posteriors.rho_hSDM.ZIP.iCAR.alteration.pdf")
+plot(mod.hSDM.ZIP.iCAR.alteration$rho.pred)
 dev.off()
 
 #= Summary plots
@@ -401,15 +419,15 @@ dev.off()
 # rho
 r.rho <- r.rho.pred <- r.visited <- Landscape
 r.rho[] <- rho
-rho.pred <- apply(mod.hSDM.ZIP.iCAR$rho.pred,2,mean)
+rho.pred <- apply(mod.hSDM.ZIP.iCAR.alteration$rho.pred,2,mean)
 r.rho.pred[] <- rho.pred
 r.visited[] <- 0
 r.visited[visited.cells] <- tapply(Data$Y,Data$cells,mean)
 # prob.p
 r.prob.p <- Landscape
-r.prob.p[] <- mod.hSDM.ZIP.iCAR$prob.p.pred
+r.prob.p[] <- mod.hSDM.ZIP.iCAR.alteration$prob.p.pred
 
-pdf(file="Summary_hSDM.ZIP.iCAR.pdf")
+pdf(file="Summary_hSDM.ZIP.iCAR.alteration.pdf")
 par(mfrow=c(3,2))
 plot(r.rho, main="rho target")
 plot(r.visited,main="Visited cells and counts")
@@ -439,5 +457,5 @@ dev.off()
 \keyword{MCMC}
 \keyword{Markov Chains Monte Carlo}
 \keyword{Metropolis algorithm}
-\keyword{ZIP models}
-\keyword{Zero-Inflated Poisson models}
+\keyword{ZIB models}
+\keyword{Zero-Inflated Binomial models}

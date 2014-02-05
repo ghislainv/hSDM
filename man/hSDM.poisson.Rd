@@ -65,7 +65,7 @@ burnin = 5000, mcmc = 10000, thin = 10, beta.start, mubeta = 0, Vbeta =
 
   \item{save.p}{A switch (0,1) which determines whether or not the
     sampled values for predictions are saved. Default is 0: the
-    posterior mean is computed and returned in the \code{prob.p.pred}
+    posterior mean is computed and returned in the \code{lambda.pred}
     vector. Be careful, setting \code{save.p} to 1 might require a large
     amount of memory.}
 
@@ -80,14 +80,14 @@ burnin = 5000, mcmc = 10000, thin = 10, beta.start, mubeta = 0, Vbeta =
       D=-2log(prod_i P(y_i,n_i|beta))}, is also
     provided.}
 
-    \item{prob.p.pred}{If \code{save.p} is set to 0 (default),
-    \code{prob.p.pred} is the predictive posterior mean of the
-    probability associated to the suitability process for each
-    prediction. If \code{save.p} is set to 1, \code{prob.p.pred} is an
-    \code{mcmc} object with sampled values of the probability associated
-    to the suitability process for each prediction.}
+  \item{lambda.pred}{If \code{save.p} is set to 0 (default),
+    \code{lambda.pred} is the predictive posterior mean of the abundance
+    associated to the suitability process for each prediction. If
+    \code{save.p} is set to 1, \code{lambda.pred} is an \code{mcmc}
+    object with sampled values of the abundance associated to the
+    suitability process for each prediction.}
   
-  \item{prob.p.latent}{Predictive posterior mean of the probability
+  \item{lambda.latent}{Predictive posterior mean of the abundance
     associated to the suitability process for each observation.}
     
 }
@@ -195,8 +195,8 @@ summary(mod.hSDM.poisson$mcmc)
 pdf(file="Posteriors_hSDM.poisson.pdf")
 plot(mod.hSDM.poisson$mcmc)
 dev.off()
-summary(mod.hSDM.poisson$prob.p.latent)
-summary(mod.hSDM.poisson$prob.p.pred)
+summary(mod.hSDM.poisson$lambda.latent)
+summary(mod.hSDM.poisson$lambda.pred)
 
 }
 

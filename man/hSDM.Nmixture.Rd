@@ -114,7 +114,7 @@
 
   \item{save.p}{A switch (0,1) which determines whether or not the
     sampled values for predictions are saved. Default is 0: the
-    posterior mean is computed and returned in the \code{prob.p.pred}
+    posterior mean is computed and returned in the \code{lambda.pred}
     vector. Be careful, setting \code{save.p} to 1 might require a large
     amount of memory.}
 
@@ -136,24 +136,24 @@
       D=-2log(prod_it P(y_it,N_i|...))}, is also
     provided.}
 
-  \item{prob.p.pred}{If \code{save.p} is set to 0 (default),
-    \code{prob.p.pred} is the predictive posterior mean of the
-    probability associated to the suitability process for each
-    prediction. If \code{save.p} is set to 1, \code{prob.p.pred} is an
-    \code{mcmc} object with sampled values of the probability associated
-    to the suitability process for each prediction.}
+  \item{lambda.pred}{If \code{save.p} is set to 0 (default),
+    \code{lambda.pred} is the predictive posterior mean of the abundance
+    associated to the suitability process for each prediction. If
+    \code{save.p} is set to 1, \code{lambda.pred} is an \code{mcmc}
+    object with sampled values of the abundance associated to the
+    suitability process for each prediction.}
 
   \item{N.pred}{If \code{save.N} is set to 0 (default), \code{N.pred} is
     the posterior mean (rounded to the closest integer) of the latent
-    count variable N for each observed cell. If \code{save.N} is set to 1,
-    \code{N.pred} is an \code{mcmc} object with sampled values of the
+    count variable N for each observed cell. If \code{save.N} is set to
+    1, \code{N.pred} is an \code{mcmc} object with sampled values of the
     latent count variable N for each observed cell.}
   
-  \item{prob.p.latent}{Predictive posterior mean of the probability
+  \item{lambda.latent}{Predictive posterior mean of the abundance
     associated to the suitability process for each observation.}
   
-  \item{prob.q.latent}{Predictive posterior mean of the probability
-  associated to the observability process for each observation.}
+  \item{theta.latent}{Predictive posterior mean of the probability
+    associated to the observability process for each observation.}
   
 }
 

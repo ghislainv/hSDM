@@ -184,17 +184,17 @@ hSDM.poisson.iCAR <- function (# Observations
   }
 
   #= Save pred
-  if (save.p==0) {prob.p.pred <- Sample[[28]]}
+  if (save.p==0) {lambda.pred <- Sample[[28]]}
   if (save.p==1) {
       Matrix.p.pred <- matrix(Sample[[28]],ncol=npred)
       colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
-      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      lambda.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Output
   return (list(mcmc=MCMC,
-               rho.pred=rho.pred, prob.p.pred=prob.p.pred,
-               prob.p.latent=Sample[[27]]))
+               rho.pred=rho.pred, lambda.pred=lambda.pred,
+               lambda.latent=Sample[[27]]))
 
 }
 

@@ -10,9 +10,9 @@ export(hSDM.binomial,
        hSDM.poisson.iCAR,
        hSDM.ZIP,
        hSDM.ZIP.iCAR,
+       hSDM.ZIP.iCAR.alteration,
        hSDM.Nmixture,
        hSDM.Nmixture.iCAR,
-       hSDM.hierarchical.poisson,
        inv.logit,
        logit)
 

@@ -133,15 +133,15 @@ hSDM.poisson <- function (counts,
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save pred
-  if (save.p==0) {prob.p.pred <- Sample[[16]]}
+  if (save.p==0) {lambda.pred <- Sample[[16]]}
   if (save.p==1) {
       Matrix.p.pred <- matrix(Sample[[16]],ncol=npred)
       colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
-      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      lambda.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
   
   #= Output
-  return (list(mcmc=MCMC, prob.p.pred=prob.p.pred, prob.p.latent=Sample[[15]]))
+  return (list(mcmc=MCMC, lambda.pred=lambda.pred, lambda.latent=Sample[[15]]))
 
 }
 
