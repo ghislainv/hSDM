@@ -4,7 +4,7 @@ Title: hierarchical Bayesian species distribution models
 Version: 1.3
 Date: 2013-10-15
 Depends: coda
-Author: Ghislain Vieilledent, Andrew M. Latimer, Alan E. Gelfand, Cory Merow, Adam M. Wilson, Frederic Mortier and John A. Silander Jr.
+Author: Ghislain Vieilledent, Cory Merow, Jérôme Guélat, Andrew M. Latimer, Marc Kéry, Alan E. Gelfand, Adam M. Wilson, Frédéric Mortier and John A. Silander Jr.
 Maintainer: Ghislain Vieilledent <ghislain.vieilledent@cirad.fr>
 Description: hSDM is an R package for estimating parameters of hierarchical Bayesian species 
   distribution models. Such models allow interpreting the observations (occurrence and abundance
@@ -16,3 +16,4 @@ Description: hSDM is an R package for estimating parameters of hierarchical Baye
 License: GPL-3 | file LICENSE
 URL: http://hSDM.sf.net
 LazyLoad: yes
+Encoding: UTF-8
