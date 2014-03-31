@@ -1,0 +1,14 @@
+base
+coda
+datasets
+dismo
+graphics
+grDevices
+hSDM
+knitr
+lattice
+methods
+raster
+sp
+stats
+utils

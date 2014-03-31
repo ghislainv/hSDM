@@ -1,0 +1,400 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Preambule %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[a4paper, 12pt, leqno]{article} %leqno: numéro d'équation à gauche
+\pagenumbering{arabic} % choose how to number the pages
+\usepackage{a4wide}
+%\usepackage[utf8]{inputenc} % accents interprétés
+\usepackage{graphicx}
+%\usepackage{subfig}
+%\usepackage[hmargin=2cm, vmargin = 2cm, noheadfoot]{geometry} %% Pour gérer le format des pages
+%\usepackage{layout} %% Pour avoir la longueur des marges
+\usepackage[round,sort]{natbib} %% Natbib is a popular style for formatting references.
+%\usepackage{multibib}
+%\newcites{secnm}{Bibliographie} 
+\usepackage{verbatim} % for multiline comments
+\usepackage{amssymb} %symbole de maths
+\usepackage{amsmath} %idem
+%\usepackage{stmaryrd} %% Symbole flèche à l'envers
+\usepackage{amsfonts}
+\usepackage[francais,english]{babel} %% Les titres en anglais
+\usepackage[utf8]{inputenc} % accents interprétés
+\usepackage{array} %% Pour centrer verticalement le contenu d'un tableau, entre autres...
+\setcounter{secnumdepth}{4} %% Profondeur des sections, subsections
+\usepackage{setspace} %% Gère l'interligne: singlespacing, doublespacing
+\singlespacing
+\usepackage[colorlinks=true,citecolor=blue]{hyperref} %% Gère les hyperliens
+%\usepackage{textcomp} %% Symbole pourmille
+\usepackage{lineno} %% Numérotation des lignes
+\usepackage{longtable}
+\setlength{\LTleft}{-5cm plus 1 fill}
+\setlength{\LTright}{-5cm plus 1 fill}
+\usepackage{booktabs}
+%\usepackage{colortabs} % can't be found
+\usepackage{xcolor}
+\usepackage{colortbl} %% color text and table rows
+%\usepackage{arydshln} %% dashlines for tabular
+%\usepackage{sidecap}
+\newcommand{\logit}{\text{logit}}
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\p}{\text{p}}
+% For changes in tables
+\newcommand{\SetRowColor}[1]{\noalign{\gdef\RowColorName{#1}}\rowcolor{\RowColorName}}
+\definecolor{gray90}{gray}{0.9}
+\newcommand{\mymulticolumn}[3]{\multicolumn{#1}{>{\columncolor{gray90}}#2}{#3}}
+\newcommand{\sizeBigTable}{\fontsize{9pt}{9pt}\selectfont}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Hierarchical Bayesian species distribution models with the \textbf{hSDM} R Package}
+\date{}
+\author{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Knitr %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{User manual for hSDM R package}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Document %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\maketitle
+\vspace{-1cm}
+\begin{center}
+  \includegraphics[width=\textwidth]{figures/header.jpg}
+\end{center}
+\vspace{1cm}
+\begin{center}
+  \large{Ghislain Vieilledent$^{\star,1}$}
+\end{center}
+
+\vspace{0.3cm}
+
+%% {\footnotesize
+%% \begin{flushleft}
+%%   \textbf{Type of article:} Data paper for \textit{Annals of Forest Science}\\
+%%   \textbf{Thematic issue:} GlobAllomeTree web platform\\
+%%   \textbf{Running title:} Cirad wood density data base\\
+%%   \textbf{Number of words and objects:} whole manuscript (X words) with abstract (X words),
+%%   main text (X words), references (X, X words), table and figure legends (X, X words)\\
+%% \end{flushleft}}
+
+%\vspace{0.2cm}
+
+{\footnotesize
+  \begin{flushleft}
+    $[\star]$ \textbf{Corresponding author:}
+    \textbackslash{E-mail}:~ghislain.vieilledent@cirad.fr
+    \textbackslash{Phone}:~+33.(0)4.67.59.37.51
+    \textbackslash{Fax}:~+33.(0)4.67.59.39.09\\
+    $[1]$ \textbf{Cirad} -- UPR BSEF, F–34398 Montpellier, France\\
+\end{flushleft}}
+
+\newpage
+%\doublespacing
+%\linenumbers
+
+\renewcommand{\abstractname}{Abstract}
+\newcommand{\keywords}[1]{\par\noindent
+{\small{\em Keywords\/}: #1}}
+
+\begin{abstract}
+
+  Work in progess...
+  
+  \vspace{0.5cm}
+
+  \keywords{R}
+
+\end{abstract}
+
+\newpage
+
+%%=============================
+%% Change default shunk options
+<<echo=FALSE>>=
+library(knitr)
+opts_chunk$set(results="hide", warning=FALSE, message=FALSE, fig.path="figures/", highlight=TRUE, fig.show="hide", size="small", tidy=FALSE)
+@ 
+
+\section{Introduction}
+
+\section{Species distribution models}
+
+\subsection{Binomial model}
+
+\subsubsection{Data generation}
+
+For data generation, we can import virtual altitude data in R. Altitude will be used as an
+explicative variable to determine the habitat suitability of a virtual species through a
+probability of presence. Altitudinal data are available on the website of the
+\textbf{hSDM} R package hosted on Sourceforge
+(\url{http://hsdm.sourceforge.net/altitude.csv}).
+
+These data can be transformed into a raster using function \texttt{rasterFromXYZ()} of the
+\textbf{raster} package. The raster has 2500 cells (50 columns and 50 rows) and the
+altitude is comprised roughly between 100 and 600~m (Fig.~\ref{fig:Altitude}). For
+logistic regression, explicative variables are usually centered and scaled to facilitate
+the inference of model parameters.
+
+<<Altitude, cache=TRUE>>=
+# Import altitudinal data
+library(raster)
+fname <- "http://hsdm.sourceforge.net/altitude.csv"
+alt.df <- read.csv(fname,header=TRUE) 
+alt.orig <- rasterFromXYZ(alt.df)
+plot(alt.orig)
+
+# Center and scale altitudinal data
+alt <- scale(alt.orig,center=TRUE,scale=TRUE)
+plot(alt)
+@ 
+
+\begin{figure}[!h] 
+  \begin{tabular}{cc}
+    \includegraphics[width=8cm]{figures/Altitude1.pdf} &
+    \includegraphics[width=8cm]{figures/Altitude2.pdf} \\
+  \end{tabular}
+  \caption{\textbf{Altitudinal data}. Original values (in m) on the left. Centered and
+    scaled values on the right.}
+  \label{fig:Altitude}
+\end{figure}
+
+Using the altitude data we can simulate the presence of the virtual species using a
+Binomial distribution. We arbitrarily set the trials of the Binomial distribution to
+1. Thus, the random variable $y$ representing the presence of the species, follows a
+Bernoulli distribution of probability $\theta$. A quadratic effect of the altitude
+(variable denoted $x$) is used to compute the probability of presence of the species
+using a logit link function (Eq.~\ref{eq:binomial}).
+
+\begin{equation}
+  \begin{tabular}{c}
+    $y_i \sim \mathcal{B}ernoulli(\theta_i)$ \\
+    ~ \\
+    $\logit(\theta_i) = \beta_0 + \beta_1 x_i + \beta_2 x_i^2$ \\
+  \end{tabular}
+  \label{eq:binomial}
+\end{equation}
+
+Using matrix notation, the linear model can be written $\logit(\theta_i) = X \beta$. We
+fix the parameters to $\beta_0=1$, $\beta_1=2$ and $\beta_2=-4$. The species has a
+higher probability of presence at intermediate altitude (Fig.~\ref{fig:theta-binomial}).
+
+<<theta-binomial>>=
+# Load hSDM library
+library(hSDM)                                
+# Target parameters
+beta.target <- matrix(c(1,2,-4),ncol=1)
+# Matrix of covariates (including the intercept)
+X <- cbind(rep(1,ncell(alt)),values(alt),(values(alt))^2)
+# Probability of presence as a quadratic function of altitude
+logit.theta <- X %*% beta.target
+theta <- inv.logit(logit.theta)
+# Transform the probability of presence into a raster
+theta <- rasterFromXYZ(cbind(coordinates(alt),theta))
+# Plot the probability of presence
+plot(theta,col=rev(heat.colors(255)))
+@ 
+
+\begin{figure}[!h] 
+  \centering \includegraphics[width=8cm]{figures/theta-binomial.pdf}
+  \caption{\textbf{Probability of presence}.}
+  \label{fig:theta-binomial}
+\end{figure}
+
+We can assume a number $n$ of points in the landscape where we have been able to observe
+or not the presence of the species. We can simulate the presence or absence of the species
+at these $n$ points given our model (Fig.~\ref{fig:observations-binomial}).
+
+<<observations-binomial>>=
+# Load dismo library
+library(dismo)
+# Number of observations
+nobs <- 200
+# Set seed for repeatability
+seed <- 1234
+# Sample the observations in the landscape
+obs <- randomPoints(alt,nobs)
+# Extract altitude data for observations
+alt.obs <- extract(alt,obs)
+# Compute theta for these observations
+X.obs <- cbind(rep(1,nobs),alt.obs,alt.obs^2)
+logit.theta.obs <- X.obs %*% beta.target
+theta.obs <- inv.logit(logit.theta.obs)
+# Simulate observations
+trials <- rep(1,nobs)
+set.seed(seed)
+Y <- rbinom(nobs,trials,theta.obs)
+# Group explicative and response variables in a data-frame
+data.obs.df <- data.frame(Y,trials=trials,alt=alt.obs)
+# Transform observations in a spatial object
+library(sp)
+data.obs <- SpatialPointsDataFrame(coords=coordinates(obs),data=data.obs.df)
+# Plot observations
+plot(alt.orig)
+points(data.obs[data.obs$Y==1,],pch=16)
+points(data.obs[data.obs$Y==0,],pch=1)
+@ 
+
+\begin{figure}[!h] 
+  \centering \includegraphics[width=8cm]{figures/observations-binomial.pdf}
+  \caption{\textbf{Observation points}. Presences (full circles) and absences (empty
+    circles) are localized on the altitude map (in m).}
+  \label{fig:observations-binomial}
+\end{figure}
+
+\subsubsection{Parameter inference using the \texttt{hSDM.binomial()} function}
+
+The \texttt{hSDM.binomial()} function performs a Binomial logistic regression in a Bayesian
+framework. Before using this function we need to prepare a bit the data for parameter
+inference and prediction. For parameter inference, we add the quadatric term for altitude
+in the data frame associated to observations.
+
+<<>>=
+data.obs$alt2 <- (data.obs$alt)^2
+@ 
+
+We want to have predictions on the whole landscape, not only at observation points. To
+directly obtain these predictions, we can create a data frame including altitude data on
+the whole landscape. This data frame will be used for the \texttt{suitability.pred}
+argument. The data frame for predictions must include the same column names as those used
+in the formula for the \texttt{suitability} argument (i.e. 'alt' and 'alt2' in our
+example).
+
+<<>>=
+data.pred <- data.frame(alt=values(alt),alt2=(values(alt))^2)
+@ 
+
+We can now call the \texttt{hSDM.binomial()} function. Setting parameter \texttt{save.p}
+to 1, we can save in memory the MCMC values for predictions. These values can be used to compute
+several statistics for each predictions (mean, median, 95\% quantiles). For example, mean
+and 95\% quantiles are useful to estimate the uncertainty around the mean predictions.     
+
+<<>>=
+mod.hSDM.binomial <- hSDM.binomial(presences=data.obs$Y,
+                                   trials=data.obs$trials,
+                                   suitability=~alt+alt2,
+                                   data=data.obs,
+                                   suitability.pred=data.pred,
+                                   burnin=1000, mcmc=1000, thin=1,
+                                   beta.start=0,
+                                   mubeta=0, Vbeta=1.0E6,
+                                   seed=1234, verbose=1, save.p=1)
+@ 
+
+\subsubsection{Analysis of the results}
+
+The \texttt{hSDM.binomial()} function returns an MCMC (Markov chain Monte Carlo) for each
+parameter of the model and also for the model deviance. To obtain parameter estimates,
+MCMC values can be summarized through a call to the \texttt{summary()} function from the
+\textbf{coda} package. We can check that the values of the target parameters
+$\beta_0=1$, $\beta_1=2$ and $\beta_2=-4$ are within the 95\% confidence interval of
+the parameter estimates.
+
+<<results="markup">>=
+summary(mod.hSDM.binomial$mcmc)
+@ 
+
+Parameters estimates can be compared to results obtained with the \texttt{glm()} function.
+
+<<results="markup">>=
+#== glm results for comparison
+mod.glm <- glm(cbind(Y,trials-Y)~alt+alt2,family="binomial",data=data.obs)
+summary(mod.glm)
+@ 
+
+MCMC can also be graphically summarized with a call to the \texttt{plot.mcmc()} function,
+also in the \textbf{coda} package. MCMC are plotted with a trace of the sampled output and
+a density estimate for each variable in the chain (Fig.~\ref{fig:mcmc-binomial}). This can
+plot can be used to visually check that the chains have converged.
+
+<<mcmc-binomial>>=
+plot(mod.hSDM.binomial$mcmc)
+@
+
+\begin{figure}[!h] 
+  \centering \includegraphics[width=\textwidth]{figures/mcmc-binomial.pdf}
+  \caption{\textbf{Trace and density estimate for each variable of the MCMC}.}
+  \label{fig:mcmc-binomial}
+\end{figure}
+
+The \texttt{hSDM.binomial()} function also returns two other objects. The first one,
+\texttt{prob.p.latent}, is the predictive posterior mean of the latent variable
+$\theta$ (the probability of presence) for each observation. 
+
+<<results="markup">>=
+str(mod.hSDM.binomial$prob.p.latent)
+summary(mod.hSDM.binomial$prob.p.latent)
+@
+
+The second one, \texttt{prob.p.pred} is the set of sampled values from the predictive
+posterior (if parameter \texttt{save.p} is set to 1) or the predictive posterior mean (if
+\texttt{save.p} is set to 0) for each prediction. In our example, \texttt{save.p} is set
+to 1 and \texttt{prob.p.pred} is an \texttt{mcmc} object. Values in \texttt{prob.p.pred} can be
+used to plot the predicted probability of presence on the whole landscape and the
+uncertainty associated to the predictions (Fig~\ref{fig:predictions-binomial}).
+
+<<predictions-binomial>>=
+# Create a raster for predictions
+theta.pred.mean <- raster(theta)
+# Create rasters for uncertainty
+theta.pred.2.5 <- theta.pred.97.5 <- raster(theta)
+# Attribute predicted values to raster cells
+theta.pred.mean[] <- apply(mod.hSDM.binomial$prob.p.pred,2,mean)
+theta.pred.2.5[] <- apply(mod.hSDM.binomial$prob.p.pred,2,quantile,0.025)
+theta.pred.97.5[] <- apply(mod.hSDM.binomial$prob.p.pred,2,quantile,0.975)
+# Plot the predicted probability of presence and uncertainty
+plot(theta.pred.mean,col=rev(heat.colors(255)))
+plot(theta.pred.2.5,col=rev(heat.colors(255)))
+plot(theta.pred.97.5,col=rev(heat.colors(255)))
+@
+
+\begin{figure}[!h] 
+  \centering \includegraphics[width=8cm]{figures/predictions-binomial1.pdf} \\
+  \begin{tabular}{cc}
+    \includegraphics[width=8cm]{figures/predictions-binomial2.pdf} &
+    \includegraphics[width=8cm]{figures/predictions-binomial3.pdf} \\
+  \end{tabular}
+  
+  \caption{\textbf{Predicted probability of presence and uncertainty of predictions}. Mean
+    probability of presence (top), predictions at 2.5\% quantile (bottom left) and 97.5\%
+    quantile (bottom right) can be plotted from the \texttt{mcmc} object
+    \texttt{plot.p.pred} returned by function \texttt{hSDM.binomial()}.}
+  
+  \label{fig:predictions-binomial}
+  
+\end{figure}
+
+In our example, we can compare the predictions to the initial probability of presence
+computed from our model to check that our predictions are correct
+(Fig.~\ref{fig:pred-obs-binomial}).
+
+<<pred-obs-binomial>>=
+# Comparing predictions to initial values
+plot(theta[],theta.pred.mean[],cex.lab=1.4)
+abline(a=0,b=1,col="red",lwd=2)
+@ 
+
+\begin{figure}[!h] 
+  \centering \includegraphics[width=8cm]{figures/pred-obs-binomial.pdf}
+  
+  \caption{\textbf{Predicted vs. initial probabilities of presence}. Initial probabilities
+    of presence are computed from the Binomial logistic regression model with fixed
+    parameters.}
+  
+  \label{fig:pred-obs-binomial}
+  
+\end{figure}
+
+\end{document}

@@ -1,5 +1,4 @@
 useDynLib(hSDM)
-import(coda)
 
 export(hSDM.binomial,
        hSDM.binomial.iCAR,
