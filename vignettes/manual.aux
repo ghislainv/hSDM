@@ -27,19 +27,42 @@
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{3}{section.1}}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Species distribution models}{3}{section.2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Binomial model}{3}{subsection.2.1}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Data generation}{3}{subsubsection.2.1.1}}
-\newlabel{eq:binomial}{{1}{3}{Data generation}{equation.2.1}{}}
+\newlabel{sec:binomial}{{2.1}{3}{Binomial model}{subsection.2.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Mathematical formulation}{3}{subsubsection.2.1.1}}
+\newlabel{eq:binomial}{{1}{3}{Mathematical formulation}{equation.2.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Data generation}{3}{subsubsection.2.1.2}}
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {Altitudinal data}. Original values (in m) on the left. Centered and scaled values on the right.}}{4}{figure.1}}
 \newlabel{fig:Altitude}{{1}{4}{\textbf {Altitudinal data}. Original values (in m) on the left. Centered and scaled values on the right}{figure.1}{}}
+\newlabel{eq:binomial}{{2}{4}{Data generation}{equation.2.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {Probability of presence}.}}{5}{figure.2}}
 \newlabel{fig:theta-binomial}{{2}{5}{\textbf {Probability of presence}}{figure.2}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Parameter inference using the \texttt  {hSDM.binomial()} function}{5}{subsubsection.2.1.2}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \textbf  {Observation points}. Presences (full circles) and absences (empty circles) are localized on the altitude map (in m).}}{6}{figure.3}}
 \newlabel{fig:observations-binomial}{{3}{6}{\textbf {Observation points}. Presences (full circles) and absences (empty circles) are localized on the altitude map (in m)}{figure.3}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.3}Analysis of the results}{7}{subsubsection.2.1.3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {Trace and density estimate for each variable of the MCMC}.}}{9}{figure.4}}
-\newlabel{fig:mcmc-binomial}{{4}{9}{\textbf {Trace and density estimate for each variable of the MCMC}}{figure.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.3}Parameter inference using the \texttt  {hSDM.binomial()} function}{7}{subsubsection.2.1.3}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.4}Analysis of the results}{7}{subsubsection.2.1.4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {Trace and density estimate for each variable of the MCMC}.}}{10}{figure.4}}
+\newlabel{fig:mcmc-binomial}{{4}{10}{\textbf {Trace and density estimate for each variable of the MCMC}}{figure.4}{}}
+\citation{Chen2013}
+\citation{Latimer2006}
+\citation{Kery2005}
+\citation{Latimer2006,Lahoz-Monfort2014,Kery2008}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \textbf  {Predicted probability of presence and uncertainty of predictions}. Mean probability of presence (top), predictions at 2.5\% quantile (bottom left) and 97.5\% quantile (bottom right) can be plotted from the \texttt  {mcmc} object \texttt  {plot.p.pred} returned by function \texttt  {hSDM.binomial()}.}}{11}{figure.5}}
 \newlabel{fig:predictions-binomial}{{5}{11}{\textbf {Predicted probability of presence and uncertainty of predictions}. Mean probability of presence (top), predictions at 2.5\% quantile (bottom left) and 97.5\% quantile (bottom right) can be plotted from the \texttt {mcmc} object \texttt {plot.p.pred} returned by function \texttt {hSDM.binomial()}}{figure.5}{}}
+\citation{MacKenzie2002}
 \@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces \textbf  {Predicted vs. initial probabilities of presence}. Initial probabilities of presence are computed from the Binomial logistic regression model with fixed parameters.}}{12}{figure.6}}
 \newlabel{fig:pred-obs-binomial}{{6}{12}{\textbf {Predicted vs. initial probabilities of presence}. Initial probabilities of presence are computed from the Binomial logistic regression model with fixed parameters}{figure.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Site-occupancy model}{12}{subsection.2.2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Mathematical formulation}{12}{subsubsection.2.2.1}}
+\newlabel{eq:siteocc}{{3}{13}{Mathematical formulation}{equation.2.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}Data generation}{13}{subsubsection.2.2.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Binomial iCAR model}{14}{subsection.2.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Site-occupancy iCAR model}{14}{subsection.2.4}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Acknowledgements}{15}{section.3}}
+\bibstyle{gcb}
+\bibdata{/home/ghislain/Documents/Ghislain-CIRAD/Biblio/Biblio-These-GV}
+\bibcite{Chen2013}{{1}{2013}{{Chen \emph  {et~al.}}}{{Chen, K{\'e}ry, Plattner, Ma, \& Gardner}}}
+\bibcite{Kery2005}{{2}{2005}{{K{\'e}ry \emph  {et~al.}}}{{K{\'e}ry, Royle, \& Schmid}}}
+\bibcite{Kery2008}{{3}{2008}{{K{\'e}ry \& Schmidt}}{{}}}
+\bibcite{Lahoz-Monfort2014}{{4}{2014}{{Lahoz-Monfort \emph  {et~al.}}}{{Lahoz-Monfort, Guillera-Arroita, \& Wintle}}}
+\bibcite{Latimer2006}{{5}{2006}{{Latimer \emph  {et~al.}}}{{Latimer, Wu, Gelfand, \& Silander}}}
+\bibcite{MacKenzie2002}{{6}{2002}{{MacKenzie \emph  {et~al.}}}{{MacKenzie, Nichols, Lachman, Droege, Andrew~Royle, \& Langtimm}}}
