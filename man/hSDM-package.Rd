@@ -34,7 +34,6 @@
     Andrew M. Latimer <amlatimer@ucdavis.edu>\cr
     Marc Kéry <marc.kery@vogelwarte.ch>\cr
     Alan E. Gelfand <alan@stat.duke.edu>\cr
-    Cory Merow <cory.merow@gmail.com>\cr
     Adam M. Wilson <adam.wilson@yale.edu>\cr
     Frédéric Mortier <frederic.mortier@cirad.fr>\cr
     John A. Silander Jr. <john.silander@uconn.edu>\cr

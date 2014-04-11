@@ -11,8 +11,8 @@
 ####################################################################
 ##
 ## This software is distributed under the terms of the GNU GENERAL
-## PUBLIC LICENSE Version 2, June 1991.  See the package LICENSE
-## file for more information.
+## PUBLIC LICENSE Version 3. See the package LICENSE file for more
+## information.
 ##
 ## Copyright (C) 2011 Ghislain Vieilledent
 ## 
@@ -20,21 +20,22 @@
 
 
 hSDM.siteocc <- function (# Observations
-                                 presences, trials,
-                                 suitability, observability, data,
-                                 # Predictions
-                                 suitability.pred=NULL,
-                                 # Chains
-                                 burnin=5000, mcmc=10000, thin=10,
-                                 # Starting values
-                                 beta.start,
-                                 gamma.start,
-                                 # Priors
-                                 mubeta=0, Vbeta=1.0E6,
-                                 mugamma=0, Vgamma=1.0E6,
-                                 # Various
-                                 seed=1234, verbose=1,
-                                 save.p=0)
+                          presences, observability, spatial.entity, data.observability,
+                          # Habitat
+                          suitability, data.suitability,
+                          # Predictions
+                          suitability.pred=NULL,
+                          # Chains
+                          burnin=5000, mcmc=10000, thin=10,
+                          # Starting values
+                          beta.start,
+                          gamma.start,
+                          # Priors
+                          mubeta=0, Vbeta=1.0E6,
+                          mugamma=0, Vgamma=1.0E6,
+                          # Various
+                          seed=1234, verbose=1,
+                          save.p=0)
 
 {   
   #========
@@ -51,13 +52,17 @@ hSDM.siteocc <- function (# Observations
   #= Response
   Y <- presences
   nobs <- length(Y)
-  T <- trials
   #= Suitability
-  mf.suit <- model.frame(formula=suitability,data=data)
+  mf.suit <- model.frame(formula=suitability,data=data.suitability)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
   #= Observability
-  mf.obs <- model.frame(formula=observability,data=data)
+  mf.obs <- model.frame(formula=observability,data=data.observability)
   W <- model.matrix(attr(mf.obs,"terms"),data=mf.obs)
+  #= Spatial entity
+  Levels.spatial.entity <- sort(unique(spatial.entity))
+  ncell <- length(Levels.spatial.entity)
+  cells <- as.numeric(as.factor(spatial.entity))
+
   #= Predictions
   if (is.null(suitability.pred)) {
       X.pred <- X
@@ -79,10 +84,10 @@ hSDM.siteocc <- function (# Observations
   #========== 
   # Check data
   #==========
-  check.T.binomial(T,nobs)
-  check.Y.binomial(Y,T)
-  check.X(X,nobs)
+  check.Y.binomial(Y,rep(1:nobs))
+  check.X(X,ncell) # X must be of dim (ncell x np) for the siteocc model
   check.W(W,nobs)
+  check.cells(cells,nobs)
 
   #========
   # Initial starting values for M-H
@@ -103,10 +108,10 @@ hSDM.siteocc <- function (# Observations
   #========
   beta <- rep(beta.start,nsamp)
   gamma <- rep(gamma.start,nsamp)
-  prob_p_latent <- rep(0,nobs)
-  prob_q_latent <- rep(0,nobs)
-  if (save.p==0) {prob_p_pred <- rep(0,npred)}
-  if (save.p==1) {prob_p_pred <- rep(0,npred*nsamp)}
+  theta_latent <- rep(0,ncell)
+  delta_latent <- rep(0,nobs)
+  if (save.p==0) {theta_pred <- rep(0,npred)}
+  if (save.p==1) {theta_pred <- rep(0,npred*nsamp)}
   Deviance <- rep(0,nsamp)
 
   #========
@@ -116,12 +121,14 @@ hSDM.siteocc <- function (# Observations
                #= Constants and data
                ngibbs=as.integer(ngibbs), nthin=as.integer(nthin), nburn=as.integer(nburn), ## Number of iterations, burning and samples
                nobs=as.integer(nobs),
+               ncell=as.integer(ncell),
                np=as.integer(np),
                nq=as.integer(nq),
                Y_vect=as.integer(c(Y)),
-               T_vect=as.integer(c(T)),
-               X_vect=as.double(c(X)),
                W_vect=as.double(c(W)),
+               X_vect=as.double(c(X)),
+               #= Spatial cells
+               C_vect=as.integer(c(cells)-1), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term. 
                #= Predictions
                npred=as.integer(npred),
                X_pred_vect=as.double(c(X.pred)),
@@ -136,14 +143,14 @@ hSDM.siteocc <- function (# Observations
                mugamma=as.double(c(mugamma)), Vgamma=as.double(c(Vgamma)),
                #= Diagnostic
                Deviance.nonconst=as.double(Deviance),
-               prob_p_latent.nonconst=as.double(prob_p_latent), ## Predictive posterior mean
-               prob_q_latent.nonconst=as.double(prob_q_latent), ## Predictive posterior mean
-               prob_p_pred.nonconst=as.double(prob_p_pred), 
+               theta_latent.nonconst=as.double(theta_latent), ## Predictive posterior mean
+               delta_latent.nonconst=as.double(delta_latent), ## Predictive posterior mean
+               theta_pred.nonconst=as.double(theta_pred),
                #= Seed
-               seed=as.integer(seed), 
+               seed=as.integer(seed),
                #= Verbose
                verbose=as.integer(verbose),
-               #= Save p
+               #= Save p and N
                save_p=as.integer(save.p),
                PACKAGE="hSDM")
  
@@ -153,25 +160,25 @@ hSDM.siteocc <- function (# Observations
   colnames(Matrix) <- c(names.fixed,"Deviance")
   
   #= Filling-in the matrix
-  Matrix[,c(1:np)] <- matrix(Sample[[15]],ncol=np)
-  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[16]],ncol=nq)
-  Matrix[,ncol(Matrix)] <- Sample[[21]]
+  Matrix[,c(1:np)] <- matrix(Sample[[16]],ncol=np)
+  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[17]],ncol=nq)
+  Matrix[,ncol(Matrix)] <- Sample[[22]]
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save pred
-  if (save.p==0) {prob.p.pred <- Sample[[24]]}
+  if (save.p==0) {lambda.pred <- Sample[[25]]}
   if (save.p==1) {
-      Matrix.p.pred <- matrix(Sample[[24]],ncol=npred)
-      colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
-      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      Matrix.theta.pred <- matrix(Sample[[25]],ncol=npred)
+      colnames(Matrix.theta.pred) <- paste("p.",c(1:npred),sep="")
+      theta.pred <- mcmc(Matrix.theta.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Output
   return (list(mcmc=MCMC,
-               prob.p.pred=prob.p.pred,
-               prob.p.latent=Sample[[22]], prob.q.latent=Sample[[23]]))
+               theta.pred=theta.pred,
+               theta.latent=Sample[[23]], delta.latent=Sample[[24]]))
 
 }
 

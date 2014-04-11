@@ -1,10 +1,10 @@
-\name{hSDM.siteocc.iCAR.alteration}
-\alias{hSDM.siteocc.iCAR.alteration}
+\name{hSDM.ZIB.iCAR.alteration}
+\alias{hSDM.ZIB.iCAR.alteration}
 
-\title{Site occupancy (or Zero-Inflated Binomial - ZIB) model with CAR
-process taking into account site alteration}
+\title{ZIB (Zero-Inflated Binomial) model with CAR process taking into
+account site alteration}
 
-\description{The \code{hSDM.siteocc.iCAR.alteration} function can be
+\description{The \code{hSDM.ZIB.iCAR.alteration} function can be
   used to model species distribution including different processes in a
   hierarchical Bayesian framework: (i) a
   \eqn{\mathcal{B}ernoulli}{Bernoulli} suitability process (refering to
@@ -13,12 +13,12 @@ process taking into account site alteration}
   to anthropogenic disturbances), and (iii) a
   \eqn{\mathcal{B}inomial}{Binomial} observability process (refering to
   various ecological and methodological issues explaining the species
-  detection). The \code{hSDM.siteocc.iCAR.alteration} function calls a
+  detection). The \code{hSDM.ZIB.iCAR.alteration} function calls a
   Gibbs sampler written in C code which uses an adaptive Metropolis
   algorithm to estimate the conditional posterior distribution of
   hierarchical model's parameters.}
 
-\usage{hSDM.siteocc.iCAR.alteration(presences, trials, suitability,
+\usage{hSDM.ZIB.iCAR.alteration(presences, trials, suitability,
 observability, spatial.entity, alteration, data, n.neighbors, neighbors,
 suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
 10000, thin = 10, beta.start, gamma.start, Vrho.start, mubeta = 0, Vbeta
@@ -259,7 +259,7 @@ suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
 \dontrun{ 
 
 #==============================================
-# hSDM.siteocc.iCAR.alteration()
+# hSDM.ZIB.iCAR.alteration()
 # Example with simulated data
 #==============================================
 
@@ -383,7 +383,7 @@ Data.pred <- data.frame(X1=X1.cell,X2=X2.cell,cells=c(1:ncell))
 #==================================
 #== Site-occupancy model
 
-mod.hSDM.siteocc.iCAR.alteration <- hSDM.siteocc.iCAR.alteration(presences=Data$Y,
+mod.hSDM.ZIB.iCAR.alteration <- hSDM.ZIB.iCAR.alteration(presences=Data$Y,
                                                trials=Data$trials,
                                                suitability=~X1+X2,
                                                observability=~1,
@@ -414,15 +414,15 @@ mod.hSDM.siteocc.iCAR.alteration <- hSDM.siteocc.iCAR.alteration(presences=Data$
 #== Outputs
 
 #= Parameter estimates
-summary(mod.hSDM.siteocc.iCAR.alteration$mcmc)
+summary(mod.hSDM.ZIB.iCAR.alteration$mcmc)
 
 #= MCMC and posteriors
-pdf(file="Posteriors_hSDM.siteocc.iCAR.alteration.pdf")
-plot(mod.hSDM.siteocc.iCAR.alteration$mcmc)
+pdf(file="Posteriors_hSDM.ZIB.iCAR.alteration.pdf")
+plot(mod.hSDM.ZIB.iCAR.alteration$mcmc)
 dev.off()
 
-pdf(file="Posteriors.rho_hSDM.siteocc.iCAR.alteration.pdf")
-plot(mod.hSDM.siteocc.iCAR.alteration$rho.pred)
+pdf(file="Posteriors.rho_hSDM.ZIB.iCAR.alteration.pdf")
+plot(mod.hSDM.ZIB.iCAR.alteration$rho.pred)
 dev.off()
 
 #= Summary plots
@@ -430,15 +430,15 @@ dev.off()
 # rho
 r.rho <- r.rho.pred <- r.visited <- Landscape
 r.rho[] <- rho
-rho.pred <- apply(mod.hSDM.siteocc.iCAR.alteration$rho.pred,2,mean)
+rho.pred <- apply(mod.hSDM.ZIB.iCAR.alteration$rho.pred,2,mean)
 r.rho.pred[] <- rho.pred
 r.visited[] <- 0
 r.visited[visited.cells] <- 1
 # prob.p
 r.prob.p <- Landscape
-r.prob.p[] <- mod.hSDM.siteocc.iCAR.alteration$prob.p.pred
+r.prob.p[] <- mod.hSDM.ZIB.iCAR.alteration$prob.p.pred
 
-pdf(file="Summary_hSDM.siteocc.iCAR.alteration.pdf")
+pdf(file="Summary_hSDM.ZIB.iCAR.alteration.pdf")
 par(mfrow=c(3,2))
 plot(r.rho, main="rho target")
 plot(r.visited,main="Visited cells and presences")
@@ -461,7 +461,6 @@ dev.off()
 \keyword{biodiversity}
 \keyword{species distribution models}
 \keyword{hierarchical Bayesian models}
-\keyword{site occupancy models}
 \keyword{spatial correlation}
 \keyword{intrinsic CAR model}
 \keyword{conditional autoregressive model}

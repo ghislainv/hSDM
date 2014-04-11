@@ -1,10 +1,13 @@
 useDynLib(hSDM)
 
+import(coda)
+
 export(hSDM.binomial,
        hSDM.binomial.iCAR,
+       hSDM.ZIB,
+       hSDM.ZIB.iCAR,
+       hSDM.ZIB.iCAR.alteration,
        hSDM.siteocc,
-       hSDM.siteocc.iCAR,
-       hSDM.siteocc.iCAR.alteration,
        hSDM.poisson,
        hSDM.poisson.iCAR,
        hSDM.ZIP,

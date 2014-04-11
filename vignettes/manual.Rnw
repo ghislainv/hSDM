@@ -18,7 +18,7 @@
 \usepackage{amsmath} %idem
 %\usepackage{stmaryrd} %% Symbole flèche à l'envers
 \usepackage{amsfonts}
-\usepackage[francais,english]{babel} %% Les titres en anglais
+\usepackage[english]{babel} %% Les titres en anglais
 \usepackage[utf8]{inputenc} % accents interprétés
 \usepackage{array} %% Pour centrer verticalement le contenu d'un tableau, entre autres...
 \setcounter{secnumdepth}{4} %% Profondeur des sections, subsections
@@ -72,7 +72,7 @@
 \maketitle
 \vspace{-1cm}
 \begin{center}
-  \includegraphics[width=\textwidth]{figures/header.jpg}\\
+  \includegraphics[width=\textwidth]{header.jpg}\\
   \textit{Adansonia grandidieri} Baill. next to Andavadoaka village (southwest Madagascar).
 \end{center}
 \vspace{1cm}
@@ -124,9 +124,9 @@
 
 %%=============================
 %% Change default shunk options
-<<setup, include=FALSE, cache=FALSE, echo=FALSE>>=
+<<setup, echo=FALSE>>=
 library(knitr)
-opts_chunk$set(results="hide", warning=FALSE, message=FALSE, fig.path="figures/", 
+opts_chunk$set(cache=FALSE, results="hide", warning=FALSE, message=FALSE, fig.path="figures/", 
                highlight=TRUE, fig.show="hide", size="small", tidy=FALSE)
 Sys.setenv(TEXINPUTS=getwd(),
            BIBINPUTS=getwd(),
@@ -190,7 +190,7 @@ altitude is comprised roughly between 100 and 600~m (Fig.~\ref{fig:Altitude}). F
 models, explicative variables are usually centered and scaled to facilitate inference and
 interpretation of model parameters.
 
-<<Altitude, cache=TRUE>>=
+<<Altitude>>=
 # Import altitudinal data
 library(raster)
 fname <- "http://hsdm.sourceforge.net/altitude.csv"
@@ -214,7 +214,7 @@ plot(alt)
 \end{figure}
 
 A quadratic effect of the altitude (variable denoted $x$) is used to compute the
-probability of presence of the species (Eq.~\ref{eq:binomial}).
+probability of presence of the species (Eq.~\ref{eq:bernoulli}).
 
 \begin{equation}
   \begin{tabular}{c}
@@ -222,7 +222,7 @@ probability of presence of the species (Eq.~\ref{eq:binomial}).
     ~ \\
     $\logit(\theta_i) = \beta_0 + \beta_1 x_i + \beta_2 x_i^2$ \\
   \end{tabular}
-  \label{eq:binomial}
+  \label{eq:bernoulli}
 \end{equation}
 
 We fix the parameters to $\beta_0=1$, $\beta_1=2$ and $\beta_2=-4$. The species has a
@@ -242,6 +242,9 @@ theta <- inv.logit(logit.theta)
 # Transform the probability of presence into a raster
 theta <- rasterFromXYZ(cbind(coordinates(alt),theta))
 # Plot the probability of presence
+## require(fields)
+## col.prob <- colorRampPalette(c("transparent","blue","green","yellow","orange","red","brown"))
+## plot(theta,col=col.prob(255))
 plot(theta,col=rev(heat.colors(255)))
 @ 
 
@@ -268,15 +271,15 @@ obs <- randomPoints(alt,nobspt)
 # Extract altitude data for observations
 alt.obs <- extract(alt,obs)
 # Compute theta for these observations
-X.obs <- cbind(rep(1,nobspt),alt.obs,alt.obs^2)
-logit.theta.obs <- X.obs %*% beta.target
+X <- cbind(rep(1,nobspt),alt.obs,alt.obs^2)
+logit.theta.obs <- X %*% beta.target
 theta.obs <- inv.logit(logit.theta.obs)
 # Simulate observations
 trials <- rep(1,nobspt)
 set.seed(seed)
 Y <- rbinom(nobspt,trials,theta.obs)
 # Group explicative and response variables in a data-frame
-data.obs.df <- data.frame(Y,trials=trials,alt=alt.obs)
+data.obs.df <- data.frame(Y,trials,alt=X[,2],alt2=X[,3])
 # Transform observations in a spatial object
 library(sp)
 data.obs <- SpatialPointsDataFrame(coords=coordinates(obs),data=data.obs.df)
@@ -295,21 +298,14 @@ points(data.obs[data.obs$Y==0,],pch=1)
 
 \subsubsection{Parameter inference using the \texttt{hSDM.binomial()} function}
 
-The \texttt{hSDM.binomial()} function performs a Binomial logistic regression in a Bayesian
-framework. Before using this function we need to prepare a bit the data for parameter
-inference and prediction. For parameter inference, we add the quadatric term for altitude
-in the data frame associated to observations.
-
-<<>>=
-data.obs$alt2 <- (data.obs$alt)^2
-@ 
-
-We want to have predictions on the whole landscape, not only at observation points. To
-directly obtain these predictions, we can create a data frame including altitudinal data on
-the whole landscape. This data frame will be used for the \texttt{suitability.pred}
-argument. The data frame for predictions must include the same column names as those used
-in the formula for the \texttt{suitability} argument (i.e. ``alt'' and ``alt2'' in our
-example).
+The \texttt{hSDM.binomial()} function performs a Binomial logistic regression in a
+Bayesian framework. Before using this function we need to prepare a bit the data for
+predictions. We want to have predictions on the whole landscape, not only at observation
+points. To directly obtain these predictions, we can create a data frame including
+altitudinal data on the whole landscape. This data frame will be used for the
+\texttt{suitability.pred} argument. The data frame for predictions must include the same
+column names as those used in the formula for the \texttt{suitability} argument
+(i.e. ``alt'' and ``alt2'' in our example).
 
 <<>>=
 data.pred <- data.frame(alt=values(alt),alt2=(values(alt))^2)
@@ -320,7 +316,7 @@ to 1, we can save in memory the MCMC values for predictions. These values can be
 several statistics for each predictions (mean, median, 95\% quantiles). For example, mean
 and 95\% quantiles are useful to estimate the uncertainty around the mean predictions.     
 
-<<>>=
+<<inference-binomial>>=
 mod.hSDM.binomial <- hSDM.binomial(presences=data.obs$Y,
                                    trials=data.obs$trials,
                                    suitability=~alt+alt2,
@@ -508,11 +504,16 @@ the Binomial model (Sec.~\ref{sec:binomial}).
 We draw at random the number of visits at each observation point used in the previous
 example (see Fig.~\ref{fig:observations-binomial} of Sec.~\ref{sec:binomial}).
 
-<<siteocc-visits, cache=TRUE>>=
+<<siteocc-visits>>=
 # Number of visits associated to each observation point
 set.seed(seed)
 v <- rpois(nobspt,2)
 v[v==0] <- 1
+# Vector of observation points
+obspt <- vector()
+for (i in 1:nobspt) {
+    obspt <- c(obspt,rep(i,v[i]))
+}
 @ 
 
 We fix the survey conditions for each visit depending on two explicative variables $w_1$
@@ -520,10 +521,9 @@ and $w_2$ which will explain the observability of the species. We also fix the i
 and the effects of these two variables: $\gamma_0=0.2$, $\gamma_1=0.5$ and $\gamma_2=0.5$
 for determining the detection probability.
 
-<<siteocc-observability-covariates, cache=TRUE>>=
+<<siteocc-observability-covariates>>=
 # Explicative variables for observation process
 nobs <- sum(v)
-W <- cbind(rep(1,nobs))
 set.seed(seed)
 w1 <- rnorm(n=nobs,0,1)
 set.seed(2*seed)
@@ -538,26 +538,133 @@ the habitat is suitable ($\theta_i$) and the species detection probability
 ($\delta_i$). We also draw the random variables $z_i$ and $y_i$ and construct the
 observation data-set.
 
-<<siteocc-proba, cache=TRUE>>=
+<<siteocc-proba>>=
 # Ecological process (suitability)
-logit.theta <- X %*% beta.target
-theta <- inv.logit(logit.theta)
+X.obs <- X[obspt,]
+logit.theta.obs <- X.obs %*% beta.target
+theta.obs <- inv.logit(logit.theta.obs)
 set.seed(seed)
-z.obspt <- rbinom(nobspt,1,theta)
-Z <- rep(z.obspt,each=v)
+Z <- rbinom(nobs,1,theta.obs)
 
 # Observation process (detectability)
-logit.delta <- W %*% gamma.target
-delta <- inv.logit(logit.delta)
+logit.delta.obs <- W %*% gamma.target
+delta.obs <- inv.logit(logit.delta.obs)
 set.seed(seed)
-Y <- rbinom(nobs,1,delta*Z)
+Y <- rbinom(nobs,5,delta.obs*Z)
 
 # Data-set
-X1 <- rep(X[,2],each=v)
-X2 <- rep(X[,3],each=v)
-trials <- rep(1,nobs)
-data.obs <- data.frame(Y,trials,X1,X2,W1,W2)
+trials <- rep(5,nobs)
+data.obs <- data.frame(Y,trials,alt=X.obs[,2],alt2=X.obs[,3],w1,w2)
 @ 
+\subsubsection{Parameter inference using the \texttt{hSDM.siteocc()} function}
+
+The \texttt{hSDM.siteocc()} function estimates the parameter of a site-occupancy model in
+a Bayesian framework.
+
+<<inference-siteocc>>=
+mod.hSDM.siteocc <- hSDM.ZIB(presences=data.obs$Y, ## Change here !!
+                                 trials=data.obs$trials,
+                                 suitability=~alt+alt2,
+                                 observability=~w1+w2,
+                                 data=data.obs,
+                                 suitability.pred=data.pred,
+                                 burnin=1000, mcmc=1000, thin=1,
+                                 beta.start=0,
+                                 gamma.start=0,
+                                 mubeta=0, Vbeta=1.0E6,
+                                 mugamma=0, Vgamma=1.0E6,
+                                 seed=1234, verbose=1, save.p=0)
+@ 
+
+\subsubsection{Analysis of the results}
+
+<<results="markup">>=
+summary(mod.hSDM.siteocc$mcmc)
+@ 
+
+<<mcmc-siteocc>>=
+plot(mod.hSDM.siteocc$mcmc)
+@
+
+\begin{figure}[!h] 
+  \begin{center}
+    \begin{tabular}{cc}
+      \includegraphics[width=8cm]{figures/mcmc-siteocc1.pdf} &
+      \includegraphics[width=8cm]{figures/mcmc-siteocc2.pdf} \\
+    \end{tabular}
+  \end{center}
+  \caption{\textbf{Trace and density estimate for each variable of the MCMC}.}
+  \label{fig:mcmc-siteocc}
+\end{figure}
+
+<<predictions-siteocc>>=
+# Create a raster for predictions
+theta.pred.mean <- raster(theta)
+# Attribute predicted values to raster cells
+theta.pred.mean[] <- mod.hSDM.siteocc$prob.p.pred
+# Plot the predicted probability of presence
+plot(theta.pred.mean,col=rev(heat.colors(255)))
+@
+
+<<pred-obs-siteocc>>=
+# Comparing predictions to initial values
+plot(theta[],theta.pred.mean[],cex.lab=1.4)
+abline(a=0,b=1,col="red",lwd=2)
+@ 
+
+
+\begin{figure}[!h] 
+  \begin{tabular}{cc}
+    \includegraphics[width=8cm]{figures/theta-binomial.pdf} &
+    \includegraphics[width=8cm]{figures/predictions-siteocc.pdf} \\
+  \end{tabular}
+  \centering \includegraphics[width=8cm]{figures/pred-obs-siteocc.pdf} \\
+  
+  \caption{\textbf{Comparing predicted probability of presence with initial probabilities}}
+  
+  \label{fig:predictions-siteocc}
+  
+\end{figure}
+
+Parameters estimates can be compared to results obtained with the \texttt{glm()} function
+assuming a perfect detection.
+
+<<results="markup">>=
+#== glm results for comparison
+mod.glm <- glm(cbind(Y,trials-Y)~alt+alt2,family="binomial",data=data.obs)
+summary(mod.glm)
+@ 
+
+<<predictions-siteocc-glm>>=
+# Create a raster for predictions
+theta.pred.glm <- raster(theta)
+# Attribute predicted values to raster cells
+theta.pred.glm[] <- predict.glm(mod.glm,newdata=data.pred,type="response")
+# Plot the predicted probability of presence
+plot(theta.pred.glm,col=rev(heat.colors(255)))
+@
+
+<<pred-obs-siteocc-glm>>=
+# Comparing predictions to initial values
+plot(theta[],theta.pred.glm[],cex.lab=1.4)
+abline(a=0,b=1,col="red",lwd=2)
+@ 
+
+
+\begin{figure}[!h] 
+  \begin{tabular}{cc}
+    \includegraphics[width=8cm]{figures/theta-binomial.pdf} &
+    \includegraphics[width=8cm]{figures/predictions-siteocc-glm.pdf} \\
+  \end{tabular}
+  \centering \includegraphics[width=8cm]{figures/pred-obs-siteocc-glm.pdf} \\
+  
+  \caption{\textbf{Comparing predicted probability of presence using glm with initial probabilities}}
+  
+  \label{fig:predictions-siteocc-glm}
+  
+\end{figure}
+
+
 
 \subsection{Binomial iCAR model}
 

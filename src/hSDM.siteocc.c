@@ -37,8 +37,15 @@
 struct dens_par {
     /* Data */
     int NOBS;
+    int NCELL;
     int *Y;
-    int *T;
+    int *IdCell;
+    int *nObsCell;
+    int **PosCell;
+    int *SumYbyCell;
+    /* Latent variable */
+    int *N_run;
+    int pos_N;
     /* Suitability */
     int NP;
     int pos_beta;
@@ -65,28 +72,50 @@ static double betadens (double beta_k, void *dens_data) {
     int k=d->pos_beta;
     // logLikelihood
     double logL=0.0;
-    for (int n=0; n<d->NOBS; n++) {
-	/* prob_p */
-	double Xpart_prob_p=0.0;
+    for (int i=0; i<d->NCELL; i++) {
+	/* theta */
+	double Xpart_theta=0.0;
 	for (int p=0; p<d->NP; p++) {
 	    if (p!=k) {
-		Xpart_prob_p+=d->X[n][p]*d->beta_run[p];
+		Xpart_theta+=d->X[i][p]*d->beta_run[p];
 	    }
 	}
-	Xpart_prob_p+=d->X[n][k]*beta_k;
-	double prob_p=invlogit(Xpart_prob_p);
-	/* prob_q */
-	double logit_prob_q=0.0;
-	for (int q=0; q<d->NQ; q++) {
-	    logit_prob_q+=d->W[n][q]*d->gamma_run[q];
+	Xpart_theta+=d->X[i][k]*beta_k;
+	double theta=invlogit(Xpart_theta);
+	/* delta */
+	double logLpart=0.0;
+	// At least one presence
+	if (d->SumYbyCell[i]>0) {
+	    for (int m=0; m<d->nObsCell[i]; m++) {
+		int w=d->PosCell[i][m]; // which observation
+		double logit_delta=0.0;
+		for (int q=0; q<d->NQ; q++) {
+		    logit_delta+=d->W[w][q]*d->gamma_run[q];
+		}
+		double delta=invlogit(logit_delta);
+		/* logLpart */
+		if (d->Y[w]==1) {
+		    logLpart+=log(delta);
+		}
+		if (d->Y[w]==0) {
+		    logLpart+=log(1-delta);
+		}
+	    }
+	    logL+=logLpart+log(theta);
 	}
-	double prob_q=invlogit(logit_prob_q);
-	/* log Likelihood */
-	if (d->Y[n]>0) {
-	    logL+=dbinom(d->Y[n],d->T[n],prob_q,1)+log(prob_p);
-	}
-	if (d->Y[n]==0) {
-	    logL+=log(pow(1-prob_q,d->T[n])*prob_p+(1-prob_p));
+	// Only absences
+	if (d->SumYbyCell[i]==0) {
+	    for (int m=0; m<d->nObsCell[i]; m++) {
+		int w=d->PosCell[i][m]; // which observation
+		double logit_delta=0.0;
+		for (int q=0; q<d->NQ; q++) {
+		    logit_delta+=d->W[w][q]*d->gamma_run[q];
+		}
+		double delta=invlogit(logit_delta);
+		/* logLpart */
+		logLpart+=log(1-delta);
+	    }
+	    logL+=log(logLpart*theta+(1-theta));
 	}
     }
     // logPosterior=logL+logPrior
@@ -105,34 +134,60 @@ static double gammadens (double gamma_k, void *dens_data) {
     int k=d->pos_gamma; //
     // logLikelihood
     double logL=0.0;
-    for (int n=0; n<d->NOBS; n++) {
-	/* prob_p */
-	double Xpart_prob_p=0.0;
+    for (int i=0; i<d->NCELL; i++) {
+	/* theta */
+	double Xpart_theta=0.0;
 	for (int p=0; p<d->NP; p++) {
-	    Xpart_prob_p+=d->X[n][p]*d->beta_run[p];
+	    Xpart_theta+=d->X[i][p]*d->beta_run[p];
 	}
-	double prob_p=invlogit(Xpart_prob_p);
-	/* prob_q */
-	double logit_prob_q=0.0;
-	for (int q=0; q<d->NQ; q++) {
-	    if (q!=k) {
-		logit_prob_q+=d->W[n][q]*d->gamma_run[q];
+	double theta=invlogit(Xpart_theta);
+	/* delta */
+	double logLpart=0.0;
+	// At least one presence
+	if (d->SumYbyCell[i]>0) {
+	    for (int m=0; m<d->nObsCell[i]; m++) {
+		int w=d->PosCell[i][m]; // which observation
+		double logit_delta=0.0;
+		for (int q=0; q<d->NQ; q++) {
+		    if (q!=k) {
+			logit_delta+=d->W[w][q]*d->gamma_run[q];
+		    }
+		}
+		logit_delta+=d->W[w][k]*gamma_k;
+		double delta=invlogit(logit_delta);
+		/* logLpart */
+		if (d->Y[w]==1) {
+		    logLpart+=log(delta);
+		}
+		if (d->Y[w]==0) {
+		    logLpart+=log(1-delta);
+		}
 	    }
+	    logL+=logLpart+log(theta);
 	}
-	logit_prob_q+=d->W[n][k]*gamma_k;
-	double prob_q=invlogit(logit_prob_q);
-	/* log Likelihood */
-	if (d->Y[n]>0) {
-	    logL+=dbinom(d->Y[n],d->T[n],prob_q,1)+log(prob_p);
-	}
-	if (d->Y[n]==0) {
-	    logL+=log(pow(1-prob_q,d->T[n])*prob_p+(1-prob_p));
+	// Only absences
+	if (d->SumYbyCell[i]==0) {
+	    for (int m=0; m<d->nObsCell[i]; m++) {
+		int w=d->PosCell[i][m]; // which observation
+		double logit_delta=0.0;
+		for (int q=0; q<d->NQ; q++) {
+		    if (q!=k) {
+			logit_delta+=d->W[w][q]*d->gamma_run[q];
+		    }
+		}
+		logit_delta+=d->W[w][k]*gamma_k;
+		double delta=invlogit(logit_delta);
+		/* logLpart */
+		logLpart+=log(1-delta);
+	    }
+	    logL+=log(logLpart*theta+(1-theta));
 	}
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(gamma_k,d->mugamma[k],sqrt(d->Vgamma[k]),1); 
     return logP;
 }
+
 
 /* ************************************************************ */
 /* Gibbs sampler function */
@@ -142,19 +197,21 @@ void hSDM_siteocc (
     // Constants and data
     const int *ngibbs, int *nthin, int *nburn, // Number of iterations, burning and samples
     const int *nobs, // Number of observations
-    const int *np, // Number of fixed effects for prob_p
-    const int *nq, // Number of fixed effects for prob_q
+    const int *ncell, // Constants
+    const int *np, // Number of fixed effects for theta
+    const int *nq, // Number of fixed effects for delta
     const int *Y_vect, // Number of successes (presences)
-    const int *T_vect, // Number of trials
-    const double *X_vect, // Suitability covariates
-    const double *W_vect, // Observability covariates
+    const double *W_vect, // Observability covariates (nobs x nq)
+    const double *X_vect, // Suitability covariates (ncell x np)
+    // Spatial cells
+    const int *C_vect, // Cell Id
     // Predictions
     const int *npred, // Number of predictions
     const double *X_pred_vect, // Suitability covariates for predictions
     // Starting values for M-H
     const double *beta_start,
     const double *gamma_start,
-    // Parameters to save
+    // Parameters
     double *beta_vect,
     double *gamma_vect,
     // Defining priors
@@ -162,15 +219,16 @@ void hSDM_siteocc (
     const double *mugamma, double *Vgamma,
     // Diagnostic
     double *Deviance,
-    double *prob_p_latent, // Latent proba of suitability (length NOBS) 
-    double *prob_q_latent, // Latent proba of observability (length NOBS)
-    double *prob_p_pred, // Proba of suitability for predictions (length NPRED)
+    double *theta_latent, // Latent proba of suitability (length NCELL)
+    double *delta_latent, // Latent proba of observability (length NOBS)
+    double *theta_pred, // Proba of suitability for predictions (length NPRED)
     // Seeds
     const int *seed,
     // Verbose
     const int *verbose,
-    // Save p
-    const int *save_p
+    // Save p and N
+    const int *save_p,
+    const int *save_N
 
     ) {
 	
@@ -189,23 +247,24 @@ void hSDM_siteocc (
     const int NBURN=nburn[0];
     const int NSAMP=(NGIBBS-NBURN)/NTHIN;
     const int NOBS=nobs[0];
+    const int NCELL=ncell[0];
     const int NP=np[0];
     const int NQ=nq[0];
     const int NPRED=npred[0];
 
     ///////////////////////////////////
     // Declaring some useful objects //
-    double *prob_p_run=malloc(NOBS*sizeof(double));
-    for (int n=0; n<NOBS; n++) {
-	prob_p_run[n]=0.0;
+    double *theta_run=malloc(NCELL*sizeof(double));
+    for (int i=0; i<NCELL; i++) {
+    	theta_run[i]=0.0;
     }
-    double *prob_q_run=malloc(NOBS*sizeof(double));
+    double *delta_run=malloc(NOBS*sizeof(double));
     for (int n=0; n<NOBS; n++) {
-	prob_q_run[n]=0.0;
+    	delta_run[n]=0.0;
     }
-    double *prob_p_pred_run=malloc(NPRED*sizeof(double));
+    double *theta_pred_run=malloc(NPRED*sizeof(double));
     for (int m=0; m<NPRED; m++) {
-	prob_p_pred_run[m]=0.0;
+    	theta_pred_run[m]=0.0;
     }
 
     //////////////////////////////////////////////////////////
@@ -214,36 +273,70 @@ void hSDM_siteocc (
 
     /* Data */
     dens_data.NOBS=NOBS;
-   // Y
+    dens_data.NCELL=NCELL;
+    // Y
     dens_data.Y=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
-	dens_data.Y[n]=Y_vect[n];
+    	dens_data.Y[n]=Y_vect[n];
     }
-    // T
-    dens_data.T=malloc(NOBS*sizeof(int));
+    
+    /* Spatial cells */
+    // IdCell
+    dens_data.IdCell=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
-	dens_data.T[n]=T_vect[n];
+    	dens_data.IdCell[n]=C_vect[n];
+    }
+    // nObsCell
+    dens_data.nObsCell=malloc(NCELL*sizeof(int));
+    for (int i=0; i<NCELL; i++) {
+    	dens_data.nObsCell[i]=0;
+    	for (int n=0; n<NOBS; n++) {
+    	    if (dens_data.IdCell[n]==i) {
+    		dens_data.nObsCell[i]++;
+    	    }
+    	}
+    }
+    // PosCell
+    dens_data.PosCell=malloc(NCELL*sizeof(int*));
+    for (int i=0; i<NCELL; i++) {
+    	dens_data.PosCell[i]=malloc(dens_data.nObsCell[i]*sizeof(int));
+    	int repCell=0;
+    	for (int n=0; n<NOBS; n++) {
+    	    if (dens_data.IdCell[n]==i) {
+    		dens_data.PosCell[i][repCell]=n;
+    		repCell++;
+    	    }
+    	}
+    }
+    // SumYbyCell
+    dens_data.SumYbyCell=malloc(NCELL*sizeof(int));
+    for (int i=0; i<NCELL; i++) {
+	dens_data.SumYbyCell[i]=0;
+	for (int m=0; m<d->nObsCell[i]; m++) {
+	    int w=d->PosCell[i][m]; // which observation
+	    dens_data.SumYbyCell+=Y_vect[w];
+	}
     }
 
     /* Suitability process */
     dens_data.NP=NP;
     dens_data.pos_beta=0;
-    dens_data.X=malloc(NOBS*sizeof(double*));
-    for (int n=0; n<NOBS; n++) {
-    	dens_data.X[n]=malloc(NP*sizeof(double));
+    dens_data.X=malloc(NCELL*sizeof(double*));
+    for (int i=0; i<NCELL; i++) {
+    	dens_data.X[i]=malloc(NP*sizeof(double));
     	for (int p=0; p<NP; p++) {
-    	    dens_data.X[n][p]=X_vect[p*NOBS+n];
+    	    dens_data.X[i][p]=X_vect[p*NCELL+i];
     	}
     }
     dens_data.mubeta=malloc(NP*sizeof(double));
     dens_data.Vbeta=malloc(NP*sizeof(double));
     for (int p=0; p<NP; p++) {
-	dens_data.mubeta[p]=mubeta[p];
-	dens_data.Vbeta[p]=Vbeta[p];
+    	dens_data.mubeta[p]=mubeta[p];
+    	dens_data.Vbeta[p]=Vbeta[p];
     }
     dens_data.beta_run=malloc(NP*sizeof(double));
     for (int p=0; p<NP; p++) {
-	dens_data.beta_run[p]=beta_start[p];
+    	dens_data.beta_run[p]=beta_start[p];
     }
 
     /* Observability process */
@@ -259,12 +352,12 @@ void hSDM_siteocc (
     dens_data.mugamma=malloc(NQ*sizeof(double));
     dens_data.Vgamma=malloc(NQ*sizeof(double));
     for (int q=0; q<NQ; q++) {
-	dens_data.mugamma[q]=mugamma[q];
-	dens_data.Vgamma[q]=Vgamma[q];
+    	dens_data.mugamma[q]=mugamma[q];
+    	dens_data.Vgamma[q]=Vgamma[q];
     }
     dens_data.gamma_run=malloc(NQ*sizeof(double));
     for (int q=0; q<NQ; q++) {
-	dens_data.gamma_run[q]=gamma_start[q];
+    	dens_data.gamma_run[q]=gamma_start[q];
     }
 
     /* Predictions */
@@ -313,200 +406,232 @@ void hSDM_siteocc (
     for (int g=0; g<NGIBBS; g++) {
 
 
-	////////////////////////////////////////////////
-	// beta
+    	////////////////////////////////////////////////
+    	// beta
 	
-	for (int p=0; p<NP; p++) {
-	    dens_data.pos_beta=p; // Specifying the rank of the parameter of interest
-	    double x_now=dens_data.beta_run[p];
-	    double x_prop=myrnorm(x_now,sigmap_beta[p]);
-	    double p_now=betadens(x_now, &dens_data);
-	    double p_prop=betadens(x_prop, &dens_data);
-	    double r=exp(p_prop-p_now); // ratio
-	    double z=myrunif();
-	    // Actualization
-	    if (z < r) {
-		dens_data.beta_run[p]=x_prop;
-		nA_beta[p]++;
-	    }
-	}
+    	for (int p=0; p<NP; p++) {
+    	    dens_data.pos_beta=p; // Specifying the rank of the parameter of interest
+    	    double x_now=dens_data.beta_run[p];
+    	    double x_prop=myrnorm(x_now,sigmap_beta[p]);
+    	    double p_now=betadens(x_now, &dens_data);
+    	    double p_prop=betadens(x_prop, &dens_data);
+    	    double r=exp(p_prop-p_now); // ratio
+    	    double z=myrunif();
+    	    // Actualization
+    	    if (z < r) {
+    		dens_data.beta_run[p]=x_prop;
+    		nA_beta[p]++;
+    	    }
+    	}
 
 
-	////////////////////////////////////////////////
-	// gamma
+    	////////////////////////////////////////////////
+    	// gamma
 	
-	for (int q=0; q<NQ; q++) {
-	    dens_data.pos_gamma=q; // Specifying the rank of the parameter of interest
-	    double x_now=dens_data.gamma_run[q];
-	    double x_prop=myrnorm(x_now,sigmap_gamma[q]);
-	    double p_now=gammadens(x_now, &dens_data);
-	    double p_prop=gammadens(x_prop, &dens_data);
-	    double r=exp(p_prop-p_now); // ratio
-	    double z=myrunif();
-	    // Actualization
-	    if (z < r) {
-		dens_data.gamma_run[q]=x_prop;
-		nA_gamma[q]++;
-	    }
-	}
+    	for (int q=0; q<NQ; q++) {
+    	    dens_data.pos_gamma=q; // Specifying the rank of the parameter of interest
+    	    double x_now=dens_data.gamma_run[q];
+    	    double x_prop=myrnorm(x_now,sigmap_gamma[q]);
+    	    double p_now=gammadens(x_now, &dens_data);
+    	    double p_prop=gammadens(x_prop, &dens_data);
+    	    double r=exp(p_prop-p_now); // ratio
+    	    double z=myrunif();
+    	    // Actualization
+    	    if (z < r) {
+    		dens_data.gamma_run[q]=x_prop;
+    		nA_gamma[q]++;
+    	    }
+    	}
 
 
-	//////////////////////////////////////////////////
-	// Deviance
+    	//////////////////////////////////////////////////
+    	// Deviance
 
-	// logLikelihood
+    	// logLikelihood
 	double logL=0.0;
-	for (int n=0; n<NOBS; n++) {
-	    /* prob_p */
-	    double Xpart_prob_p=0.0;
-	    for (int p=0; p<NP; p++) {
-		Xpart_prob_p+=dens_data.X[n][p]*dens_data.beta_run[p];
+	for (int i=0; i<dens_data.NCELL; i++) {
+	    /* theta */
+	    double Xpart_theta=0.0;
+	    for (int p=0; p<dens_data.NP; p++) {
+		    Xpart_theta+=dens_data.X[i][p]*dens_data.beta_run[p];
 	    }
-	    prob_p_run[n]=invlogit(Xpart_prob_p);
-	    /* prob_q */
-	    double logit_prob_q=0.0;
-	    for (int q=0; q<NQ; q++) {
-		logit_prob_q+=dens_data.W[n][q]*dens_data.gamma_run[q];
-	    }
-	    prob_q_run[n]=invlogit(logit_prob_q);
-	    /* log Likelihood */
-	    if (dens_data.Y[n]>0) {
-	        logL+=dbinom(dens_data.Y[n],dens_data.T[n],prob_q_run[n],1)+log(prob_p_run[n]);
-	    }
-	    if (dens_data.Y[n]==0) {
-	        logL+=log(pow(1-prob_q_run[n],dens_data.T[n])*prob_p_run[n]+(1-prob_p_run[n]));
-	    }
-	}
-
-	// Deviance
-	double Deviance_run=-2*logL;
-
-
-	//////////////////////////////////////////////////
-	// Predictions
-	for (int m=0; m<NPRED; m++) {
-	    /* prob_p_pred_run */
-	    double Xpart_prob_p_pred=0.0;
-	    for (int p=0; p<NP; p++) {
-		Xpart_prob_p_pred+=X_pred[m][p]*dens_data.beta_run[p];
-	    }
-	    prob_p_pred_run[m]=invlogit(Xpart_prob_p_pred);
-	}
-
-
-	//////////////////////////////////////////////////
-	// Output
-	if (((g+1)>NBURN) && (((g+1)%(NTHIN))==0)) {
-	    int isamp=((g+1)-NBURN)/(NTHIN);
-	    for (int p=0; p<NP; p++) {
-		beta_vect[p*NSAMP+(isamp-1)]=dens_data.beta_run[p];
-	    }
-	    for (int q=0; q<NQ; q++) {
-		gamma_vect[q*NSAMP+(isamp-1)]=dens_data.gamma_run[q];
-	    }
-	    Deviance[isamp-1]=Deviance_run;
-	    for (int n=0; n<NOBS; n++) {
-		prob_p_latent[n]+=prob_p_run[n]/NSAMP; // We compute the mean of NSAMP values
-		prob_q_latent[n]+=prob_q_run[n]/NSAMP; // We compute the mean of NSAMP values
-	    }
-	    // prob.p
-	    if (save_p[0]==0) { // We compute the mean of NSAMP values
-		for (int m=0; m<NPRED; m++) {
-		    prob_p_pred[m]+=prob_p_pred_run[m]/NSAMP; 
+	    theta_run[i]=invlogit(Xpart_theta);
+	    /* delta */
+	    double logLpart=0.0;
+	    // At least one presence
+	    if (dens_data.SumYbyCell[i]>0) {
+		for (int m=0; m<dens_data.nObsCell[i]; m++) {
+		    int w=dens_data.PosCell[i][m]; // which observation
+		    double logit_delta=0.0;
+		    for (int q=0; q<dens_data.NQ; q++) {
+			logit_delta+=dens_data.W[w][q]*dens_data.gamma_run[q];
+		    }
+		    delta_run[w]=invlogit(logit_delta);
+		    /* logLpart */
+		    if (dens_data.Y[w]==1) {
+			logLpart+=log(delta);
+		    }
+		    if (dens_data.Y[w]==0) {
+			logLpart+=log(1-delta);
+		    }
 		}
+		logL+=logLpart+log(theta);
 	    }
-	    if (save_p[0]==1) { // The NSAMP sampled values for prob_p are saved
-		for (int m=0; m<NPRED; m++) {
-		    prob_p_pred[m*NSAMP+(isamp-1)]=prob_p_pred_run[m]; 
+	    // Only absences
+	    if (dens_data.SumYbyCell[i]==0) {
+		for (int m=0; m<dens_data.nObsCell[i]; m++) {
+		    int w=dens_data.PosCell[i][m]; // which observation
+		    double logit_delta=0.0;
+		    for (int q=0; q<dens_data.NQ; q++) {
+			logit_delta+=dens_data.W[w][q]*dens_data.gamma_run[q];
+		    }
+		    delta_run[w]=invlogit(logit_delta);
+		    /* logLpart */
+		    logLpart+=log(1-delta);
 		}
+		logL+=log(logLpart*theta+(1-theta));
 	    }
 	}
 
+    	// Deviance
+    	double Deviance_run=-2*logL;
 
-	///////////////////////////////////////////////////////
-	// Adaptive sampling (on the burnin period)
-	const double ropt=0.24;
-	int DIV=0;
-	if (NGIBBS >=1000) DIV=100;
-	else DIV=NGIBBS/10;
-	/* During the burnin period */
-	if ((g+1)%DIV==0 && (g+1)<=NBURN) {
-	    // beta
-	    for (int p=0; p<NP; p++) {
-		Ar_beta[p]=((double) nA_beta[p])/DIV;
-		if (Ar_beta[p]>=ropt) sigmap_beta[p]=sigmap_beta[p]*(2-(1-Ar_beta[p])/(1-ropt));
-		else sigmap_beta[p]=sigmap_beta[p]/(2-Ar_beta[p]/ropt);
-		nA_beta[p]=0.0; // We reinitialize the number of acceptance to zero
+
+    	//////////////////////////////////////////////////
+    	// Predictions
+    	for (int m=0; m<NPRED; m++) {
+    	    /* theta_pred_run */
+    	    double Xpart_theta_pred=0.0;
+    	    for (int p=0; p<NP; p++) {
+    		Xpart_theta_pred+=X_pred[m][p]*dens_data.beta_run[p];
+    	    }
+    	    theta_pred_run[m]=invlogit(Xpart_theta_pred);
+    	}
+
+
+    	//////////////////////////////////////////////////
+    	// Output
+    	if (((g+1)>NBURN) && (((g+1)%(NTHIN))==0)) {
+    	    int isamp=((g+1)-NBURN)/(NTHIN);
+    	    // beta
+    	    for (int p=0; p<NP; p++) {
+    		beta_vect[p*NSAMP+(isamp-1)]=dens_data.beta_run[p];
+    	    }
+    	    // gamma
+    	    for (int q=0; q<NQ; q++) {
+    		gamma_vect[q*NSAMP+(isamp-1)]=dens_data.gamma_run[q];
+    	    }
+    	    // Deviance
+    	    Deviance[isamp-1]=Deviance_run;
+	    for (int i=0; i<NCELL; i++) {
+		theta_latent[i]+=theta_run[i]/NSAMP; // We compute the mean of NSAMP values
 	    }
-	    // gamma
-	    for (int q=0; q<NQ; q++) {
-		Ar_gamma[q]=((double) nA_gamma[q])/DIV;
-		if (Ar_gamma[q]>=ropt) sigmap_gamma[q]=sigmap_gamma[q]*(2-(1-Ar_gamma[q])/(1-ropt));
-		else sigmap_gamma[q]=sigmap_gamma[q]/(2-Ar_gamma[q]/ropt);
-		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
-	    }
-	}
+    	    for (int n=0; n<NOBS; n++) {
+    		delta_latent[n]+=delta_run[n]/NSAMP; // We compute the mean of NSAMP values
+    	    }
+    	    // theta
+    	    if (save_p[0]==0) { // We compute the mean of NSAMP values
+    		for (int m=0; m<NPRED; m++) {
+    		    theta_pred[m]+=theta_pred_run[m]/NSAMP;
+    		}
+    	    }
+    	    if (save_p[0]==1) { // The NSAMP sampled values for theta are saved
+    		for (int m=0; m<NPRED; m++) {
+    		    theta_pred[m*NSAMP+(isamp-1)]=theta_pred_run[m];
+    		}
+    	    }
+    	}
+
+
+    	///////////////////////////////////////////////////////
+    	// Adaptive sampling (on the burnin period)
+    	const double ropt=0.24;
+    	int DIV=0;
+    	if (NGIBBS >=1000) DIV=100;
+    	else DIV=NGIBBS/10;
+    	/* During the burnin period */
+    	if ((g+1)%DIV==0 && (g+1)<=NBURN) {
+    	    // beta
+    	    for (int p=0; p<NP; p++) {
+    		Ar_beta[p]=((double) nA_beta[p])/DIV;
+    		if(Ar_beta[p]>=ropt) sigmap_beta[p]=sigmap_beta[p]*(2-(1-Ar_beta[p])/(1-ropt));
+    		else sigmap_beta[p]=sigmap_beta[p]/(2-Ar_beta[p]/ropt);
+    		nA_beta[p]=0.0; // We reinitialize the number of acceptance to zero
+    	    }
+    	    // gamma
+    	    for (int q=0; q<NQ; q++) {
+    		Ar_gamma[q]=((double) nA_gamma[q])/DIV;
+    		if(Ar_gamma[q]>=ropt) sigmap_gamma[q]=sigmap_gamma[q]*(2-(1-Ar_gamma[q])/(1-ropt));
+    		else sigmap_gamma[q]=sigmap_gamma[q]/(2-Ar_gamma[q]/ropt);
+    		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
+    	    }
+    	}
         /* After the burnin period */
-	if ((g+1)%DIV==0 && (g+1)>NBURN) {
-	    // beta
-	    for (int p=0; p<NP; p++) {
-		Ar_beta[p]=((double) nA_beta[p])/DIV;
-		nA_beta[p]=0.0; // We reinitialize the number of acceptance to zero
-	    }
-	    // gamma
-	    for (int q=0; q<NQ; q++) {
-		Ar_gamma[q]=((double) nA_gamma[q])/DIV;
-		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
-	    }
-	}
+    	if ((g+1)%DIV==0 && (g+1)>NBURN) {
+    	    // beta
+    	    for (int p=0; p<NP; p++) {
+    		Ar_beta[p]=((double) nA_beta[p])/DIV;
+    		nA_beta[p]=0.0; // We reinitialize the number of acceptance to zero
+    	    }
+    	    // gamma
+    	    for (int q=0; q<NQ; q++) {
+    		Ar_gamma[q]=((double) nA_gamma[q])/DIV;
+    		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
+    	    }
+    	}
 
     
-	//////////////////////////////////////////////////
-	// Progress bar
-	double Perc=100*(g+1)/(NGIBBS);
-	if (((g+1)%(NGIBBS/100))==0 && verbose[0]==1) {
-	    Rprintf("*");
-	    R_FlushConsole();
-	    //R_ProcessEvents(); for windows
-	    if (((g+1)%(NGIBBS/10))==0) {
-	    	double mAr_beta=0; // Mean acceptance rate
-	    	double mAr_gamma=0;
-	    	// beta
-	    	for (int p=0; p<NP; p++) {
-	    	    mAr_beta+=Ar_beta[p]/NP;
-	    	}
-	    	// gamma
-	    	for (int q=0; q<NQ; q++) {
-	    	    mAr_gamma+=Ar_gamma[q]/NQ;
-	    	}
-	    	Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, gamma:%.3f\n",Perc,mAr_beta,mAr_gamma);
-	    	R_FlushConsole();
-	    	//R_ProcessEvents(); for windows
-	    }
-	}
+    	//////////////////////////////////////////////////
+    	// Progress bar
+    	double Perc=100*(g+1)/(NGIBBS);
+    	if (((g+1)%(NGIBBS/100))==0 && verbose[0]==1) {
+    	    Rprintf("*");
+    	    R_FlushConsole();
+    	    //R_ProcessEvents(); for windows
+    	    if (((g+1)%(NGIBBS/10))==0) {
+    	    	double mAr_beta=0; // Mean acceptance rate
+    	    	double mAr_gamma=0;
+    	    	// beta
+    	    	for (int p=0; p<NP; p++) {
+    	    	    mAr_beta+=Ar_beta[p]/NP;
+    	    	}
+    	    	// gamma
+    	    	for (int q=0; q<NQ; q++) {
+    	    	    mAr_gamma+=Ar_gamma[q]/NQ;
+    	    	}
+    	    	Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, gamma:%.3f\n",Perc,mAr_beta,mAr_gamma);
+    	    	R_FlushConsole();
+    	    	//R_ProcessEvents(); for windows
+    	    }
+    	}
 
 
-	//////////////////////////////////////////////////
-	// User interrupt
-	R_CheckUserInterrupt(); // allow user interrupt 	    
+    	//////////////////////////////////////////////////
+    	// User interrupt
+    	R_CheckUserInterrupt(); // allow user interrupt
 	
     } // Gibbs sampler
-
 
     ///////////////
     // Delete memory allocation (see malloc())
     /* Data */
     free(dens_data.Y);
-    free(dens_data.T);
+    free(dens_data.IdCell);
+    free(dens_data.nObsCell);
+    for (int i=0; i<NCELL; i++) {
+    	free(dens_data.PosCell[i]);
+    }
+    free(dens_data.PosCell);
+    free(dens_data.SumYbyCell);
     /* Suitability */
-    for (int n=0; n<NOBS; n++) {
-    	free(dens_data.X[n]);
+    for (int i=0; i<NCELL; i++) {
+    	free(dens_data.X[i]);
     }
     free(dens_data.X);
     free(dens_data.mubeta);
     free(dens_data.Vbeta);
     free(dens_data.beta_run);
-    free(prob_p_run);
+    free(theta_run);
     /* Observability */
     for (int n=0; n<NOBS; n++) {
     	free(dens_data.W[n]);
@@ -515,13 +640,13 @@ void hSDM_siteocc (
     free(dens_data.mugamma);
     free(dens_data.Vgamma);
     free(dens_data.gamma_run);
-    free(prob_q_run);
+    free(delta_run);
     /* Predictions */
     for (int m=0; m<NPRED; m++) {
     	free(X_pred[m]);
     }
     free(X_pred);
-    free(prob_p_pred_run);
+    free(theta_pred_run);
     /* Adaptive MH */
     free(sigmap_beta);
     free(nA_beta);

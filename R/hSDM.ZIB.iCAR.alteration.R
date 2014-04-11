@@ -1,6 +1,6 @@
 ####################################################################
 ##
-## hSDM.siteocc.iCAR.R
+## hSDM.ZIB.iCAR.alteration.R
 ##
 ####################################################################
 ##
@@ -19,9 +19,9 @@
 ####################################################################
 
 
-hSDM.siteocc.iCAR <- function (# Observations
+hSDM.ZIB.iCAR.alteration <- function (# Observations
                                  presences, trials,
-                                 suitability, observability, spatial.entity, data,
+                                 suitability, observability, spatial.entity, alteration, data,
                                  # Spatial structure
                                  n.neighbors, neighbors,
                                  # Predictions
@@ -59,6 +59,8 @@ hSDM.siteocc.iCAR <- function (# Observations
   Y <- presences
   nobs <- length(Y)
   T <- trials
+  #= Alteration
+  U <- alteration
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data)
   X <- model.matrix(attr(mf.suit,"terms"),data=mf.suit)
@@ -93,6 +95,7 @@ hSDM.siteocc.iCAR <- function (# Observations
   #==========
   check.T.binomial(T,nobs)
   check.Y.binomial(Y,T)
+  check.U(U,nobs)
   check.X(X,nobs)
   check.W(W,nobs)
   check.cells(cells,nobs)
@@ -134,7 +137,7 @@ hSDM.siteocc.iCAR <- function (# Observations
   #========
   # call C++ code to draw sample
   #========
-  Sample <- .C("hSDM_siteocc_iCAR",
+  Sample <- .C("hSDM_ZIB_iCAR_alteration",
                #= Constants and data
                ngibbs=as.integer(ngibbs), nthin=as.integer(nthin), nburn=as.integer(nburn), ## Number of iterations, burning and samples
                nobs=as.integer(nobs),
@@ -145,6 +148,7 @@ hSDM.siteocc.iCAR <- function (# Observations
                T_vect=as.integer(c(T)),
                X_vect=as.double(c(X)),
                W_vect=as.double(c(W)),
+               U_vect=as.double(c(U)),
                #= Spatial correlation
                C_vect=as.integer(c(cells)-1), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term. 
                nNeigh=as.integer(c(n.neighbors)),
@@ -188,26 +192,26 @@ hSDM.siteocc.iCAR <- function (# Observations
   colnames(Matrix) <- c(names.fixed,"Vrho","Deviance")
   
   #= Filling-in the matrix
-  Matrix[,c(1:np)] <- matrix(Sample[[21]],ncol=np)
-  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[22]],ncol=nq)
-  Matrix[,ncol(Matrix)-1] <- Sample[[24]]
-  Matrix[,ncol(Matrix)] <- Sample[[33]]
+  Matrix[,c(1:np)] <- matrix(Sample[[22]],ncol=np)
+  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[23]],ncol=nq)
+  Matrix[,ncol(Matrix)-1] <- Sample[[25]]
+  Matrix[,ncol(Matrix)] <- Sample[[34]]
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save rho
-  if (save.rho==0) {rho.pred <- Sample[[23]]}
+  if (save.rho==0) {rho.pred <- Sample[[24]]}
   if (save.rho==1) {
-      Matrix.rho.pred <- matrix(Sample[[23]],ncol=ncell)
+      Matrix.rho.pred <- matrix(Sample[[24]],ncol=ncell)
       colnames(Matrix.rho.pred) <- paste("rho.",c(1:ncell),sep="")
       rho.pred <- mcmc(Matrix.rho.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Save pred
-  if (save.p==0) {prob.p.pred <- Sample[[36]]}
+  if (save.p==0) {prob.p.pred <- Sample[[37]]}
   if (save.p==1) {
-      Matrix.p.pred <- matrix(Sample[[36]],ncol=npred)
+      Matrix.p.pred <- matrix(Sample[[37]],ncol=npred)
       colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
       prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
@@ -215,7 +219,7 @@ hSDM.siteocc.iCAR <- function (# Observations
   #= Output
   return (list(mcmc=MCMC,
                rho.pred=rho.pred, prob.p.pred=prob.p.pred,
-               prob.p.latent=Sample[[34]], prob.q.latent=Sample[[35]]))
+               prob.p.latent=Sample[[35]], prob.q.latent=Sample[[36]]))
 
 }
 
