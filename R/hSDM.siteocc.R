@@ -20,13 +20,14 @@
 
 
 hSDM.siteocc <- function (# Observations
-                          presences, observability, spatial.entity, data.observability,
+                          presences, observability,
+                          spatial.entity, data.observability,
                           # Habitat
                           suitability, data.suitability,
                           # Predictions
                           suitability.pred=NULL,
                           # Chains
-                          burnin=5000, mcmc=10000, thin=10,
+                          burnin=1000, mcmc=1000, thin=1,
                           # Starting values
                           beta.start,
                           gamma.start,
@@ -150,7 +151,7 @@ hSDM.siteocc <- function (# Observations
                seed=as.integer(seed),
                #= Verbose
                verbose=as.integer(verbose),
-               #= Save p and N
+               #= Save p
                save_p=as.integer(save.p),
                PACKAGE="hSDM")
  
@@ -168,7 +169,7 @@ hSDM.siteocc <- function (# Observations
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save pred
-  if (save.p==0) {lambda.pred <- Sample[[25]]}
+  if (save.p==0) {theta.pred <- Sample[[25]]}
   if (save.p==1) {
       Matrix.theta.pred <- matrix(Sample[[25]],ncol=npred)
       colnames(Matrix.theta.pred) <- paste("p.",c(1:npred),sep="")

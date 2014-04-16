@@ -11,8 +11,8 @@
 ////////////////////////////////////////////////////////////////////
 //
 // This software is distributed under the terms of the GNU GENERAL
-// PUBLIC LICENSE Version 2, June 1991.  See the package LICENSE
-// file for more information.
+// PUBLIC LICENSE Version 3. See the package LICENSE file for more
+// information.
 //
 // Copyright (C) 2011 Ghislain Vieilledent
 // 
@@ -115,7 +115,7 @@ static double betadens (double beta_k, void *dens_data) {
 		/* logLpart */
 		logLpart+=log(1-delta);
 	    }
-	    logL+=log(logLpart*theta+(1-theta));
+	    logL+=log(exp(logLpart)*theta+(1-theta));
 	}
     }
     // logPosterior=logL+logPrior
@@ -180,7 +180,7 @@ static double gammadens (double gamma_k, void *dens_data) {
 		/* logLpart */
 		logLpart+=log(1-delta);
 	    }
-	    logL+=log(logLpart*theta+(1-theta));
+	    logL+=log(exp(logLpart)*theta+(1-theta));
 	}
     }
     // logPosterior=logL+logPrior
@@ -226,9 +226,8 @@ void hSDM_siteocc (
     const int *seed,
     // Verbose
     const int *verbose,
-    // Save p and N
-    const int *save_p,
-    const int *save_N
+    // Save p
+    const int *save_p
 
     ) {
 	
@@ -312,9 +311,9 @@ void hSDM_siteocc (
     dens_data.SumYbyCell=malloc(NCELL*sizeof(int));
     for (int i=0; i<NCELL; i++) {
 	dens_data.SumYbyCell[i]=0;
-	for (int m=0; m<d->nObsCell[i]; m++) {
-	    int w=d->PosCell[i][m]; // which observation
-	    dens_data.SumYbyCell+=Y_vect[w];
+	for (int m=0; m<dens_data.nObsCell[i]; m++) {
+	    int w=dens_data.PosCell[i][m]; // which observation
+	    dens_data.SumYbyCell[i]+=Y_vect[w];
 	}
     }
 
@@ -469,13 +468,13 @@ void hSDM_siteocc (
 		    delta_run[w]=invlogit(logit_delta);
 		    /* logLpart */
 		    if (dens_data.Y[w]==1) {
-			logLpart+=log(delta);
+			logLpart+=log(delta_run[w]);
 		    }
 		    if (dens_data.Y[w]==0) {
-			logLpart+=log(1-delta);
+			logLpart+=log(1-delta_run[w]);
 		    }
 		}
-		logL+=logLpart+log(theta);
+		logL+=logLpart+log(theta_run[i]);
 	    }
 	    // Only absences
 	    if (dens_data.SumYbyCell[i]==0) {
@@ -487,9 +486,9 @@ void hSDM_siteocc (
 		    }
 		    delta_run[w]=invlogit(logit_delta);
 		    /* logLpart */
-		    logLpart+=log(1-delta);
+		    logLpart+=log(1-delta_run[w]);
 		}
-		logL+=log(logLpart*theta+(1-theta));
+		logL+=log(exp(logLpart)*theta_run[i]+(1-theta_run[i]));
 	    }
 	}
 

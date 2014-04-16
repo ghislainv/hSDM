@@ -125,7 +125,7 @@
 %%=============================
 %% Change default shunk options
 <<setup, echo=FALSE>>=
-library(knitr)
+require(knitr)
 opts_chunk$set(cache=FALSE, results="hide", warning=FALSE, message=FALSE, fig.path="figures/", 
                highlight=TRUE, fig.show="hide", size="small", tidy=FALSE)
 Sys.setenv(TEXINPUTS=getwd(),
@@ -192,7 +192,7 @@ interpretation of model parameters.
 
 <<Altitude>>=
 # Import altitudinal data
-library(raster)
+require(raster)
 fname <- "http://hsdm.sourceforge.net/altitude.csv"
 alt.df <- read.csv(fname,header=TRUE) 
 alt.orig <- rasterFromXYZ(alt.df)
@@ -243,7 +243,8 @@ theta <- inv.logit(logit.theta)
 theta <- rasterFromXYZ(cbind(coordinates(alt),theta))
 # Plot the probability of presence
 ## require(fields)
-## col.prob <- colorRampPalette(c("transparent","blue","green","yellow","orange","red","brown"))
+## col.prob <- colorRampPalette(c("transparent","blue","green",
+##                                "yellow","orange","red","brown"))
 ## plot(theta,col=col.prob(255))
 plot(theta,col=rev(heat.colors(255)))
 @ 
@@ -260,7 +261,7 @@ at these $n$ points given our model (Fig.~\ref{fig:observations-binomial}).
 
 <<observations-binomial>>=
 # Load dismo library
-library(dismo) # For randomPoints() function
+require(dismo) # For randomPoints() function
 # Number of observation points
 nobspt <- 200
 # Set seed for repeatability
@@ -281,7 +282,7 @@ Y <- rbinom(nobspt,trials,theta.obs)
 # Group explicative and response variables in a data-frame
 data.obs.df <- data.frame(Y,trials,alt=X[,2],alt2=X[,3])
 # Transform observations in a spatial object
-library(sp)
+require(sp)
 data.obs <- SpatialPointsDataFrame(coords=coordinates(obs),data=data.obs.df)
 # Plot observations
 plot(alt.orig)
@@ -540,21 +541,26 @@ observation data-set.
 
 <<siteocc-proba>>=
 # Ecological process (suitability)
-X.obs <- X[obspt,]
-logit.theta.obs <- X.obs %*% beta.target
-theta.obs <- inv.logit(logit.theta.obs)
+logit.theta.obspt <- X %*% beta.target
+theta.obspt <- inv.logit(logit.theta.obspt)
 set.seed(seed)
-Z <- rbinom(nobs,1,theta.obs)
+Z <- rbinom(nobspt,1,theta.obspt)
 
 # Observation process (detectability)
 logit.delta.obs <- W %*% gamma.target
 delta.obs <- inv.logit(logit.delta.obs)
 set.seed(seed)
-Y <- rbinom(nobs,5,delta.obs*Z)
+# Y <- rbinom(nobs,1,delta.obs*Z[obspt])
+Y <- rbinom(nobs,1,0.8*Z[obspt])
 
-# Data-set
-trials <- rep(5,nobs)
-data.obs <- data.frame(Y,trials,alt=X.obs[,2],alt2=X.obs[,3],w1,w2)
+# Spatial entity (raster cells) associated to each observation
+cell.obspt <- extract(alt,obs,cellnumbers=TRUE)[,"cells"]
+cell.obs <- cell.obspt[obspt]
+# cell.obs <- as.numeric(as.factor(cell.obs)) # from 1 to ncell, not necessary
+
+# Data-sets
+data.obs <- data.frame(Y,w1,w2,cell=cell.obs)
+data.suit <- data.frame(alt=X[,2],alt2=X[,3])
 @ 
 \subsubsection{Parameter inference using the \texttt{hSDM.siteocc()} function}
 
@@ -562,17 +568,26 @@ The \texttt{hSDM.siteocc()} function estimates the parameter of a site-occupancy
 a Bayesian framework.
 
 <<inference-siteocc>>=
-mod.hSDM.siteocc <- hSDM.ZIB(presences=data.obs$Y, ## Change here !!
-                                 trials=data.obs$trials,
+mod.hSDM.siteocc <- hSDM.siteocc(# Observations
+                                 presences=data.obs$Y,
+                                 #observability=~w1+w2,
+                                 observability=~1,
+                                 spatial.entity=data.obs$cell,
+                                 data.observability=data.obs,
+                                 # Habitat                                 
                                  suitability=~alt+alt2,
-                                 observability=~w1+w2,
-                                 data=data.obs,
+                                 data.suitability=data.suit,
+                                 # Predictions
                                  suitability.pred=data.pred,
+                                 # Chains
                                  burnin=1000, mcmc=1000, thin=1,
+                                 # Starting values
                                  beta.start=0,
                                  gamma.start=0,
+                                 # Priors
                                  mubeta=0, Vbeta=1.0E6,
                                  mugamma=0, Vgamma=1.0E6,
+                                 # Various
                                  seed=1234, verbose=1, save.p=0)
 @ 
 
@@ -601,7 +616,7 @@ plot(mod.hSDM.siteocc$mcmc)
 # Create a raster for predictions
 theta.pred.mean <- raster(theta)
 # Attribute predicted values to raster cells
-theta.pred.mean[] <- mod.hSDM.siteocc$prob.p.pred
+theta.pred.mean[] <- mod.hSDM.siteocc$theta.pred
 # Plot the predicted probability of presence
 plot(theta.pred.mean,col=rev(heat.colors(255)))
 @
@@ -631,7 +646,8 @@ assuming a perfect detection.
 
 <<results="markup">>=
 #== glm results for comparison
-mod.glm <- glm(cbind(Y,trials-Y)~alt+alt2,family="binomial",data=data.obs)
+data.obs.glm <- data.frame(Y,alt=X[obspt,2],alt2=X[obspt,3])
+mod.glm <- glm(Y~alt+alt2,family="binomial",data=data.obs.glm)
 summary(mod.glm)
 @ 
 

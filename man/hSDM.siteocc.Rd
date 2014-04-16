@@ -21,7 +21,7 @@
                      # Predictions
                      suitability.pred = NULL,
                      # Chains
-                     burnin = 5000, mcmc = 10000, thin = 10,
+                     burnin = 1000, mcmc = 1000, thin = 1,
                      # Starting values
                      beta.start,
                      gamma.start,
