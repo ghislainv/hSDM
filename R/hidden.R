@@ -268,7 +268,7 @@ check.U <- function (U,nobs) {
 }
 
 
-check.X <- function (X,nobs) {
+check.X <- function (X,n) {
   if(!is.numeric(c(X))) {
     cat("Error: 'suitability' only accept vectors of numeric values.\n")
     stop("Please respecify and call ", calling.function(), " again.",
@@ -279,15 +279,15 @@ check.X <- function (X,nobs) {
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
-  if (dim(X)[1]!=nobs) {
-    cat("Error: 'suitability' only accept vectors of the same length as the response variable.\n")
+  if (dim(X)[1]!=n) {
+    cat("Error: Incorrect vector length for the 'suitability' argument.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
   return(0)
 }
 
-check.W <- function (W,nobs) {
+check.W <- function (W,n) {
   if(!is.numeric(c(W))) {
     cat("Error: 'observability' only accept vectors of numeric values.\n")
     stop("Please respecify and call ", calling.function(), " again.",
@@ -298,8 +298,8 @@ check.W <- function (W,nobs) {
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
-  if (dim(W)[1]!=nobs) {
-    cat("Error: 'observability' only accept vectors of the same length as the response variable.\n")
+  if (dim(W)[1]!=n) {
+    cat("Error: Incorrect vector length for the 'observability' argument.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
@@ -368,9 +368,33 @@ check.neighbors <- function (n.neighbors,ncell,neighbors) {
   return(0)
 }
 
-check.cells <- function (cells,nobs) {
-  if(length(cells)!=nobs) {
-    cat("Error: 'spatial.entity' must have the same length as the response variable.\n")
+check.sites <- function (sites,nobs) {
+  if(length(sites)!=nobs) {
+    cat("Error: 'sites' must have the same length as the response variable.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if(!is.numeric(sites)) {
+    cat("Error: 'sites' must be a vector of numeric values.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if (sum(is.na(sites))>0) {
+    cat("Error: 'sites' must not contain missing values.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if (sum(sites<=0 | sites%%1!=0)>0) {
+    cat("Error: 'sites' must be a vector of integers superior to zero.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  return(0)
+}
+
+check.cells <- function (cells,nsite) {
+  if(length(cells)!=nsite) {
+    cat("Error: 'spatial.entity' must be of length equals to the number of sites.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }

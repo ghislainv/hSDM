@@ -15,7 +15,7 @@
   parameters.}
 
 \usage{hSDM.siteocc(# Observations
-                     presences, observability, spatial.entity, data.observability,
+                     presence, observability, site, data.observability,
                      # Habitat
                      suitability, data.suitability,
                      # Predictions
@@ -34,17 +34,16 @@
 
 \arguments{
   
-  \item{presences}{A vector indicating the presence/absence for each
+  \item{presence}{A vector indicating the presence/absence for each
     observation.}
 
   \item{observability}{A one-sided formula of the form
     \eqn{\sim w_1+...+w_q}{'~w_1+...+w_q'} with \eqn{q} terms specifying the
     explicative variables for the observability process.}
   
-  \item{spatial.entity}{A vector indicating the spatial entity
-    identifier (from one to the total number of entities) for each
-    observation. Several observations can occur in one spatial entity. A
-    spatial entity can be a raster cell for example.}
+  \item{site}{A vector indicating the site identifier for each
+  observation. Values must be between 1 and 'nsite', the total number of
+  sites.}
 
   \item{data.observability}{A data frame containing the model's
     variables for the observability process.}
@@ -156,21 +155,13 @@
   \deqn{logit(\theta_i) = X_i \beta}{logit(theta_i) = X_i * beta}
    
   \bold{Observation process:}
-  \deqn{y_i \sim \mathcal{B}ernoulli(z_i * \delta_i)}{y_i ~ Bernoulli(z_i
-    * delta_i)}
-  \deqn{logit(\delta_i) = W_i \gamma}{logit(delta_i) = W_i * gamma} 
+  \deqn{y_{it} \sim \mathcal{B}ernoulli(z_i * \delta_{it})}{y_i ~ Bernoulli(z_i
+    * delta_it)}
+  \deqn{logit(\delta_{it}) = W_{it} \gamma}{logit(delta_it) = W_it * gamma} 
 
 }
 
 \references{
-
-  Gelfand, A. E.; Schmidt, A. M.; Wu, S.; Silander, J. A.; Latimer, A. and
-  Rebelo, A. G. (2005) Modelling species diversity through species level
-  hierarchical modelling. \emph{Applied Statistics}, 54, 1-20.
-  
-  Latimer, A. M.; Wu, S. S.; Gelfand, A. E. and Silander, J. A. (2006) Building
-  statistical models to analyze species distributions. \emph{Ecological
-    Applications}, 16, 33-50.
 
   MacKenzie, D. I.; Nichols, J. D.; Lachman, G. B.; Droege, S.; Andrew
   Royle, J. and Langtimm, C. A. (2002) Estimating site occupancy rates when

@@ -11,8 +11,8 @@
 ////////////////////////////////////////////////////////////////////
 //
 // This software is distributed under the terms of the GNU GENERAL
-// PUBLIC LICENSE Version 2, June 1991.  See the package LICENSE
-// file for more information.
+// PUBLIC LICENSE Version 3. See the package LICENSE file for more
+// information.
 //
 // Copyright (C) 2011 Ghislain Vieilledent
 // 

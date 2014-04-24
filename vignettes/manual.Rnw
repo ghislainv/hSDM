@@ -32,8 +32,8 @@
 \setlength{\LTright}{-5cm plus 1 fill}
 \usepackage{booktabs}
 %\usepackage{colortabs} % can't be found
-\usepackage{xcolor}
-\usepackage{colortbl} %% color text and table rows
+%\usepackage{xcolor}
+%\usepackage{colortbl} %% color text and table rows
 %\usepackage{arydshln} %% dashlines for tabular
 %\usepackage{sidecap}
 \newcommand{\logit}{\text{logit}}
@@ -242,10 +242,6 @@ theta <- inv.logit(logit.theta)
 # Transform the probability of presence into a raster
 theta <- rasterFromXYZ(cbind(coordinates(alt),theta))
 # Plot the probability of presence
-## require(fields)
-## col.prob <- colorRampPalette(c("transparent","blue","green",
-##                                "yellow","orange","red","brown"))
-## plot(theta,col=col.prob(255))
 plot(theta,col=rev(heat.colors(255)))
 @ 
 
@@ -550,16 +546,13 @@ Z <- rbinom(nobspt,1,theta.obspt)
 logit.delta.obs <- W %*% gamma.target
 delta.obs <- inv.logit(logit.delta.obs)
 set.seed(seed)
-# Y <- rbinom(nobs,1,delta.obs*Z[obspt])
-Y <- rbinom(nobs,1,0.8*Z[obspt])
+Y <- rbinom(nobs,1,delta.obs*Z[obspt])
 
-# Spatial entity (raster cells) associated to each observation
-cell.obspt <- extract(alt,obs,cellnumbers=TRUE)[,"cells"]
-cell.obs <- cell.obspt[obspt]
-# cell.obs <- as.numeric(as.factor(cell.obs)) # from 1 to ncell, not necessary
+# Site associated to each observation
+site.obs <- obspt
 
 # Data-sets
-data.obs <- data.frame(Y,w1,w2,cell=cell.obs)
+data.obs <- data.frame(Y,w1,w2,site=site.obs)
 data.suit <- data.frame(alt=X[,2],alt2=X[,3])
 @ 
 \subsubsection{Parameter inference using the \texttt{hSDM.siteocc()} function}
@@ -569,10 +562,9 @@ a Bayesian framework.
 
 <<inference-siteocc>>=
 mod.hSDM.siteocc <- hSDM.siteocc(# Observations
-                                 presences=data.obs$Y,
-                                 #observability=~w1+w2,
-                                 observability=~1,
-                                 spatial.entity=data.obs$cell,
+                                 presence=data.obs$Y,
+                                 observability=~w1+w2,
+                                 site=data.obs$site,
                                  data.observability=data.obs,
                                  # Habitat                                 
                                  suitability=~alt+alt2,
@@ -693,6 +685,6 @@ abline(a=0,b=1,col="red",lwd=2)
 \newpage
 
 \bibliographystyle{gcb}
-\bibliography{/home/ghislain/Documents/Ghislain-CIRAD/Biblio/Biblio-These-GV}
+\bibliography{biblio}
 
 \end{document}

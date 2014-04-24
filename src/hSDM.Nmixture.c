@@ -101,17 +101,17 @@ static double gammadens (double gamma_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
-	/* theta */
-	double logit_theta=0.0;
+	/* delta */
+	double logit_delta=0.0;
 	for (int q=0; q<d->NQ; q++) {
 	    if (q!=k) {
-		logit_theta+=d->W[n][q]*d->gamma_run[q];
+		logit_delta+=d->W[n][q]*d->gamma_run[q];
 	    }
 	}
-	logit_theta+=d->W[n][k]*gamma_k;
-	double theta=invlogit(logit_theta);
+	logit_delta+=d->W[n][k]*gamma_k;
+	double delta=invlogit(logit_delta);
 	/* log Likelihood */
-	logL+=dbinom(d->Y[n],d->N_run[d->IdCell[n]],theta,1);
+	logL+=dbinom(d->Y[n],d->N_run[d->IdCell[n]],delta,1);
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(gamma_k,d->mugamma[k],sqrt(d->Vgamma[k]),1); 
@@ -131,14 +131,14 @@ static double Ndens (int N_i, void *dens_data) {
     double logL=0;
     for (int m=0; m<d->nObsCell[i]; m++) {
 	int w=d->PosCell[i][m]; // which observation
-	/* theta */
-	double logit_theta=0.0;
+	/* delta */
+	double logit_delta=0.0;
 	for (int q=0; q<d->NQ; q++) {
-	    logit_theta+=d->W[w][q]*d->gamma_run[q];
+	    logit_delta+=d->W[w][q]*d->gamma_run[q];
 	}
-	double theta=invlogit(logit_theta);
+	double delta=invlogit(logit_delta);
 	/* log Likelihood */
-	logL+=dbinom(d->Y[w],N_i,theta,1);
+	logL+=dbinom(d->Y[w],N_i,delta,1);
     }
     // logPosterior=logL+logPrior
     /* lambda */
@@ -161,7 +161,7 @@ void hSDM_Nmixture (
     const int *nobs, // Number of observations
     const int *ncell, // Constants
     const int *np, // Number of fixed effects for lambda
-    const int *nq, // Number of fixed effects for theta
+    const int *nq, // Number of fixed effects for delta
     const int *Y_vect, // Number of successes (presences)
     const double *W_vect, // Observability covariates (nobs x nq)
     const double *X_vect, // Suitability covariates (ncell x np)
@@ -184,7 +184,7 @@ void hSDM_Nmixture (
     // Diagnostic
     double *Deviance,
     double *lambda_latent, // Latent proba of suitability (length NOBS)
-    double *theta_latent, // Latent proba of observability (length NOBS)
+    double *delta_latent, // Latent proba of observability (length NOBS)
     double *lambda_pred, // Proba of suitability for predictions (length NPRED)
     // Seeds
     const int *seed,
@@ -222,9 +222,9 @@ void hSDM_Nmixture (
     for (int n=0; n<NOBS; n++) {
     	lambda_run[n]=0.0;
     }
-    double *theta_run=malloc(NOBS*sizeof(double));
+    double *delta_run=malloc(NOBS*sizeof(double));
     for (int n=0; n<NOBS; n++) {
-    	theta_run[n]=0.0;
+    	delta_run[n]=0.0;
     }
     double *lambda_pred_run=malloc(NPRED*sizeof(double));
     for (int m=0; m<NPRED; m++) {
@@ -471,14 +471,14 @@ void hSDM_Nmixture (
     	// logLikelihood
     	double logL1=0.0;
     	for (int n=0; n<NOBS; n++) {
-    	    /* theta */
-    	    double logit_theta=0.0;
+    	    /* delta */
+    	    double logit_delta=0.0;
     	    for (int q=0; q<NQ; q++) {
-    		logit_theta+=dens_data.W[n][q]*dens_data.gamma_run[q];
+    		logit_delta+=dens_data.W[n][q]*dens_data.gamma_run[q];
     	    }
-    	    theta_run[n]=invlogit(logit_theta);
+    	    delta_run[n]=invlogit(logit_delta);
     	    /* log Likelihood */
-    	    logL1+=dbinom(dens_data.Y[n],dens_data.N_run[dens_data.IdCell[n]],theta_run[n],1);
+    	    logL1+=dbinom(dens_data.Y[n],dens_data.N_run[dens_data.IdCell[n]],delta_run[n],1);
 
     	    /* lambda_run (of length nobs) */
     	    double Xpart_lambda=0.0;
@@ -531,7 +531,7 @@ void hSDM_Nmixture (
     	    Deviance[isamp-1]=Deviance_run;
     	    for (int n=0; n<NOBS; n++) {
     		lambda_latent[n]+=lambda_run[n]/NSAMP; // We compute the mean of NSAMP values
-    		theta_latent[n]+=theta_run[n]/NSAMP; // We compute the mean of NSAMP values
+    		delta_latent[n]+=delta_run[n]/NSAMP; // We compute the mean of NSAMP values
     	    }
     	    // lambda
     	    if (save_p[0]==0) { // We compute the mean of NSAMP values
@@ -679,7 +679,7 @@ void hSDM_Nmixture (
     free(dens_data.mugamma);
     free(dens_data.Vgamma);
     free(dens_data.gamma_run);
-    free(theta_run);
+    free(delta_run);
     /* Predictions */
     for (int m=0; m<NPRED; m++) {
     	free(X_pred[m]);

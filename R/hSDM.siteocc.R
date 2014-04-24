@@ -20,8 +20,8 @@
 
 
 hSDM.siteocc <- function (# Observations
-                          presences, observability,
-                          spatial.entity, data.observability,
+                          presence, observability,
+                          site, data.observability,
                           # Habitat
                           suitability, data.suitability,
                           # Predictions
@@ -51,7 +51,7 @@ hSDM.siteocc <- function (# Observations
   #========
 
   #= Response
-  Y <- presences
+  Y <- presence
   nobs <- length(Y)
   #= Suitability
   mf.suit <- model.frame(formula=suitability,data=data.suitability)
@@ -59,10 +59,10 @@ hSDM.siteocc <- function (# Observations
   #= Observability
   mf.obs <- model.frame(formula=observability,data=data.observability)
   W <- model.matrix(attr(mf.obs,"terms"),data=mf.obs)
-  #= Spatial entity
-  Levels.spatial.entity <- sort(unique(spatial.entity))
-  ncell <- length(Levels.spatial.entity)
-  cells <- as.numeric(as.factor(spatial.entity))
+  #= Site
+  Levels.site <- sort(unique(site))
+  nsite <- length(Levels.site)
+  sites <- as.numeric(as.factor(site))
 
   #= Predictions
   if (is.null(suitability.pred)) {
@@ -86,9 +86,9 @@ hSDM.siteocc <- function (# Observations
   # Check data
   #==========
   check.Y.binomial(Y,rep(1:nobs))
-  check.X(X,ncell) # X must be of dim (ncell x np) for the siteocc model
+  check.X(X,nsite) # X must be of dim (nsite x np) for the siteocc model
   check.W(W,nobs)
-  check.cells(cells,nobs)
+  check.sites(sites,nobs)
 
   #========
   # Initial starting values for M-H
@@ -109,7 +109,7 @@ hSDM.siteocc <- function (# Observations
   #========
   beta <- rep(beta.start,nsamp)
   gamma <- rep(gamma.start,nsamp)
-  theta_latent <- rep(0,ncell)
+  theta_latent <- rep(0,nsite)
   delta_latent <- rep(0,nobs)
   if (save.p==0) {theta_pred <- rep(0,npred)}
   if (save.p==1) {theta_pred <- rep(0,npred*nsamp)}
@@ -122,14 +122,14 @@ hSDM.siteocc <- function (# Observations
                #= Constants and data
                ngibbs=as.integer(ngibbs), nthin=as.integer(nthin), nburn=as.integer(nburn), ## Number of iterations, burning and samples
                nobs=as.integer(nobs),
-               ncell=as.integer(ncell),
+               nsite=as.integer(nsite),
                np=as.integer(np),
                nq=as.integer(nq),
                Y_vect=as.integer(c(Y)),
                W_vect=as.double(c(W)),
                X_vect=as.double(c(X)),
-               #= Spatial cells
-               C_vect=as.integer(c(cells)-1), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term. 
+               #= Spatial sites
+               S_vect=as.integer(c(sites)-1), # Sites range is 1,...,nsite in R. Must start at 0 for C. Don't forget the "-1" term. 
                #= Predictions
                npred=as.integer(npred),
                X_pred_vect=as.double(c(X.pred)),
