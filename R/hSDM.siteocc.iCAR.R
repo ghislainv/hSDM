@@ -74,13 +74,12 @@ hSDM.siteocc.iCAR <- function (# Observations
   #= Spatial entity
   ncell <- length(n.neighbors)
   cells <- spatial.entity
-  visited <- sort(unique(cells))
 
   #= Predictions
   if (is.null(suitability.pred) | is.null(spatial.entity.pred)) {
       X.pred <- X
       cells.pred <- spatial.entity
-      npred <- nobs
+      npred <- nsite
   }
   if (!is.null(suitability.pred) & !is.null(spatial.entity.pred)) {
       mf.pred <- model.frame(formula=suitability,data=suitability.pred)

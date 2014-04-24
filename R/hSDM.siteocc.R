@@ -67,7 +67,7 @@ hSDM.siteocc <- function (# Observations
   #= Predictions
   if (is.null(suitability.pred)) {
       X.pred <- X
-      npred <- nobs
+      npred <- nsite
   }
   if (!is.null(suitability.pred)) {
       mf.pred <- model.frame(formula=suitability,data=suitability.pred)
