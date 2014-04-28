@@ -60,17 +60,17 @@ static double betadens (double beta_k, void *dens_data) {
     // logLikelihood
     double logL=0.0;
     for (int n=0; n<d->NOBS; n++) {
-	/* prob_p */
-	double Xpart_prob_p=0.0;
+	/* theta */
+	double Xpart_theta=0.0;
 	for (int p=0; p<d->NP; p++) {
 	    if (p!=k) {
-		Xpart_prob_p+=d->X[n][p]*d->beta_run[p];
+		Xpart_theta+=d->X[n][p]*d->beta_run[p];
 	    }
 	}
-	Xpart_prob_p+=d->X[n][k]*beta_k;
-	double prob_p=invlogit(Xpart_prob_p);
+	Xpart_theta+=d->X[n][k]*beta_k;
+	double theta=invlogit(Xpart_theta);
 	/* log Likelihood */
-	logL+=dbinom(d->Y[n],d->T[n],prob_p,1);
+	logL+=dbinom(d->Y[n],d->T[n],theta,1);
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(beta_k,d->mubeta[k],sqrt(d->Vbeta[k]),1);
@@ -86,7 +86,7 @@ void hSDM_binomial (
     // Constants and data
     const int *ngibbs, int *nthin, int *nburn, // Number of iterations, burning and samples
     const int *nobs, // Number of observations
-    const int *np, // Number of fixed effects for prob_p
+    const int *np, // Number of fixed effects for theta
     const int *Y_vect, // Number of successes (presences)
     const int *T_vect, // Number of trials
     const double *X_vect, // Suitability covariates
@@ -101,8 +101,8 @@ void hSDM_binomial (
     const double *mubeta, double *Vbeta,
      // Diagnostic
     double *Deviance,
-    double *prob_p_latent, // Latent proba of suitability (length NOBS) 
-    double *prob_p_pred, // Proba of suitability for predictions (length NPRED)
+    double *theta_latent, // Latent proba of suitability (length NOBS) 
+    double *theta_pred, // Proba of suitability for predictions (length NPRED)
     // Seeds
     const int *seed,
     // Verbose
@@ -132,13 +132,13 @@ void hSDM_binomial (
 
     ///////////////////////////////////
     // Declaring some useful objects //
-    double *prob_p_run=malloc(NOBS*sizeof(double));
+    double *theta_run=malloc(NOBS*sizeof(double));
     for (int n=0; n<NOBS; n++) {
-	prob_p_run[n]=0.0;
+	theta_run[n]=0.0;
     }
-    double *prob_p_pred_run=malloc(NPRED*sizeof(double));
+    double *theta_pred_run=malloc(NPRED*sizeof(double));
     for (int m=0; m<NPRED; m++) {
-	prob_p_pred_run[m]=0.0;
+	theta_pred_run[m]=0.0;
     }
 
     //////////////////////////////////////////////////////////
@@ -239,14 +239,14 @@ void hSDM_binomial (
 	// logLikelihood
 	double logL=0.0;
 	for (int n=0; n<NOBS; n++) {
-	    /* prob_p */
-	    double Xpart_prob_p=0.0;
+	    /* theta */
+	    double Xpart_theta=0.0;
 	    for (int p=0; p<NP; p++) {
-		Xpart_prob_p+=dens_data.X[n][p]*dens_data.beta_run[p];
+		Xpart_theta+=dens_data.X[n][p]*dens_data.beta_run[p];
 	    }
-	    prob_p_run[n]=invlogit(Xpart_prob_p);
+	    theta_run[n]=invlogit(Xpart_theta);
 	    /* log Likelihood */
-	    logL+=dbinom(dens_data.Y[n],dens_data.T[n],prob_p_run[n],1);
+	    logL+=dbinom(dens_data.Y[n],dens_data.T[n],theta_run[n],1);
 	}
 
 	// Deviance
@@ -256,12 +256,12 @@ void hSDM_binomial (
 	//////////////////////////////////////////////////
 	// Predictions
 	for (int m=0; m<NPRED; m++) {
-	    /* prob_p_pred_run */
-	    double Xpart_prob_p_pred=0.0;
+	    /* theta_pred_run */
+	    double Xpart_theta_pred=0.0;
 	    for (int p=0; p<NP; p++) {
-		Xpart_prob_p_pred+=X_pred[m][p]*dens_data.beta_run[p];
+		Xpart_theta_pred+=X_pred[m][p]*dens_data.beta_run[p];
 	    }
-	    prob_p_pred_run[m]=invlogit(Xpart_prob_p_pred);
+	    theta_pred_run[m]=invlogit(Xpart_theta_pred);
 	}
 
 
@@ -274,17 +274,17 @@ void hSDM_binomial (
 	    }
 	    Deviance[isamp-1]=Deviance_run;
 	    for (int n=0; n<NOBS; n++) {
-		prob_p_latent[n]+=prob_p_run[n]/NSAMP; // We compute the mean of NSAMP values
+		theta_latent[n]+=theta_run[n]/NSAMP; // We compute the mean of NSAMP values
 	    }
 	    // prob.p
 	    if (save_p[0]==0) { // We compute the mean of NSAMP values
 		for (int m=0; m<NPRED; m++) {
-		    prob_p_pred[m]+=prob_p_pred_run[m]/NSAMP; 
+		    theta_pred[m]+=theta_pred_run[m]/NSAMP; 
 		}
 	    }
-	    if (save_p[0]==1) { // The NSAMP sampled values for prob_p are saved
+	    if (save_p[0]==1) { // The NSAMP sampled values for theta are saved
 		for (int m=0; m<NPRED; m++) {
-		    prob_p_pred[m*NSAMP+(isamp-1)]=prob_p_pred_run[m]; 
+		    theta_pred[m*NSAMP+(isamp-1)]=theta_pred_run[m]; 
 		}
 	    }
 	}
@@ -352,13 +352,13 @@ void hSDM_binomial (
     free(dens_data.mubeta);
     free(dens_data.Vbeta);
     free(dens_data.beta_run);
-    free(prob_p_run);
+    free(theta_run);
     /* Predictions */
     for (int m=0; m<NPRED; m++) {
     	free(X_pred[m]);
     }
     free(X_pred);
-    free(prob_p_pred_run);
+    free(theta_pred_run);
     /* Adaptive MH */
     free(sigmap_beta);
     free(nA_beta);

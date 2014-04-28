@@ -136,15 +136,15 @@ hSDM.binomial <- function (presences, trials,
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save pred
-  if (save.p==0) {prob.p.pred <- Sample[[17]]}
+  if (save.p==0) {theta.pred <- Sample[[17]]}
   if (save.p==1) {
       Matrix.p.pred <- matrix(Sample[[17]],ncol=npred)
       colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
-      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      theta.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
   
   #= Output
-  return (list(mcmc=MCMC, prob.p.pred=prob.p.pred, prob.p.latent=Sample[[16]]))
+  return (list(mcmc=MCMC, theta.pred=theta.pred, theta.latent=Sample[[16]]))
 
 }
 

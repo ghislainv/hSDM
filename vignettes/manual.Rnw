@@ -142,60 +142,59 @@ Sys.setenv(TEXINPUTS=getwd(),
 
 \subsubsection{Mathematical formulation}
 
-Let's consider a random variable $y_{i(jt)}$ (abbreviated $y_i$) representing the total
-number of presences of a species after several visits $v_{i(jt)}$ (abbreviated $v_i$) at a
-particular site $j$ at time $t$ ($t$ can indicate a day, a year, etc. thus allowing
-several visits at time $t$). Random variable $y_i$ can take values from 0 to $v_i$ and can
-be assumed to follow a Binomial distribution having parameters $v_i$ and $\theta_{i(jt)}$
-(Eq.~\ref{eq:binomial}). $\theta_{i(jt)}$ (abbreviated $\theta_i$) can be interpreted as
-the probability of presence of the species at site $j$ and time $t$. Using a logit link
+Let's consider a random variable $y_i$ representing the total number of presences of a
+species after several visits $v_i$ at a particular site $i$. Random variable $y_i$ can
+take values from 0 to $v_i$ and can be assumed to follow a Binomial distribution having
+parameters $v_i$ and $\theta_i$ (Eq.~\ref{eq:binomial}). Paameter $\theta_i$ can be
+interpreted as the probability of presence of the species at site $i$ . Using a logit link
 function, $\theta_i$ can be expressed as a linear model combining explicative variables
-$X_{i(jt)}$ and parameters $\beta$ (Eq.~\ref{eq:binomial}).
+$X_i$ and parameters $\beta$ (Eq.~\ref{eq:binomial}).
 
 \begin{equation}
   \begin{tabular}{c}
     $y_i \sim \mathcal{B}inomial(v_i,\theta_i)$ \\
     ~ \\
-    $\logit(\theta_i) = X_{i(jt)} \beta$ \\
+    $\logit(\theta_i) = X_i \beta$ \\
   \end{tabular}
   \label{eq:binomial}
 \end{equation}
 
 Using this statistical model, we aim at representing a ``suitability process''. Given
-environmental variables $X_{i(jt)}$, how much is habitat at site $j$ and at time $t$
-suitable for the species under consideration? Parameters $\beta$ indicate how much each
-environmental variable contributes to the suitability process. Like every other function
-in the \textbf{hSDM} R package, function \texttt{hSDM.binomial()} estimates the parameters
-$\beta$ of such a model in a Bayesian framework. Parameter inference is done using a Gibbs
-sampler including a Metropolis algorithm. The Gibbs sampler is coded in the C language to
-optimize computation efficiency.
+environmental variables $X_i$, how much is habitat at site $i$ suitable for the species
+under consideration? Parameters $\beta$ indicate how much each environmental variable
+contributes to the suitability process. Like every other function in the \textbf{hSDM} R
+package, function \texttt{hSDM.binomial()} estimates the parameters $\beta$ of such a
+model in a Bayesian framework. Parameter inference is done using a Gibbs sampler including
+a Metropolis algorithm. The Gibbs sampler is coded in the C language to optimize
+computation efficiency.
 
 \subsubsection{Data generation}
 
 To explore the characteristics of the \texttt{hSDM.binomial()} function, we can generate a
 virtual data-set on the basis of the Binomial model described above
 (Eq.~\ref{eq:binomial}). In the most general case (presence/absence data or
-presence/pseudo-absence data), a site $j$ is visited once at time $t$ and $v_i=1$. Thus,
-the random variable $y_i$ follows a Bernoulli distribution having parameters $\theta_i$
-and habitat characteristics $X_{i(jt)}$ are fixed for site $j$. We will generate a virtual
-data-set in this particular case. For data generation, we can import virtual altitudinal
-data in R. Altitude will be used as an explicative variable to determine habitat
-suitability, i.e. the probability of presence of a virtual species. Altitudinal data are
-available on the website of the \textbf{hSDM} R package hosted on Sourceforge
+presence/background data), a site $i$ is visited once and $v_i=1$. Thus, the random
+variable $y_i$ follows a Bernoulli distribution having parameters $\theta_i$ and habitat
+characteristics $X_i$ are fixed for site $i$. We will generate a virtual data-set in
+this particular case. For data generation, we can import virtual altitudinal data in
+R. Altitude will be used as an explicative variable to determine habitat suitability,
+i.e. the probability of presence of a virtual species. Altitudinal data are available on
+the website of the \textbf{hSDM} R package hosted on Sourceforge
 (\url{http://hsdm.sourceforge.net/altitude.csv}).
 
-These data can be transformed into a raster using function \texttt{rasterFromXYZ()} from
-the \textbf{raster} package. The raster has 2500 cells (50 columns and 50 rows) and the
-altitude is comprised roughly between 100 and 600~m (Fig.~\ref{fig:Altitude}). For linear
-models, explicative variables are usually centered and scaled to facilitate inference and
-interpretation of model parameters.
+These data can be transformed into a raster object using the function
+\texttt{rasterFromXYZ()} from the \textbf{raster} package. The raster has 2500 cells (50
+columns and 50 rows) and the altitude ranges roughly between 100 and 600~m
+(Fig.~\ref{fig:Altitude}). For linear models, explicative variables are usually centered
+and scaled to facilitate inference and interpretation of model parameters.
 
 <<Altitude>>=
 # Import altitudinal data
 require(raster)
 fname <- "http://hsdm.sourceforge.net/altitude.csv"
-alt.df <- read.csv(fname,header=TRUE) 
+alt.df <- read.csv(fname,header=TRUE)
 alt.orig <- rasterFromXYZ(alt.df)
+extent(alt.orig) <- c(0,50,0,50)
 plot(alt.orig)
 
 # Center and scale altitudinal data
@@ -213,36 +212,42 @@ plot(alt)
   \label{fig:Altitude}
 \end{figure}
 
-A quadratic effect of the altitude (variable denoted $x$) is used to compute the
+A linear model including altitude (variable denoted $A$) is used to compute the
 probability of presence of the species (Eq.~\ref{eq:bernoulli}).
 
 \begin{equation}
   \begin{tabular}{c}
     $y_i \sim \mathcal{B}ernoulli(\theta_i)$ \\
     ~ \\
-    $\logit(\theta_i) = \beta_0 + \beta_1 x_i + \beta_2 x_i^2$ \\
+    $\logit(\theta_i) = \beta_0 + \beta_1 A_i$ \\
   \end{tabular}
   \label{eq:bernoulli}
 \end{equation}
 
-We fix the parameters to $\beta_0=1$, $\beta_1=2$ and $\beta_2=-4$. The species has a
-higher probability of presence at intermediate altitudinal values
-(Fig.~\ref{fig:theta-binomial}).
+We fix the parameters to $\beta_0=-1$ and $\beta_1=1$. The species has a higher
+probability of presence at higher altitudes (Fig.~\ref{fig:theta-binomial}).
 
 <<theta-binomial>>=
 # Load hSDM library
 library(hSDM)                                
 # Target parameters
-beta.target <- matrix(c(1,2,-4),ncol=1)
+beta.target <- matrix(c(-1,1),ncol=1)
 # Matrix of covariates (including the intercept)
-X <- cbind(rep(1,ncell(alt)),values(alt),(values(alt))^2)
+X <- cbind(rep(1,ncell(alt)),values(alt))
 # Probability of presence as a quadratic function of altitude
 logit.theta <- X %*% beta.target
 theta <- inv.logit(logit.theta)
 # Transform the probability of presence into a raster
 theta <- rasterFromXYZ(cbind(coordinates(alt),theta))
+# Color palette for probability plots
+colRP <- colorRampPalette(c("white","yellow","orange",
+                            "red","brown","black"))
 # Plot the probability of presence
-plot(theta,col=rev(heat.colors(255)))
+brks <- seq(0,1,length.out=100) 
+arg <- list(at=seq(0,1,length.out=5), labels=c("0","0.25","0.5","0.75","1"))
+nb <- length(brks)-1
+plot(theta,main="Initial probabilities",col=colRP(nb),
+     breaks=brks,axis.args=arg,zlim=c(0,1))
 @ 
 
 \begin{figure}[!h] 
@@ -251,35 +256,37 @@ plot(theta,col=rev(heat.colors(255)))
   \label{fig:theta-binomial}
 \end{figure}
 
-We can assume a number $n$ of points in the landscape where we have been able to observe
+We can assume a number $n$ of sites in the landscape where we have been able to observe
 or not the presence of the species. We can simulate the presence or absence of the species
-at these $n$ points given our model (Fig.~\ref{fig:observations-binomial}).
+at these $n$ sites given our model (Fig.~\ref{fig:observations-binomial}).
 
 <<observations-binomial>>=
-# Load dismo library
-require(dismo) # For randomPoints() function
-# Number of observation points
-nobspt <- 200
+# Number of observation sites
+nsite <- 200
 # Set seed for repeatability
 seed <- 1234
 # Sample the observations in the landscape
 set.seed(seed)
-obs <- randomPoints(alt,nobspt)
-# Extract altitude data for observations
-alt.obs <- extract(alt,obs)
-# Compute theta for these observations
-X <- cbind(rep(1,nobspt),alt.obs,alt.obs^2)
-logit.theta.obs <- X %*% beta.target
-theta.obs <- inv.logit(logit.theta.obs)
-# Simulate observations
-trials <- rep(1,nobspt)
-set.seed(seed)
-Y <- rbinom(nobspt,trials,theta.obs)
-# Group explicative and response variables in a data-frame
-data.obs.df <- data.frame(Y,trials,alt=X[,2],alt2=X[,3])
-# Transform observations in a spatial object
+x.coord <- runif(nsite,0,50)
+set.seed(2*seed)
+y.coord <- runif(nsite,0,50)
 require(sp)
-data.obs <- SpatialPointsDataFrame(coords=coordinates(obs),data=data.obs.df)
+sites.sp <- SpatialPoints(coords=cbind(x.coord,y.coord))
+# Extract altitude data for sites
+alt.sites <- extract(alt,sites.sp)
+# Compute theta for these observations
+X <- cbind(rep(1,nsite),alt.sites)
+logit.theta.site <- X %*% beta.target
+theta.site <- inv.logit(logit.theta.site)
+# Simulate observations
+visits <- rep(1,nsite) # One visit per site for the moment
+set.seed(seed)
+Y <- rbinom(nsite,visits,theta.site)
+# Group explicative and response variables in a data-frame
+data.obs.df <- data.frame(Y,visits,alt=X[,2])
+# Transform observations in a spatial object
+data.obs <- SpatialPointsDataFrame(coords=coordinates(sites.sp),
+                                   data=data.obs.df)
 # Plot observations
 plot(alt.orig)
 points(data.obs[data.obs$Y==1,],pch=16)
@@ -302,10 +309,10 @@ points. To directly obtain these predictions, we can create a data frame includi
 altitudinal data on the whole landscape. This data frame will be used for the
 \texttt{suitability.pred} argument. The data frame for predictions must include the same
 column names as those used in the formula for the \texttt{suitability} argument
-(i.e. ``alt'' and ``alt2'' in our example).
+(i.e. ``alt'' our example).
 
 <<>>=
-data.pred <- data.frame(alt=values(alt),alt2=(values(alt))^2)
+data.pred <- data.frame(alt=values(alt))
 @ 
 
 We can now call the \texttt{hSDM.binomial()} function. Setting parameter \texttt{save.p}
@@ -315,8 +322,8 @@ and 95\% quantiles are useful to estimate the uncertainty around the mean predic
 
 <<inference-binomial>>=
 mod.hSDM.binomial <- hSDM.binomial(presences=data.obs$Y,
-                                   trials=data.obs$trials,
-                                   suitability=~alt+alt2,
+                                   trials=data.obs$visits,
+                                   suitability=~alt,
                                    data=data.obs,
                                    suitability.pred=data.pred,
                                    burnin=1000, mcmc=1000, thin=1,
@@ -330,9 +337,8 @@ mod.hSDM.binomial <- hSDM.binomial(presences=data.obs$Y,
 The \texttt{hSDM.binomial()} function returns an MCMC (Markov chain Monte Carlo) for each
 parameter of the model and also for the model deviance. To obtain parameter estimates,
 MCMC values can be summarized through a call to the \texttt{summary()} function from the
-\textbf{coda} package. We can check that the values of the target parameters
-$\beta_0=1$, $\beta_1=2$ and $\beta_2=-4$ are within the 95\% confidence interval of
-the parameter estimates.
+\textbf{coda} package. We can check that the values of the target parameters, $\beta_0=-1$
+and $\beta_1=1$, are within the 95\% confidence interval of the parameter estimates.
 
 <<results="markup">>=
 summary(mod.hSDM.binomial$mcmc)
@@ -342,7 +348,7 @@ Parameters estimates can be compared to results obtained with the \texttt{glm()}
 
 <<results="markup">>=
 #== glm results for comparison
-mod.glm <- glm(cbind(Y,trials-Y)~alt+alt2,family="binomial",data=data.obs)
+mod.glm <- glm(cbind(Y,visits-Y)~alt,family="binomial",data=data.obs)
 summary(mod.glm)
 @ 
 
@@ -362,20 +368,20 @@ plot(mod.hSDM.binomial$mcmc)
 \end{figure}
 
 The \texttt{hSDM.binomial()} function also returns two other objects. The first one,
-\texttt{prob.p.latent}, is the predictive posterior mean of the latent variable
+\texttt{theta.latent}, is the predictive posterior mean of the latent variable
 $\theta$ (the probability of presence) for each observation. 
 
 <<results="markup">>=
-str(mod.hSDM.binomial$prob.p.latent)
-summary(mod.hSDM.binomial$prob.p.latent)
+str(mod.hSDM.binomial$theta.latent)
+summary(mod.hSDM.binomial$theta.latent)
 @
 
-The second one, \texttt{prob.p.pred} is the set of sampled values from the predictive
+The second one, \texttt{theta.pred} is the set of sampled values from the predictive
 posterior (if parameter \texttt{save.p} is set to 1) or the predictive posterior mean (if
 \texttt{save.p} is set to 0) for each prediction. In our example, \texttt{save.p} is set
-to 1 and \texttt{prob.p.pred} is an \texttt{mcmc} object. Values in \texttt{prob.p.pred} can be
-used to plot the predicted probability of presence on the whole landscape and the
-uncertainty associated to the predictions (Fig~\ref{fig:predictions-binomial}).
+to 1 and \texttt{theta.pred} is an \texttt{mcmc} object. Values in \texttt{theta.pred} can
+be used to plot the predicted probability of presence on the whole landscape and the
+uncertainty associated to predictions (Fig~\ref{fig:predictions-binomial}).
 
 <<predictions-binomial>>=
 # Create a raster for predictions
@@ -383,13 +389,16 @@ theta.pred.mean <- raster(theta)
 # Create rasters for uncertainty
 theta.pred.2.5 <- theta.pred.97.5 <- raster(theta)
 # Attribute predicted values to raster cells
-theta.pred.mean[] <- apply(mod.hSDM.binomial$prob.p.pred,2,mean)
-theta.pred.2.5[] <- apply(mod.hSDM.binomial$prob.p.pred,2,quantile,0.025)
-theta.pred.97.5[] <- apply(mod.hSDM.binomial$prob.p.pred,2,quantile,0.975)
+theta.pred.mean[] <- apply(mod.hSDM.binomial$theta.pred,2,mean)
+theta.pred.2.5[] <- apply(mod.hSDM.binomial$theta.pred,2,quantile,0.025)
+theta.pred.97.5[] <- apply(mod.hSDM.binomial$theta.pred,2,quantile,0.975)
 # Plot the predicted probability of presence and uncertainty
-plot(theta.pred.mean,col=rev(heat.colors(255)))
-plot(theta.pred.2.5,col=rev(heat.colors(255)))
-plot(theta.pred.97.5,col=rev(heat.colors(255)))
+plot(theta.pred.mean,main="Mean",col=colRP(nb),breaks=brks,
+     axis.args=arg,zlim=c(0,1))
+plot(theta.pred.2.5,main="Quantile 2.5 %",col=colRP(nb),breaks=brks,
+     axis.args=arg,zlim=c(0,1))
+plot(theta.pred.97.5,main="Quantile 97.5 %",col=colRP(nb),breaks=brks,
+     axis.args=arg,zlim=c(0,1))
 @
 
 \begin{figure}[!h] 
@@ -414,7 +423,9 @@ computed from our model to check that our predictions are correct
 
 <<pred-obs-binomial>>=
 # Comparing predictions to initial values
-plot(theta[],theta.pred.mean[],cex.lab=1.4)
+plot(theta[],theta.pred.mean[],cex.lab=1.4,xlim=c(0,1),ylim=c(0,1))
+points(theta[],theta.pred.2.5[],cex.lab=1.4,col=grey(0.5))
+points(theta[],theta.pred.97.5[],cex.lab=1.4,col=grey(0.5))
 abline(a=0,b=1,col="red",lwd=2)
 @ 
 
@@ -450,40 +461,38 @@ New classes of models, called site-occupancy models, were developed to solve the
 created by imperfect detection \citep{MacKenzie2002}. These models combine two processes,
 an ecological process which describes habitat suitability and an observation process which
 takes into account imperfect detection. Site-occupancy models use information from
-repeated observations at each site to estimate detectability. Detectability may vary with
-site characteristics (e.g., habitat variables) or survey characteristics (e.g., weather
-conditions), whereas occupancy relates only to site characteristics.
+repeated observations at several sites to estimate detectability. Detectability may vary
+with site characteristics (e.g., habitat variables) or survey characteristics (e.g.,
+weather conditions), whereas occupancy relates only to site characteristics.
 
-Let's consider the random variable $z_{i(jt)}$ (abbreviated $z_i$) describing habitat
-suitability for observation $i$ at site $j$ and at time $t$. The random variable $z_i$ can
-take value 1 or 0 depending on the fact that the habitat at site $j$ and at time $t$ is
-suitable ($z_i=1$) or not ($z_i=0$). Habitat at site $j$ and time $t$ is described by
-environmental variables $X_{i(jt)}$. Random variable $z_i$ can be assumed to follow a
-Bernoulli distribution of parameter $\theta_i$ (Eq.~\ref{eq:siteocc}). In this case,
-$\theta_i$ is the probability that the habitat is suitable. Let's consider also the random
-variable $y_{i(jt)}$ (abbreviated $y_i$) representing the total number of presences of a
-species after several visits $v_{i(jt)}$ (abbreviated $v_i$) at a particular site $j$ at
-time $t$. Again, $t$ can indicate a day, a year, etc. thus allowing several visits at time
-$t$. The species is observed ($y_i \geq 1$) only if the habitat is suitable ($z=1$). The
-species is unobserved ($y_i=0$) if the habitat is not suitable ($z_i=0$) or if the habitat
-is suitable ($z_i=1$) but the detection probability $\delta_{i(jt)}$ (abbreviated
-$\delta_i$) is inferior to 1. Thus, the total number of presences $y_i$ is assumed to
-follow a Binomial distribution with parameters $z_i \delta_i$ and $v_i$. Using a logit
-link function, $\delta_i$ can be expressed as a linear model combining explicative
-variables $W_{i(jt)}$ and parameters $\gamma$ (Eq.~\ref{eq:siteocc}). Typically,
-explicative variables $W_{i(jt)}$ are site characteristics (e.g., habitat variables) or
-survey characteristics (e.g., weather conditions). The function \texttt{hSDM.siteocc()}
-estimates the parameters $\beta$ and $\gamma$ of such a model.
+Let's consider the random variable $z_i$ describing habitat suitability at site $i$. The
+random variable $z_i$ can take value 1 or 0 depending on the fact that the habitat is
+suitable ($z_i=1$) or not ($z_i=0$). Habitat at site $i$ is described by environmental
+variables $X_i$. Random variable $z_i$ can be assumed to follow a Bernoulli distribution
+of parameter $\theta_i$ (Eq.~\ref{eq:siteocc}). In this case, $\theta_i$ is the
+probability that the habitat is suitable. Several visits at time $t_1$, $t_2$, etc., can
+occur at site $i$. Let's consider the random variable $y_{it}$ representing the presence
+of the species at site $i$ and time $t$. The species is observed at site $i$
+($\sum_t{y_{it}} \geq 1$) only if the habitat is suitable ($z_i=1$). The species is
+unobserved at site $i$ ($\sum_t{y_{it}}=0$) if the habitat is not suitable ($z_i=0$) or if
+the habitat is suitable ($z_i=1$) but the probability $\delta_{it}$ of detecting the
+species at site $i$ and time $t$ is inferior to 1. Thus, $y_{it}$ is assumed to follow a
+Bernoulli distribution of parameter $z_i \delta_{it}$. Using a logit link function,
+$\delta_{it}$ can be expressed as a linear model combining explicative variables $W_{it}$
+and parameters $\gamma$ (Eq.~\ref{eq:siteocc}). Typically, explicative variables
+$W_{it}$ are site characteristics (e.g., habitat variables) or survey characteristics
+(e.g., weather conditions). The function \texttt{hSDM.siteocc()} estimates the parameters
+$\beta$ and $\gamma$ of such a model.
 
 \begin{equation}
   \begin{tabular}{c}
     \textbf{Ecological process:}\\
     $z_i \sim \mathcal{B}ernoulli(\theta_i)$ \\
-    $\logit(\theta_i) = X_{i(jt)} \beta$\\
+    $\logit(\theta_i) = X_i \beta$\\
     ~ \\
     \textbf{Observation process:}\\
-    $y_i \sim \mathcal{B}inomial(z_i \delta_i, v_i)$ \\
-    $\logit(\delta_i) = W_{i(jt)} \gamma$ \\
+    $y_{it} \sim \mathcal{B}ernoulli(z_i \delta_{it})$ \\
+    $\logit(\delta_{it}) = W_{it} \gamma$ \\
   \end{tabular}
   \label{eq:siteocc}
 \end{equation}
@@ -492,42 +501,53 @@ estimates the parameters $\beta$ and $\gamma$ of such a model.
 
 To explore the characteristics of the \texttt{hSDM.siteocc()} function, we can generate a
 new virtual data-set on the basis of the site-occupancy model described above
-(Eq.~\ref{eq:siteocc}). In most general cases, protocol experiments would include severals
+(Eq.~\ref{eq:siteocc}). In the most general case, the observation protocol includes severals
 visits with varying survey conditions (e.g. weather conditions) to several sites with
-fixed sites characteristics (e.g. habitat variables). We will generate virtual data
-following this protocole and using the altitudinal data used in the previous example for
-the Binomial model (Sec.~\ref{sec:binomial}).
+fixed sites characteristics (e.g. habitat variables). We will generate a virtual data-set
+following this protocole using the altitudinal data in the previous example for the
+Binomial model (Sec.~\ref{sec:binomial}).
 
-We draw at random the number of visits at each observation point used in the previous
-example (see Fig.~\ref{fig:observations-binomial} of Sec.~\ref{sec:binomial}).
+We draw at random the number of visits at each site of the previous example (see
+Fig.~\ref{fig:observations-binomial} of Sec.~\ref{sec:binomial}).
 
 <<siteocc-visits>>=
 # Number of visits associated to each observation point
 set.seed(seed)
-v <- rpois(nobspt,2)
-v[v==0] <- 1
-# Vector of observation points
-obspt <- vector()
-for (i in 1:nobspt) {
-    obspt <- c(obspt,rep(i,v[i]))
+v <- rpois(nsite,lambda=3) # Mean number of visits ~3
+# NB: Setting a too low mean number of visits per site (lambda < 3)
+# leads to inaccurate parameter estimates
+v[v==0] <- 1 # Number of visits must be > 0
+# Vector of observation sites
+sites <- vector()
+for (i in 1:nsite) {
+    sites <- c(sites,rep(i,v[i]))
 }
 @ 
 
-We fix the survey conditions for each visit depending on two explicative variables $w_1$
-and $w_2$ which will explain the observability of the species. We also fix the intercept
-and the effects of these two variables: $\gamma_0=0.2$, $\gamma_1=0.5$ and $\gamma_2=0.5$
-for determining the detection probability.
+The survey conditions for each visit are determined by two explicative variables, $w_1$
+and the altitude (variable denoted $A$). These two variables explain the observability of
+the species (Eq.~\ref{eq:siteocc-detection}).
+
+\begin{equation}
+  \begin{tabular}{c}
+    $y_{it} \sim \mathcal{B}ernoulli(z_i \delta_{it})$ \\
+    $\logit(\delta_{it}) = \gamma_0 + \gamma_1 w_{1it} + \gamma_2 A_{it}$ \\
+  \end{tabular}
+  \label{eq:siteocc-detection}
+\end{equation}
+
+We fix the intercept and the effects of these two variables: $\gamma_0=-1$, $\gamma_1=1$
+and $\gamma_2=-1$ for determining the detection probability. In our case, the detection
+probability decreases with altitude ($\gamma_2 < 0$).
 
 <<siteocc-observability-covariates>>=
 # Explicative variables for observation process
 nobs <- sum(v)
 set.seed(seed)
 w1 <- rnorm(n=nobs,0,1)
-set.seed(2*seed)
-w2 <- rnorm(n=nobs,0,1)
-W <- cbind(rep(1,nobs),w1,w2)
+W <- cbind(rep(1,nobs),w1,X[sites,2])
 # Target parameters for observation process
-gamma.target <- matrix(c(0.2,0.5,0.5),ncol=1)
+gamma.target <- matrix(c(-1,1,-1),ncol=1)
 @ 
 
 Using covariates and parameters for the two processes, we compute the probability that
@@ -537,23 +557,20 @@ observation data-set.
 
 <<siteocc-proba>>=
 # Ecological process (suitability)
-logit.theta.obspt <- X %*% beta.target
-theta.obspt <- inv.logit(logit.theta.obspt)
+logit.theta.site <- X %*% beta.target
+theta.site <- inv.logit(logit.theta.site)
 set.seed(seed)
-Z <- rbinom(nobspt,1,theta.obspt)
+Z <- rbinom(nsite,1,theta.site)
 
 # Observation process (detectability)
 logit.delta.obs <- W %*% gamma.target
 delta.obs <- inv.logit(logit.delta.obs)
 set.seed(seed)
-Y <- rbinom(nobs,1,delta.obs*Z[obspt])
-
-# Site associated to each observation
-site.obs <- obspt
+Y <- rbinom(nobs,1,delta.obs*Z[sites])
 
 # Data-sets
-data.obs <- data.frame(Y,w1,w2,site=site.obs)
-data.suit <- data.frame(alt=X[,2],alt2=X[,3])
+data.obs <- data.frame(Y,w1,alt=X[sites,2],site=sites)
+data.suit <- data.frame(alt=X[,2])
 @ 
 \subsubsection{Parameter inference using the \texttt{hSDM.siteocc()} function}
 
@@ -563,11 +580,11 @@ a Bayesian framework.
 <<inference-siteocc>>=
 mod.hSDM.siteocc <- hSDM.siteocc(# Observations
                                  presence=data.obs$Y,
-                                 observability=~w1+w2,
+                                 observability=~w1+alt,
                                  site=data.obs$site,
                                  data.observability=data.obs,
                                  # Habitat                                 
-                                 suitability=~alt+alt2,
+                                 suitability=~alt,
                                  data.suitability=data.suit,
                                  # Predictions
                                  suitability.pred=data.pred,
@@ -580,7 +597,7 @@ mod.hSDM.siteocc <- hSDM.siteocc(# Observations
                                  mubeta=0, Vbeta=1.0E6,
                                  mugamma=0, Vgamma=1.0E6,
                                  # Various
-                                 seed=1234, verbose=1, save.p=0)
+                                 seed=1234, verbose=1, save.p=1)
 @ 
 
 \subsubsection{Analysis of the results}
@@ -607,15 +624,20 @@ plot(mod.hSDM.siteocc$mcmc)
 <<predictions-siteocc>>=
 # Create a raster for predictions
 theta.pred.mean <- raster(theta)
-# Attribute predicted values to raster cells
-theta.pred.mean[] <- mod.hSDM.siteocc$theta.pred
+# Computing mean and quantiles for uncertainty
+theta.pred.mean[] <- apply(mod.hSDM.siteocc$theta.pred,2,mean)
+theta.pred.2.5 <- apply(mod.hSDM.siteocc$theta.pred,2,quantile,0.025)
+theta.pred.97.5 <- apply(mod.hSDM.siteocc$theta.pred,2,quantile,0.975)
 # Plot the predicted probability of presence
-plot(theta.pred.mean,col=rev(heat.colors(255)))
+plot(theta.pred.mean,main="hSDM.siteocc",col=colRP(nb),breaks=brks,
+     axis.args=arg,zlim=c(0,1))
 @
 
 <<pred-obs-siteocc>>=
 # Comparing predictions to initial values
-plot(theta[],theta.pred.mean[],cex.lab=1.4)
+plot(theta[],theta.pred.mean[],xlim=c(0,1),ylim=c(0,1),cex.lab=1.4)
+points(theta[],theta.pred.2.5[],cex.lab=1.4,col=grey(0.5))
+points(theta[],theta.pred.97.5[],cex.lab=1.4,col=grey(0.5))
 abline(a=0,b=1,col="red",lwd=2)
 @ 
 
@@ -638,8 +660,7 @@ assuming a perfect detection.
 
 <<results="markup">>=
 #== glm results for comparison
-data.obs.glm <- data.frame(Y,alt=X[obspt,2],alt2=X[obspt,3])
-mod.glm <- glm(Y~alt+alt2,family="binomial",data=data.obs.glm)
+mod.glm <- glm(Y~alt,family="binomial",data=data.obs)
 summary(mod.glm)
 @ 
 
@@ -649,15 +670,24 @@ theta.pred.glm <- raster(theta)
 # Attribute predicted values to raster cells
 theta.pred.glm[] <- predict.glm(mod.glm,newdata=data.pred,type="response")
 # Plot the predicted probability of presence
-plot(theta.pred.glm,col=rev(heat.colors(255)))
+plot(theta.pred.glm,main="GLM",col=colRP(nb),breaks=brks,
+     axis.args=arg,zlim=c(0,1))
 @
 
 <<pred-obs-siteocc-glm>>=
 # Comparing predictions to initial values
-plot(theta[],theta.pred.glm[],cex.lab=1.4)
+plot(theta[],theta.pred.glm[],
+     xlim=c(0,1),ylim=c(0,1),cex.lab=1.4)
+points(theta[],theta.pred.mean[],col=grey(0.5))
 abline(a=0,b=1,col="red",lwd=2)
 @ 
 
+On Figure \ref{fig:predictions-siteocc-glm}, we can see that using a GLM in the case of
+imperfect detection can lead to very inaccurate parameter estimates and predictions
+regarding the probability of presence of the species. This is particularly true when
+detection probability is negatively correlated to presence probability (through an
+explicative variable such as the altitude in our example). This has been clearly
+demonstrated in an article by \citet{Lahoz-Monfort2014}.
 
 \begin{figure}[!h] 
   \begin{tabular}{cc}
@@ -672,9 +702,60 @@ abline(a=0,b=1,col="red",lwd=2)
   
 \end{figure}
 
-
-
 \subsection{Binomial iCAR model}
+
+\subsubsection{Mathematical formulation}
+
+\subsubsection{Data generation}
+
+<<binom.iCAR-rmvn>>=
+# Function to draw in a multivariate normal
+rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
+    p <- length(mu)
+    if (any(is.na(match(dim(V), p)))) {
+        stop("Dimension problem!")
+    }
+    D <- chol(V)
+    set.seed(seed)
+    t(matrix(rnorm(n*p),ncol=p)%*%D+rep(mu,rep(n,p)))
+}
+@ 
+
+<<binom.iCAR-spatial.effects>>=
+# Neighborhood structure with adjacent cells
+ncell <- ncell(alt)
+neighbors.mat <- adjacent(alt, cells=c(1:ncell), directions=8, pairs=TRUE, sorted=TRUE)
+n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
+adj <- neighbors.mat[,2]
+
+# Generate symmetric adjacency matrix, A
+A <- matrix(0,ncell,ncell)
+index.start <- 1
+for (i in 1:ncell) {
+    index.end <- index.start+n.neighbors[i]-1
+    A[i,adj[c(index.start:index.end)]] <- 1
+    index.start <- index.end+1
+}
+
+# Spatial effects
+Vrho.target <- 1 # Variance of spatial random effects
+d <- 1	# Spatial dependence, parameter = 1 for intrinsic CAR
+Q <- diag(n.neighbors)-d*A + diag(.0001,ncell) # Add small constant to make Q non-singular
+covrho <- Vrho.target*solve(Q) # Covariance of rhos
+rho <- c(rmvn(1,mu=rep(0,ncell),V=covrho,seed)) # Spatial random effects
+rho <- rho-mean(rho) # Centering rhos on zero
+@ 
+
+<<binom.iCAR-data>>=
+# Ecological process (suitability)
+logit.theta.site <- X %*% beta.target + rho[cells]
+theta.site <- inv.logit(logit.theta.site)
+set.seed(seed)
+Y <- rbinom(nsite,1,theta.site)
+@ 
+\subsubsection{Parameter inference using the \texttt{hSDM.binomial.iCAR()} function}
+
+\subsubsection{Analysis of the results}
 
 \subsection{Site-occupancy iCAR model}
 

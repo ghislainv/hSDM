@@ -71,7 +71,7 @@ beta.start, mubeta = 0, Vbeta = 1e+06, seed = 1234, verbose = 1, save.p
 
   \item{save.p}{A switch (0,1) which determines whether or not the
     sampled values for predictions are saved. Default is 0: the
-    posterior mean is computed and returned in the \code{prob.p.pred}
+    posterior mean is computed and returned in the \code{theta.pred}
     vector. Be careful, setting \code{save.p} to 1 might require a large
     amount of memory.}
   
@@ -85,14 +85,14 @@ beta.start, mubeta = 0, Vbeta = 1e+06, seed = 1234, verbose = 1, save.p
     \eqn{D=-2\log(\prod_i P(y_i|\beta,t_i))}{%
       D=-2log(prod_i P(y_i|beta,t_i))}, is also provided.}
 
-  \item{prob.p.pred}{If \code{save.p} is set to 0 (default),
-    \code{prob.p.pred} is the predictive posterior mean of the
+  \item{theta.pred}{If \code{save.p} is set to 0 (default),
+    \code{theta.pred} is the predictive posterior mean of the
     probability associated to the suitability process for each
-    prediction. If \code{save.p} is set to 1, \code{prob.p.pred} is an
+    prediction. If \code{save.p} is set to 1, \code{theta.pred} is an
     \code{mcmc} object with sampled values of the probability associated
     to the suitability process for each prediction.}
   
-  \item{prob.p.latent}{Predictive posterior mean of the probability
+  \item{theta.latent}{Predictive posterior mean of the probability
     associated to the suitability process for each observation.}
       
 }
@@ -205,8 +205,8 @@ summary(mod.hSDM.binomial$mcmc)
 pdf(file="Posteriors_hSDM.binomial.pdf")
 plot(mod.hSDM.binomial$mcmc)
 dev.off()
-summary(mod.hSDM.binomial$prob.p.latent)
-summary(mod.hSDM.binomial$prob.p.pred)
+summary(mod.hSDM.binomial$theta.latent)
+summary(mod.hSDM.binomial$theta.pred)
 
 }
 
