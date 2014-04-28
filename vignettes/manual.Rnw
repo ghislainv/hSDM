@@ -577,7 +577,7 @@ data.suit <- data.frame(alt=X[,2])
 The \texttt{hSDM.siteocc()} function estimates the parameter of a site-occupancy model in
 a Bayesian framework.
 
-<<inference-siteocc>>=
+<<siteocc-inference>>=
 mod.hSDM.siteocc <- hSDM.siteocc(# Observations
                                  presence=data.obs$Y,
                                  observability=~w1+alt,
@@ -683,11 +683,11 @@ abline(a=0,b=1,col="red",lwd=2)
 @ 
 
 On Figure \ref{fig:predictions-siteocc-glm}, we can see that using a GLM in the case of
-imperfect detection can lead to very inaccurate parameter estimates and predictions
-regarding the probability of presence of the species. This is particularly true when
-detection probability is negatively correlated to presence probability (through an
-explicative variable such as the altitude in our example). This has been clearly
-demonstrated in an article by \citet{Lahoz-Monfort2014}.
+imperfect detection can lead to very inaccurate parameter estimates and predictions for
+the probability of presence of the species. This is particularly true when detection
+probability is negatively correlated to presence probability (through an explicative
+variable such as the altitude in our example). This has been clearly demonstrated in an
+article by \citet{Lahoz-Monfort2014}.
 
 \begin{figure}[!h] 
   \begin{tabular}{cc}
@@ -696,7 +696,7 @@ demonstrated in an article by \citet{Lahoz-Monfort2014}.
   \end{tabular}
   \centering \includegraphics[width=8cm]{figures/pred-obs-siteocc-glm.pdf} \\
   
-  \caption{\textbf{Comparing predicted probability of presence using glm with initial probabilities}}
+  \caption{\textbf{Comparing predicted probability of presence using GLM with initial probabilities}}
   
   \label{fig:predictions-siteocc-glm}
   
@@ -708,7 +708,7 @@ demonstrated in an article by \citet{Lahoz-Monfort2014}.
 
 \subsubsection{Data generation}
 
-<<binom.iCAR-rmvn>>=
+<<binom-iCAR-rmvn>>=
 # Function to draw in a multivariate normal
 rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
     p <- length(mu)
@@ -721,41 +721,97 @@ rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
 }
 @ 
 
-<<binom.iCAR-spatial.effects>>=
-# Neighborhood structure with adjacent cells
-ncell <- ncell(alt)
-neighbors.mat <- adjacent(alt, cells=c(1:ncell), directions=8, pairs=TRUE, sorted=TRUE)
-n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
-adj <- neighbors.mat[,2]
-
-# Generate symmetric adjacency matrix, A
-A <- matrix(0,ncell,ncell)
-index.start <- 1
-for (i in 1:ncell) {
-    index.end <- index.start+n.neighbors[i]-1
-    A[i,adj[c(index.start:index.end)]] <- 1
-    index.start <- index.end+1
-}
-
-# Spatial effects
-Vrho.target <- 1 # Variance of spatial random effects
-d <- 1	# Spatial dependence, parameter = 1 for intrinsic CAR
-Q <- diag(n.neighbors)-d*A + diag(.0001,ncell) # Add small constant to make Q non-singular
-covrho <- Vrho.target*solve(Q) # Covariance of rhos
-rho <- c(rmvn(1,mu=rep(0,ncell),V=covrho,seed)) # Spatial random effects
+<<binom-iCAR-spatial-effects>>=
+# Distance matrix
+distance <- as.matrix(dist(coords))
+# Generate spatial random effects
+delta <- 0.05
+rho <- rmvn(1,mu=rep(0, n),V=exp(-delta * distance),seed)
 rho <- rho-mean(rho) # Centering rhos on zero
+rho.rast <- rasterFromXYZ(xyz=cbind(coordinates(alt),rho))
+plot(c(1:100),exp(-delta*c(1:100)),type="l",
+     xlab="Distance",ylab="Correlation")
+plot(rho.rast)
 @ 
 
-<<binom.iCAR-data>>=
+\begin{figure}[!h] 
+  \begin{tabular}{cc}
+    \includegraphics[width=8cm]{figures/binom-iCAR-spatial-effects1.pdf} &
+    \includegraphics[width=8cm]{figures/binom-iCAR-spatial-effects2.pdf} \\
+  \end{tabular}
+  \caption{\textbf{Spatial random effects}}
+  \label{fig:binom-iCAR-spatial-effects}
+\end{figure}
+
+<<binom-iCAR-obs>>=
 # Ecological process (suitability)
+cells <- extract(alt,sites.sp,cell=TRUE)[,1]
 logit.theta.site <- X %*% beta.target + rho[cells]
 theta.site <- inv.logit(logit.theta.site)
 set.seed(seed)
 Y <- rbinom(nsite,1,theta.site)
+
+# Data-sets
+data.suit <- data.frame(Y,visits,alt=X[,2],cells)
+data.pred <- data.frame(alt=values(alt),cells=c(1:ncells))
 @ 
+
 \subsubsection{Parameter inference using the \texttt{hSDM.binomial.iCAR()} function}
 
+<<binom-iCAR-neighborhood>>=
+# Number of spatial entity (raster cells)
+ncells <- ncell(alt)
+# Rasters must be projected to correctly compute the neighborhood
+crs(alt) <- '+proj=utm +zone=1'
+# Neighborhood matrix
+neighbors.mat <- adjacent(alt, cells=c(1:ncells), directions=8, 
+                          pairs=TRUE, sorted=TRUE)
+# Number of neighbors by cell
+n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
+# Adjacent cells
+adj <- neighbors.mat[,2]
+@ 
+
+<<binom-iCAR-model>>=
+mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=data.suit$Y,
+                                             trials=data.suit$visits,
+                                             suitability=~alt,
+                                             spatial.entity=data.suit$cells,
+                                             data=data.suit,
+                                             n.neighbors=n.neighbors,
+                                             neighbors=adj,
+                                             suitability.pred=data.pred,
+                                             spatial.entity.pred=data.pred$cells,
+                                             burnin=5000, mcmc=5000, thin=5,
+                                             beta.start=0,
+                                             Vrho.start=10,
+                                             #priorVrho="1/Gamma",
+                                             priorVrho="Uniform",
+                                             #priorVrho=10,
+                                             mubeta=0, Vbeta=1.0E6,
+                                             shape=0.5, rate=0.0005,
+                                             Vrho.max=10,
+                                             seed=1234, verbose=1,
+                                             save.rho=1, save.p=0)
+@ 
+
 \subsubsection{Analysis of the results}
+
+<<binom-iCAR-summary,results="markup">>=
+summary(mod.hSDM.binomial.iCAR$mcmc)
+@ 
+
+<<binom-iCAR-results>>=
+rho.pred <- apply(mod.hSDM.binomial.iCAR$rho.pred,2,mean)
+rho.pred.rast <- rasterFromXYZ(cbind(coordinates(alt),rho.pred))
+plot(rho.pred.rast,main="Predictions")
+@ 
+
+\begin{figure}[!h] 
+  \centering \includegraphics[width=8cm]{figures/binom-iCAR-results.pdf}
+  \caption{\textbf{Spatial random effect predictions}}
+  \label{fig:binom-iCAR-results}
+\end{figure}
 
 \subsection{Site-occupancy iCAR model}
 
