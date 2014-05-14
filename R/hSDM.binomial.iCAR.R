@@ -114,10 +114,9 @@ hSDM.binomial.iCAR <- function (# Observations
   if (save.rho==0) {rho_pred <- rho.start}
   if (save.rho==1) {rho_pred <- rep(rho.start,nsamp)}
   Vrho <- rep(Vrho.start,nsamp)
-  prob_p_latent <- rep(0,nobs)
-  prob_q_latent <- rep(0,nobs)
-  if (save.p==0) {prob_p_pred <- rep(0,npred)}
-  if (save.p==1) {prob_p_pred <- rep(0,npred*nsamp)}
+  theta_latent <- rep(0,nobs)
+  if (save.p==0) {theta_pred <- rep(0,npred)}
+  if (save.p==1) {theta_pred <- rep(0,npred*nsamp)}
   Deviance <- rep(0,nsamp)
 
   #========
@@ -154,8 +153,8 @@ hSDM.binomial.iCAR <- function (# Observations
                Vrho.max=as.double(Vrho.max),
                #= Diagnostic
                Deviance.nonconst=as.double(Deviance),
-               prob_p_latent.nonconst=as.double(prob_p_latent), ## Predictive posterior mean
-               prob_p_pred.nonconst=as.double(prob_p_pred), 
+               theta_latent.nonconst=as.double(theta_latent), ## Predictive posterior mean
+               theta_pred.nonconst=as.double(theta_pred), 
                #= Seed
                seed=as.integer(seed), 
                #= Verbose
@@ -187,17 +186,17 @@ hSDM.binomial.iCAR <- function (# Observations
   }
 
   #= Save pred
-  if (save.p==0) {prob.p.pred <- Sample[[29]]}
+  if (save.p==0) {theta.pred <- Sample[[29]]}
   if (save.p==1) {
       Matrix.p.pred <- matrix(Sample[[29]],ncol=npred)
       colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
-      prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
+      theta.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Output
   return (list(mcmc=MCMC,
-               rho.pred=rho.pred, prob.p.pred=prob.p.pred,
-               prob.p.latent=Sample[[28]]))
+               rho.pred=rho.pred, theta.pred=theta.pred,
+               theta.latent=Sample[[28]]))
 
 }
 

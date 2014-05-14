@@ -125,7 +125,7 @@
 
 %%=============================
 %% Change default shunk options
-<<setup, echo=FALSE>>=
+<<setup, echo=FALSE, cache=FALSE>>=
 require(knitr)
 opts_chunk$set(cache=FALSE, results="hide", warning=FALSE, message=FALSE, fig.path="figures/", 
                highlight=TRUE, fig.show="hide", size="small", tidy=FALSE)
@@ -189,7 +189,7 @@ columns and 50 rows) and the altitude ranges roughly between 100 and 600~m
 (Fig.~\ref{fig:Altitude}). For linear models, explicative variables are usually centered
 and scaled to facilitate inference and interpretation of model parameters.
 
-<<Altitude>>=
+<<Altitude,cache=TRUE>>=
 # Import altitudinal data
 require(raster)
 fname <- "http://hsdm.sourceforge.net/altitude.csv"
@@ -234,7 +234,8 @@ library(hSDM)
 # Target parameters
 beta.target <- matrix(c(-1,1),ncol=1)
 # Matrix of covariates (including the intercept)
-X <- cbind(rep(1,ncell(alt)),values(alt))
+ncells <- ncell(alt)
+X <- cbind(rep(1,ncells),values(alt))
 # Probability of presence as a quadratic function of altitude
 logit.theta <- X %*% beta.target
 theta <- inv.logit(logit.theta)
@@ -713,73 +714,7 @@ article by \citet{Lahoz-Monfort2014}.
 
 \subsubsection{Mathematical formulation}
 
-\subsubsection{Data generation}
-
-<<binom-iCAR-rmvn>>=
-# Function to draw in a multivariate normal
-rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
-    p <- length(mu)
-    if (any(is.na(match(dim(V), p)))) {
-        stop("Dimension problem!")
-    }
-    D <- chol(V)
-    set.seed(seed)
-    t(matrix(rnorm(n*p),ncol=p)%*%D+rep(mu,rep(n,p)))
-}
-@ 
-
-<<binom-iCAR-spatial-effects>>=
-# Number of spatial entity (raster cells)
-ncells <- ncell(alt)
-# Distance matrix
-distance <- as.matrix(dist(coords))
-# Generate spatial random effects
-delta <- 0.05
-rho <- rmvn(1,mu=rep(0, ncells),V=exp(-delta * distance),seed)
-rho <- rho-mean(rho) # Centering rhos on zero
-rho.rast <- rasterFromXYZ(xyz=cbind(coords,rho))
-plot(c(1:100),exp(-delta*c(1:100)),type="l",
-     xlab="Distance",ylab="Correlation")
-plot(rho.rast)
-# Probability of presence
-theta.cells <- inv.logit(X %*% beta.target + rho)
-theta <- rasterFromXYZ(cbind(coords,theta.cells))
-plot(theta,main="Initial probabilities",col=colRP(nb),breaks=brks,
-     axis.args=arg,zlim=c(0,1))
-@ 
-
-\begin{figure} 
-  \begin{tabular}{cc}
-    \includegraphics[width=8cm]{figures/binom-iCAR-spatial-effects1.pdf} &
-    \includegraphics[width=8cm]{figures/binom-iCAR-spatial-effects2.pdf} \\
-  \end{tabular}
-  \caption{\textbf{Spatial random effects}}
-  \label{fig:binom-iCAR-spatial-effects}
-\end{figure}
-
-<<binom-iCAR-obs>>=
-# Ecological process (suitability)
-cells <- extract(alt,sites.sp,cell=TRUE)[,1]
-logit.theta.site <- X.sites %*% beta.target + rho[cells]
-theta.site <- inv.logit(logit.theta.site)
-set.seed(seed)
-Y <- rbinom(nsite,visits,theta.site)
-
-# Data-sets
-data.suit <- data.frame(Y,visits,alt=X.sites[,2],cells)
-data.pred <- data.frame(alt=values(alt),cells=c(1:ncells))
-       
-# Transform observations in a spatial object
-data.suit <- SpatialPointsDataFrame(coords=coordinates(sites.sp),
-                                    data=data.suit)
-# Plot observations
-plot(theta,main="Initial probabilities",col=colRP(nb),breaks=brks,
-     axis.args=arg,zlim=c(0,1))
-points(data.suit[data.suit$Y>0,],pch=16)
-points(data.suit[data.suit$Y==0,],pch=1)       
-@ 
-
-\subsubsection{Parameter inference using the \texttt{hSDM.binomial.iCAR()} function}
+\subsubsection{Data generation with iCAR}
 
 <<binom-iCAR-neighborhood>>=
 # Rasters must be projected to correctly compute the neighborhood
@@ -791,7 +726,83 @@ neighbors.mat <- adjacent(alt, cells=c(1:ncells), directions=8,
 n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
 # Adjacent cells
 adj <- neighbors.mat[,2]
+# Generate symmetric adjacency matrix, A
+A <- matrix(0,ncells,ncells)
+index.start <- 1
+for (i in 1:ncells) {
+    index.end <- index.start+n.neighbors[i]-1
+    A[i,adj[c(index.start:index.end)]] <- 1
+    index.start <- index.end+1
+}
 @ 
+
+<<binom-iCAR-rmvn>>=
+# Function to draw in a multivariate normal
+rmvn <- function(n, mu=0, V=matrix(1), seed=1234) {
+    p <- length(mu)
+    if (any(is.na(match(dim(V), p)))) {
+        stop("Dimension problem!")
+    }
+    D <- chol(V)
+    set.seed(seed)
+    t(matrix(rnorm(n*p),ncol=p)%*%D+rep(mu,rep(n,p)))
+}
+@ 
+
+<<binom-iCAR-spatial-effects, cache=TRUE>>=
+# Generate spatial random effects
+Vrho.target <- 1 # Variance of spatial random effects
+d <- 1	# Spatial dependence parameter = 1 for intrinsic CAR
+Q <- diag(n.neighbors)-d*A + diag(.0001,ncells) # Add small constant to 
+                                               # make Q non-singular
+covrho <- Vrho.target*solve(Q) # Covariance of rhos
+rho <- c(rmvn(1,mu=rep(0,ncells),V=covrho,seed=seed)) # Spatial Random Effects
+rho <- rho-mean(rho) # Centering rhos on zero
+rho.rast <- rasterFromXYZ(xyz=cbind(coords,rho))
+# Probability of presence
+theta.cells <- inv.logit(X %*% beta.target + rho)
+theta <- rasterFromXYZ(cbind(coords,theta.cells))
+@ 
+
+<<binom-iCAR-obs>>=
+# Ecological process (suitability)
+cells <- extract(alt,sites.sp,cell=TRUE)[,1]
+set.seed(seed)
+logit.theta.site <- X.sites %*% beta.target + rho[cells]
+theta.site <- inv.logit(logit.theta.site)
+set.seed(seed)
+Y <- rbinom(nsite,visits,theta.site)
+# Data-sets
+data.suit <- data.frame(Y,visits,alt=X.sites[,2],cells)
+data.pred <- data.frame(alt=values(alt),cells=c(1:ncells))
+# Transform observations into a spatial object
+data.suit <- SpatialPointsDataFrame(coords=coordinates(sites.sp),
+                                    data=data.suit)     
+@ 
+
+<<binom-iCAR-plots>>=
+# Plot spatial random effects
+plot(rho.rast,main="Spatial random effects")
+# Plot initial probabilities and observations
+plot(theta,main="Initial probabilities (iCAR model)",col=colRP(nb),breaks=brks,
+     axis.args=arg,zlim=c(0,1))
+points(data.suit[data.suit$Y>0,],pch=16)
+points(data.suit[data.suit$Y==0,],pch=1)
+@ 
+
+\begin{figure} 
+  \centering \includegraphics[width=8cm]{figures/binom-iCAR-plots1.pdf}
+  \caption{\textbf{Spatial random effects}}
+  \label{fig:binom-iCAR-plots1-2}
+\end{figure}
+
+\begin{figure} 
+  \centering \includegraphics[width=8cm]{figures/binom-iCAR-plots2.pdf}
+  \caption{\textbf{Initial probability of presence and observations}}
+  \label{fig:binom-iCAR-plots3}
+\end{figure}
+
+\subsubsection{Parameter inference using the \texttt{hSDM.binomial.iCAR()} function}
 
 <<binom-iCAR-model>>=
 mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=data.suit$Y,
@@ -816,28 +827,194 @@ mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=data.suit$Y,
                                              save.rho=1, save.p=0)
 @ 
 
-\subsubsection{Analysis of the results}
+\subsubsection{Analysis of the results with iCAR}
 
 <<binom-iCAR-summary,results="markup">>=
 summary(mod.hSDM.binomial.iCAR$mcmc)
 @ 
 
 <<binom-iCAR-results>>=
+# Predictions for spatial random effects
 rho.pred <- apply(mod.hSDM.binomial.iCAR$rho.pred,2,mean)
 rho.pred.rast <- rasterFromXYZ(cbind(coords,rho.pred))
-plot(rho.pred.rast,main="Predictions")
-
+plot(rho.pred.rast,main="Predictions rho")
+# Predictions for probability of presence
 theta.pred <- mod.hSDM.binomial.iCAR$prob.p.pred
 theta.pred.rast <- rasterFromXYZ(cbind(coords,theta.pred))
-plot(theta.pred.rast,main="Predictions",col=colRP(nb),breaks=brks,
+plot(theta.pred.rast,main="Predictions theta",col=colRP(nb),breaks=brks,
      axis.args=arg,zlim=c(0,1))
+# Predictions vs. initial spatial random effects
+plot(rho[-cells],rho.pred[-cells],xlab="rho target",ylab="Predictions rho")
+points(rho[cells],rho.pred[cells],col="blue",pch=16)
+abline(a=0,b=1,col="red")
+# Predictions vs. initial probabilities
+plot(values(theta)[-cells],theta.pred[-cells],xlab="theta target",
+     ylab="Predictions theta")
+points(values(theta)[cells],theta.pred[cells],col="blue",pch=16)
+abline(a=0,b=1,col="red")
 @ 
 
-\begin{figure} 
-  \centering \includegraphics[width=8cm]{figures/binom-iCAR-results.pdf}
-  \caption{\textbf{Spatial random effect predictions}}
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{cc}
+      \includegraphics[width=6.5cm]{figures/binom-iCAR-plots1.pdf} & 
+      \includegraphics[width=6.5cm]{figures/binom-iCAR-plots2.pdf} \\
+      \includegraphics[width=6.5cm]{figures/binom-iCAR-results1.pdf} &
+      \includegraphics[width=6.5cm]{figures/binom-iCAR-results2.pdf} \\
+      \includegraphics[width=6.5cm]{figures/binom-iCAR-results3.pdf} &
+      \includegraphics[width=6.5cm]{figures/binom-iCAR-results4.pdf} \\
+    \end{tabular}
+  \end{center}
+  \caption{\textbf{Predictions vs. initial values}}
   \label{fig:binom-iCAR-results}
 \end{figure}
+
+
+%% <<binom-iCAR-mcmc-rho>>=                
+%% pdf("figures/mcmc-rho.pdf")
+%% plot(mod.hSDM.binomial.iCAR$rho.pred)
+%% dev.off()
+%% @ 
+
+\newpage
+
+\subsubsection{Data generation with distance}
+
+%% <<binom-iCAR-spatial-effects>>=
+%% # Number of spatial entity (raster cells)
+%% ncells <- ncell(alt)
+%% # Distance matrix
+%% distance <- as.matrix(dist(coords))
+%% # Generate spatial random effects
+%% delta <- 0.05
+%% rho <- rmvn(1,mu=rep(0, ncells),V=exp(-delta * distance),seed=4321)
+%% rho <- rho-mean(rho) # Centering rhos on zero
+%% rho.rast <- rasterFromXYZ(xyz=cbind(coords,rho))
+%% # Probability of presence
+%% theta.cells <- inv.logit(X %*% beta.target + rho)
+%% theta <- rasterFromXYZ(cbind(coords,theta.cells))
+%% @ 
+
+%% <<binom-iCAR-obs>>=
+%% # Ecological process (suitability)
+%% cells <- extract(alt,sites.sp,cell=TRUE)[,1]
+%% logit.theta.site <- X.sites %*% beta.target + rho[cells]
+%% theta.site <- inv.logit(logit.theta.site)
+%% set.seed(seed)
+%% # visits <- rep(5,nsite)
+%% Y <- rbinom(nsite,visits,theta.site)
+%% # Data-sets
+%% data.suit <- data.frame(Y,visits,alt=X.sites[,2],cells)
+%% data.pred <- data.frame(alt=values(alt),cells=c(1:ncells))
+%% # Transform observations in a spatial object
+%% data.suit <- SpatialPointsDataFrame(coords=coordinates(sites.sp),
+%%                                     data=data.suit)     
+%% @ 
+
+%% <<binom-iCAR-plots>>=
+%% # Plot spatial random effects
+%% plot(c(1:100),exp(-delta*c(1:100)),type="l",
+%%      xlab="Distance",ylab="Correlation")
+%% plot(rho.rast,main="Spatial random effects")
+%% # Plot initial probabilities and observations
+%% plot(theta,main="Initial probabilities (iCAR model)",col=colRP(nb),breaks=brks,
+%%      axis.args=arg,zlim=c(0,1))
+%% points(data.suit[data.suit$Y>0,],pch=16)
+%% points(data.suit[data.suit$Y==0,],pch=1)   
+%% @ 
+
+%% \begin{figure} 
+%%   \begin{tabular}{cc}
+%%     \includegraphics[width=8cm]{figures/binom-iCAR-plots1.pdf} &
+%%     \includegraphics[width=8cm]{figures/binom-iCAR-plots2.pdf} \\
+%%   \end{tabular}
+%%   \caption{\textbf{Spatial random effects}}
+%%   \label{fig:binom-iCAR-plots1-2}
+%% \end{figure}
+
+%% \begin{figure} 
+%%   \centering \includegraphics[width=8cm]{figures/binom-iCAR-plots3.pdf}
+%%   \caption{\textbf{Initial probability of presence and observations}}
+%%   \label{fig:binom-iCAR-plots3}
+%% \end{figure}
+
+%% \subsubsection{Parameter inference using the \texttt{hSDM.binomial.iCAR()} function}
+
+%% <<binom-iCAR-neighborhood>>=
+%% # Rasters must be projected to correctly compute the neighborhood
+%% crs(alt) <- '+proj=utm +zone=1'
+%% # Neighborhood matrix
+%% neighbors.mat <- adjacent(alt, cells=c(1:ncells), directions=8, 
+%%                           pairs=TRUE, sorted=TRUE)
+%% # Number of neighbors by cell
+%% n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
+%% # Adjacent cells
+%% adj <- neighbors.mat[,2]
+%% @ 
+
+%% <<binom-iCAR-model>>=
+%% mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=data.suit$Y,
+%%                                              trials=data.suit$visits,
+%%                                              suitability=~alt,
+%%                                              spatial.entity=data.suit$cells,
+%%                                              data=data.suit,
+%%                                              n.neighbors=n.neighbors,
+%%                                              neighbors=adj,
+%%                                              suitability.pred=data.pred,
+%%                                              spatial.entity.pred=data.pred$cells,
+%%                                              burnin=1000, mcmc=1000, thin=1,
+%%                                              beta.start=0,
+%%                                              Vrho.start=10,
+%%                                              priorVrho="1/Gamma",
+%%                                              #priorVrho="Uniform",
+%%                                              #priorVrho=10,
+%%                                              mubeta=0, Vbeta=1.0E6,
+%%                                              shape=0.5, rate=0.0005,
+%%                                              Vrho.max=10,
+%%                                              seed=1234, verbose=1,
+%%                                              save.rho=1, save.p=0)
+%% @ 
+
+%% \subsubsection{Analysis of the results with distance}
+
+%% <<binom-iCAR-summary,results="markup">>=
+%% summary(mod.hSDM.binomial.iCAR$mcmc)
+%% @ 
+
+%% <<binom-iCAR-results>>=
+%% # Predictions for spatial random effects
+%% rho.pred <- apply(mod.hSDM.binomial.iCAR$rho.pred,2,mean)
+%% rho.pred.rast <- rasterFromXYZ(cbind(coords,rho.pred))
+%% plot(rho.pred.rast,main="Predictions rho")
+%% # Predictions for probability of presence
+%% theta.pred <- mod.hSDM.binomial.iCAR$prob.p.pred
+%% theta.pred.rast <- rasterFromXYZ(cbind(coords,theta.pred))
+%% plot(theta.pred.rast,main="Predictions theta",col=colRP(nb),breaks=brks,
+%%      axis.args=arg,zlim=c(0,1))
+%% # Predictions vs. initial spatial random effects
+%% plot(rho[-cells],rho.pred[-cells],xlab="rho target",ylab="Predictions rho")
+%% points(rho[cells],rho.pred[cells],col="blue",pch=16)
+%% abline(a=0,b=1,col="red")
+%% # Predictions vs. initial probabilities
+%% plot(values(theta)[-cells],theta.pred[-cells],xlab="theta target",ylab="Predictions theta")
+%% points(values(theta)[cells],theta.pred[cells],col="blue",pch=16)
+%% abline(a=0,b=1,col="red")
+%% @ 
+
+%% \begin{figure}
+%%   \begin{center}
+%%     \begin{tabular}{cc}
+%%       \includegraphics[width=6.5cm]{figures/binom-iCAR-plots2.pdf} & 
+%%       \includegraphics[width=6.5cm]{figures/binom-iCAR-plots3.pdf} \\
+%%       \includegraphics[width=6.5cm]{figures/binom-iCAR-results1.pdf} &
+%%       \includegraphics[width=6.5cm]{figures/binom-iCAR-results2.pdf} \\
+%%       \includegraphics[width=6.5cm]{figures/binom-iCAR-results3.pdf} &
+%%       \includegraphics[width=6.5cm]{figures/binom-iCAR-results4.pdf} \\
+%%     \end{tabular}
+%%   \end{center}
+%%   \caption{\textbf{Predictions vs. initial values}}
+%%   \label{fig:binom-iCAR-results}
+%% \end{figure}
 
 \newpage
 

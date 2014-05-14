@@ -122,7 +122,7 @@ verbose = 1, save.rho = 0, save.p = 0)}
 
   \item{save.p}{A switch (0,1) which determines whether or not the
     sampled values for predictions are saved. Default is 0: the
-    posterior mean is computed and returned in the \code{prob.p.pred}
+    posterior mean is computed and returned in the \code{theta.pred}
     vector. Be careful, setting \code{save.p} to 1 might require a large
     amount of memory.}
 
@@ -143,14 +143,14 @@ verbose = 1, save.rho = 0, save.p = 0)}
     values for each spatial random effect associated to each spatial
     entity.}
 
-  \item{prob.p.pred}{If \code{save.p} is set to 0 (default),
-    \code{prob.p.pred} is the predictive posterior mean of the
+  \item{theta.pred}{If \code{save.p} is set to 0 (default),
+    \code{theta.pred} is the predictive posterior mean of the
     probability associated to the suitability process for each
-    prediction. If \code{save.p} is set to 1, \code{prob.p.pred} is an
+    prediction. If \code{save.p} is set to 1, \code{theta.pred} is an
     \code{mcmc} object with sampled values of the probability associated
     to the suitability process for each prediction.}
   
-  \item{prob.p.latent}{Predictive posterior mean of the probability
+  \item{theta.latent}{Predictive posterior mean of the probability
     associated to the suitability process for each observation.}
   
 }
@@ -360,9 +360,9 @@ rho.pred <- apply(mod.hSDM.binomial.iCAR$rho.pred,2,mean)
 r.rho.pred[] <- rho.pred
 r.visited[] <- 0
 r.visited[visited.cells] <- 1
-# prob.p
-r.prob.p <- Landscape
-r.prob.p[] <- mod.hSDM.binomial.iCAR$prob.p.pred
+# theta
+r.theta <- Landscape
+r.theta[] <- mod.hSDM.binomial.iCAR$theta.pred
 
 pdf(file="Summary_hSDM.binomial.iCAR.pdf")
 par(mfrow=c(3,2))
@@ -376,7 +376,7 @@ plot(rho[visited.cells],rho.pred[visited.cells],
 points(rho[notvisited.cells],rho.pred[notvisited.cells],pch=16,col="blue")
 legend(x=-4,y=3.5,legend="Unvisited cells",col="blue",pch=16,bty="n")
 abline(a=0,b=1,col="red")
-plot(r.prob.p,main="Proba of presence")
+plot(r.theta,main="Proba of presence")
 plot(Data[Y>0,],add=TRUE,pch=16,cex=0.5)
 dev.off()
 
