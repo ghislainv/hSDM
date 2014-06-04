@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: manual.aux
+The style file: gcb.bst
+Database file #1: /home/ghislain/Documents/Ghislain-CIRAD/Biblio/Biblio-These-GV.bib
+You've used 53 entries,
+            2914 wiz_defined-function locations,
+            971 strings with 15106 characters,
+and the built_in function-call counts, 46727 in all, are:
+= -- 4232
+> -- 1593
+< -- 29
++ -- 776
+- -- 438
+* -- 3798
+:= -- 6481
+add.period$ -- 116
+call.type$ -- 53
+change.case$ -- 402
+chr.to.int$ -- 53
+cite$ -- 53
+duplicate$ -- 3741
+empty$ -- 3994
+format.name$ -- 603
+if$ -- 9733
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 514
+newline$ -- 230
+num.names$ -- 212
+pop$ -- 1325
+preamble$ -- 1
+purify$ -- 356
+quote$ -- 0
+skip$ -- 1054
+stack$ -- 0
+substring$ -- 4269
+swap$ -- 1173
+text.length$ -- 4
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 456
+warning$ -- 0
+while$ -- 380
+width$ -- 0
+write$ -- 656

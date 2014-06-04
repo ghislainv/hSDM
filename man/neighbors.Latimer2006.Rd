@@ -15,9 +15,10 @@ an example for several functions in the \code{hSDM} package.}
 
 \format{
   
-  \code{neighbors.Latimer2006} is a vector of 3542 integers indicating the neighbors (adjacent
-  cells) of each spatial cell. The vector is of the form \code{c(neighbors of cell 1,
-  neighbors of cell 2, ... , neighbors of the last cell)}.
+  \code{neighbors.Latimer2006} is a vector of 3542 integers indicating
+  the neighbors (adjacent cells) of each spatial cell. The vector is of
+  the form c(neighbors of cell 1, neighbors of cell 2, ... , neighbors
+  of the last cell).
   
 }
 
