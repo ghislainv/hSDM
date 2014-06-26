@@ -11,8 +11,8 @@
 ////////////////////////////////////////////////////////////////////
 //
 // This software is distributed under the terms of the GNU GENERAL
-// PUBLIC LICENSE Version 2, June 1991.  See the package LICENSE
-// file for more information.
+// PUBLIC LICENSE Version 3. See the package LICENSE file for more
+// information.
 //
 // Copyright (C) 2011 Ghislain Vieilledent
 // 
@@ -37,11 +37,12 @@
 struct dens_par {
     /* Data */
     int NOBS;
-    int NCELL;
     int *Y;
-    int *IdCell;
-    int *nObsCell;
-    int **PosCell;
+    /* Sites */
+    int NSITE;
+    int *IdSite;
+    int *nObsSite;
+    int **PosSite;
     /* Latent variable */
     int *N_run;
     int pos_N;
@@ -71,7 +72,7 @@ static double betadens (double beta_k, void *dens_data) {
     int k=d->pos_beta;
     // logLikelihood
     double logL=0.0;
-    for (int i=0; i<d->NCELL; i++) {
+    for (int i=0; i<d->NSITE; i++) {
 	/* lambda */
 	double Xpart_lambda=0.0;
 	for (int p=0; p<d->NP; p++) {
@@ -111,7 +112,7 @@ static double gammadens (double gamma_k, void *dens_data) {
 	logit_delta+=d->W[n][k]*gamma_k;
 	double delta=invlogit(logit_delta);
 	/* log Likelihood */
-	logL+=dbinom(d->Y[n],d->N_run[d->IdCell[n]],delta,1);
+	logL+=dbinom(d->Y[n],d->N_run[d->IdSite[n]],delta,1);
     }
     // logPosterior=logL+logPrior
     double logP=logL+dnorm(gamma_k,d->mugamma[k],sqrt(d->Vgamma[k]),1); 
@@ -125,12 +126,12 @@ static double Ndens (int N_i, void *dens_data) {
     // Pointer to the structure: d 
     struct dens_par *d;
     d=dens_data;
-    // Indicating the rank of the cell
+    // Indicating the rank of the site
     int i=d->pos_N; //
     // logLikelihood
     double logL=0;
-    for (int m=0; m<d->nObsCell[i]; m++) {
-	int w=d->PosCell[i][m]; // which observation
+    for (int m=0; m<d->nObsSite[i]; m++) {
+	int w=d->PosSite[i][m]; // which observation
 	/* delta */
 	double logit_delta=0.0;
 	for (int q=0; q<d->NQ; q++) {
@@ -158,15 +159,14 @@ void hSDM_Nmixture (
 	
     // Constants and data
     const int *ngibbs, int *nthin, int *nburn, // Number of iterations, burning and samples
-    const int *nobs, // Number of observations
-    const int *ncell, // Constants
+    const int *nobs, int *nsite, // Number of observations and sites
     const int *np, // Number of fixed effects for lambda
     const int *nq, // Number of fixed effects for delta
     const int *Y_vect, // Number of successes (presences)
     const double *W_vect, // Observability covariates (nobs x nq)
-    const double *X_vect, // Suitability covariates (ncell x np)
-    // Spatial cells
-    const int *C_vect, // Cell Id
+    const double *X_vect, // Suitability covariates (nsite x np)
+    // Spatial sites
+    const int *S_vect, // Site Id
     // Predictions
     const int *npred, // Number of predictions
     const double *X_pred_vect, // Suitability covariates for predictions
@@ -183,7 +183,7 @@ void hSDM_Nmixture (
     const double *mugamma, double *Vgamma,
     // Diagnostic
     double *Deviance,
-    double *lambda_latent, // Latent proba of suitability (length NOBS)
+    double *lambda_latent, // Latent proba of suitability (length NSITE)
     double *delta_latent, // Latent proba of observability (length NOBS)
     double *lambda_pred, // Proba of suitability for predictions (length NPRED)
     // Seeds
@@ -211,16 +211,16 @@ void hSDM_Nmixture (
     const int NBURN=nburn[0];
     const int NSAMP=(NGIBBS-NBURN)/NTHIN;
     const int NOBS=nobs[0];
-    const int NCELL=ncell[0];
+    const int NSITE=nsite[0];
     const int NP=np[0];
     const int NQ=nq[0];
     const int NPRED=npred[0];
 
     ///////////////////////////////////
     // Declaring some useful objects //
-    double *lambda_run=malloc(NOBS*sizeof(double));
-    for (int n=0; n<NOBS; n++) {
-    	lambda_run[n]=0.0;
+    double *lambda_run=malloc(NSITE*sizeof(double));
+    for (int i=0; i<NSITE; i++) {
+    	lambda_run[i]=0.0;
     }
     double *delta_run=malloc(NOBS*sizeof(double));
     for (int n=0; n<NOBS; n++) {
@@ -230,8 +230,8 @@ void hSDM_Nmixture (
     for (int m=0; m<NPRED; m++) {
     	lambda_pred_run[m]=0.0;
     }
-    double *N_pred_double=malloc(NCELL*sizeof(double));
-    for (int i=0; i<NCELL; i++) {
+    double *N_pred_double=malloc(NSITE*sizeof(double));
+    for (int i=0; i<NSITE; i++) {
     	N_pred_double[i]=0.0;
     }
 
@@ -241,7 +241,7 @@ void hSDM_Nmixture (
 
     /* Data */
     dens_data.NOBS=NOBS;
-    dens_data.NCELL=NCELL;
+    dens_data.NSITE=NSITE;
     // Y
     dens_data.Y=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
@@ -250,37 +250,37 @@ void hSDM_Nmixture (
     
     /* Latent variable */
     // N_run
-    dens_data.N_run=malloc(NCELL*sizeof(int));
-    for (int i=0; i<NCELL; i++) {
+    dens_data.N_run=malloc(NSITE*sizeof(int));
+    for (int i=0; i<NSITE; i++) {
     	dens_data.N_run[i]=N_start[i];
     }
     dens_data.pos_N=0;
 
-    /* Spatial cells */
-    // IdCell
-    dens_data.IdCell=malloc(NOBS*sizeof(int));
+    /* Sites */
+    // IdSite
+    dens_data.IdSite=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
-    	dens_data.IdCell[n]=C_vect[n];
+    	dens_data.IdSite[n]=S_vect[n];
     }
-    // nObsCell
-    dens_data.nObsCell=malloc(NCELL*sizeof(int));
-    for (int i=0; i<NCELL; i++) {
-    	dens_data.nObsCell[i]=0;
+    // nObsSite
+    dens_data.nObsSite=malloc(NSITE*sizeof(int));
+    for (int i=0; i<NSITE; i++) {
+    	dens_data.nObsSite[i]=0;
     	for (int n=0; n<NOBS; n++) {
-    	    if (dens_data.IdCell[n]==i) {
-    		dens_data.nObsCell[i]++;
+    	    if (dens_data.IdSite[n]==i) {
+    		dens_data.nObsSite[i]++;
     	    }
     	}
     }
-    // PosCell
-    dens_data.PosCell=malloc(NCELL*sizeof(int*));
-    for (int i=0; i<NCELL; i++) {
-    	dens_data.PosCell[i]=malloc(dens_data.nObsCell[i]*sizeof(int));
-    	int repCell=0;
+    // PosSite
+    dens_data.PosSite=malloc(NSITE*sizeof(int*));
+    for (int i=0; i<NSITE; i++) {
+    	dens_data.PosSite[i]=malloc(dens_data.nObsSite[i]*sizeof(int));
+    	int repSite=0;
     	for (int n=0; n<NOBS; n++) {
-    	    if (dens_data.IdCell[n]==i) {
-    		dens_data.PosCell[i][repCell]=n;
-    		repCell++;
+    	    if (dens_data.IdSite[n]==i) {
+    		dens_data.PosSite[i][repSite]=n;
+    		repSite++;
     	    }
     	}
     }
@@ -288,11 +288,11 @@ void hSDM_Nmixture (
     /* Suitability process */
     dens_data.NP=NP;
     dens_data.pos_beta=0;
-    dens_data.X=malloc(NCELL*sizeof(double*));
-    for (int i=0; i<NCELL; i++) {
+    dens_data.X=malloc(NSITE*sizeof(double*));
+    for (int i=0; i<NSITE; i++) {
     	dens_data.X[i]=malloc(NP*sizeof(double));
     	for (int p=0; p<NP; p++) {
-    	    dens_data.X[i][p]=X_vect[p*NCELL+i];
+    	    dens_data.X[i][p]=X_vect[p*NSITE+i];
     	}
     }
     dens_data.mubeta=malloc(NP*sizeof(double));
@@ -361,9 +361,9 @@ void hSDM_Nmixture (
     }
 
     // N
-    int *nA_N = malloc(NCELL*sizeof(int));
-    double *Ar_N = malloc(NCELL*sizeof(double)); // Acceptance rate 
-    for (int i=0; i<NCELL; i++) {
+    int *nA_N = malloc(NSITE*sizeof(int));
+    double *Ar_N = malloc(NSITE*sizeof(double)); // Acceptance rate 
+    for (int i=0; i<NSITE; i++) {
 	nA_N[i]=0;
 	Ar_N[i]=0.0;
     }
@@ -422,7 +422,7 @@ void hSDM_Nmixture (
     	////////////////////////////////////////////////
     	// N
 	
-    	for (int i=0; i<NCELL; i++) {
+    	for (int i=0; i<NSITE; i++) {
     	    dens_data.pos_N=i; // Specifying the rank of the parameter of interest
     	    int x_now=dens_data.N_run[i];
     	    if (x_now==N_start[i]) {
@@ -478,24 +478,17 @@ void hSDM_Nmixture (
     	    }
     	    delta_run[n]=invlogit(logit_delta);
     	    /* log Likelihood */
-    	    logL1+=dbinom(dens_data.Y[n],dens_data.N_run[dens_data.IdCell[n]],delta_run[n],1);
-
-    	    /* lambda_run (of length nobs) */
-    	    double Xpart_lambda=0.0;
-    	    for (int p=0; p<NP; p++) {
-    		Xpart_lambda+=dens_data.X[dens_data.IdCell[n]][p]*dens_data.beta_run[p];
-    	    }
-    	    lambda_run[n]=exp(Xpart_lambda);
+    	    logL1+=dbinom(dens_data.Y[n],dens_data.N_run[dens_data.IdSite[n]],delta_run[n],1);
     	}
     	double logL2=0.0;
-    	for (int i=0; i<NCELL; i++) {
+    	for (int i=0; i<NSITE; i++) {
     	    /* lambda */
     	    double Xpart_lambda=0.0;
     	    for (int p=0; p<NP; p++) {
     		Xpart_lambda+=dens_data.X[i][p]*dens_data.beta_run[p];
     	    }
-    	    double lambda_now=exp(Xpart_lambda);
-    	    logL2+=dpois(dens_data.N_run[i],lambda_now,1);
+    	    lambda_run[i]=exp(Xpart_lambda);
+    	    logL2+=dpois(dens_data.N_run[i],lambda_run[i],1);
     	}
     	double logL=logL1+logL2;
 
@@ -529,8 +522,10 @@ void hSDM_Nmixture (
     	    }
     	    // Deviance
     	    Deviance[isamp-1]=Deviance_run;
+	    for (int i=0; i<NSITE; i++) {
+    		lambda_latent[i]+=lambda_run[i]/NSAMP; // We compute the mean of NSAMP values
+    	    }
     	    for (int n=0; n<NOBS; n++) {
-    		lambda_latent[n]+=lambda_run[n]/NSAMP; // We compute the mean of NSAMP values
     		delta_latent[n]+=delta_run[n]/NSAMP; // We compute the mean of NSAMP values
     	    }
     	    // lambda
@@ -546,12 +541,12 @@ void hSDM_Nmixture (
     	    }
     	    // N
     	    if (save_N[0]==0) { // We compute the mean of NSAMP values
-    		for (int i=0; i<NCELL; i++) {
+    		for (int i=0; i<NSITE; i++) {
     		    N_pred_double[i]+= ((double) dens_data.N_run[i])/NSAMP;
     		}
     	    }
     	    if (save_N[0]==1) { // The NSAMP sampled values for lambda are saved
-    		for (int i=0; i<NCELL; i++) {
+    		for (int i=0; i<NSITE; i++) {
     		    N_pred[i*NSAMP+(isamp-1)]=dens_data.N_run[i];
     		}
     	    }
@@ -560,7 +555,7 @@ void hSDM_Nmixture (
 
     	///////////////////////////////////////////////////////
     	// Adaptive sampling (on the burnin period)
-    	const double ropt=0.24;
+    	const double ropt=0.234;
     	int DIV=0;
     	if (NGIBBS >=1000) DIV=100;
     	else DIV=NGIBBS/10;
@@ -581,7 +576,7 @@ void hSDM_Nmixture (
     		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
     	    }
     	    // N
-    	    for (int i=0; i<NCELL; i++) {
+    	    for (int i=0; i<NSITE; i++) {
     		Ar_N[i]=((double) nA_N[i])/DIV;
     		nA_N[i]=0.0; // We reinitialize the number of acceptance to zero
     	    }
@@ -599,7 +594,7 @@ void hSDM_Nmixture (
     		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
     	    }
     	    // N
-    	    for (int i=0; i<NCELL; i++) {
+    	    for (int i=0; i<NSITE; i++) {
     		Ar_N[i]=((double) nA_N[i])/DIV;
     		nA_N[i]=0.0; // We reinitialize the number of acceptance to zero
     	    }
@@ -626,8 +621,8 @@ void hSDM_Nmixture (
     	    	    mAr_gamma+=Ar_gamma[q]/NQ;
     	    	}
     		// N
-    	    	for (int i=0; i<NCELL; i++) {
-    		    mAr_N+=Ar_N[i]/NCELL;
+    	    	for (int i=0; i<NSITE; i++) {
+    		    mAr_N+=Ar_N[i]/NSITE;
     	    	}
     	    	Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, gamma:%.3f, N:%.3f\n",Perc,mAr_beta,mAr_gamma,mAr_N);
     	    	R_FlushConsole();
@@ -645,7 +640,7 @@ void hSDM_Nmixture (
     //////////////////////////
     // Rounding N_pred if save.N==0
     if (save_N[0]==0) {
-    	for (int i=0; i<NCELL; i++) {
+    	for (int i=0; i<NSITE; i++) {
     	    N_pred[i]= (int)(N_pred_double[i] < 0 ? (N_pred_double[i]-0.5):(N_pred_double[i]+0.5));
     	}
     }
@@ -656,14 +651,14 @@ void hSDM_Nmixture (
     free(dens_data.Y);
     free(dens_data.N_run);
     free(N_pred_double);
-    free(dens_data.IdCell);
-    free(dens_data.nObsCell);
-    for (int i=0; i<NCELL; i++) {
-    	free(dens_data.PosCell[i]);
+    free(dens_data.IdSite);
+    free(dens_data.nObsSite);
+    for (int i=0; i<NSITE; i++) {
+    	free(dens_data.PosSite[i]);
     }
-    free(dens_data.PosCell);
+    free(dens_data.PosSite);
     /* Suitability */
-    for (int i=0; i<NCELL; i++) {
+    for (int i=0; i<NSITE; i++) {
     	free(dens_data.X[i]);
     }
     free(dens_data.X);

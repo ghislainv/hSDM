@@ -49,10 +49,10 @@
     \eqn{\sim w_1+...+w_q}{'~w_1+...+w_q'} with \eqn{q} terms specifying the
     explicative variables for the observability process.}
 
-  \item{site}{A vector indicating the site identifier for each
-    observation. Values must be between 1 and 'nsite', the total number of
-    sites.}
-
+  \item{site}{A vector indicating the site identifier (from one to the
+    total number of sites) for each observation. Several observations
+    can occur at one site. A site can be a raster cell for example.}
+  
   \item{data.observability}{A data frame containing the model's
     variables for the observability process.}
 
@@ -65,9 +65,9 @@
   
   \item{spatial.entity}{A vector (of length 'nsite') indicating the
     spatial entity identifier for each site. Values must be between 1
-    and 'nspatent', the total number of spatial entities. Several sites
-    can be found in one spatial entity. A spatial entity can be a raster
-    cell for example.}
+    and the total number of spatial entities. Several sites can be found
+    in one spatial entity. A spatial entity can be a raster cell for
+    example.}
 
   \item{n.neighbors}{A vector of integers that indicates the number of
     neighbors (adjacent entities) of each spatial
@@ -169,7 +169,7 @@
 
   \item{save.p}{A switch (0,1) which determines whether or not the
     sampled values for predictions are saved. Default is 0: the
-    posterior mean is computed and returned in the \code{prob.p.pred}
+    posterior mean is computed and returned in the \code{theta.pred}
     vector. Be careful, setting \code{save.p} to 1 might require a large
     amount of memory.}
 
@@ -191,17 +191,17 @@
     values for each spatial random effect associated to each spatial
     entity.}
 
-  \item{prob.p.pred}{If \code{save.p} is set to 0 (default),
-    \code{prob.p.pred} is the predictive posterior mean of the
+  \item{theta.pred}{If \code{save.p} is set to 0 (default),
+    \code{theta.pred} is the predictive posterior mean of the
     probability associated to the suitability process for each
-    prediction. If \code{save.p} is set to 1, \code{prob.p.pred} is an
+    prediction. If \code{save.p} is set to 1, \code{theta.pred} is an
     \code{mcmc} object with sampled values of the probability associated
     to the suitability process for each prediction.}
   
-  \item{prob.p.latent}{Predictive posterior mean of the probability
-    associated to the suitability process for each observation.}
+  \item{theta.latent}{Predictive posterior mean of the probability
+    associated to the suitability process for each site.}
   
-  \item{prob.q.latent}{Predictive posterior mean of the probability
+  \item{delta.latent}{Predictive posterior mean of the probability
   associated to the observability process for each observation.}
   
 }
@@ -293,140 +293,144 @@
 library(hSDM)
 library(raster)
 library(sp)
-library(mvtnorm)
 
 #==================
 #== Data simulation
 
-# Set seed for repeatability
+#= Seed
 seed <- 1234
 
-# Target parameters
-beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-gamma.target <- matrix(c(1),ncol=1) #= This means that theta.2~0.75: 75\% of chance to detect the species
-## Uncomment if you want covariates on the observability process
-## gamma.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-Vrho.target <- 1 # Spatial Variance
+#= Landscape
+xLand <- 30
+yLand <- 30 
+Landscape <- raster(ncol=xLand,nrow=yLand,crs='+proj=utm +zone=1')
+Landscape[] <- 0
+extent(Landscape) <- c(0,xLand,0,yLand)
+coords <- coordinates(Landscape)
+ncells <- ncell(Landscape)
 
-# Landscape
-Landscape <- raster(ncol=20,nrow=20,crs='+proj=utm +zone=1')
-ncell <- ncell(Landscape)
-
-# Neighbors
-neighbors.mat <- adjacent(Landscape, cells=c(1:ncell), directions=8, pairs=TRUE, sorted=TRUE)
+#= Neighbors
+neighbors.mat <- adjacent(Landscape, cells=c(1:ncells), directions=8, pairs=TRUE, sorted=TRUE)
 n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
 adj <- neighbors.mat[,2]
 
-# Generate symmetric adjacency matrix, A
-A <- matrix(0,ncell,ncell)
+#= Generate symmetric adjacency matrix, A
+A <- matrix(0,ncells,ncells)
 index.start <- 1
-for (i in 1:ncell) {
+for (i in 1:ncells) {
     index.end <- index.start+n.neighbors[i]-1
     A[i,adj[c(index.start:index.end)]] <- 1
     index.start <- index.end+1
 }
 
-# Spatial effects
+# Multivariate normal distribution
+rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
+    p <- length(mu)
+    if (any(is.na(match(dim(V), p)))) {
+        stop("Dimension problem!")
+    }
+    D <- chol(V)
+    set.seed(seed)
+    t(matrix(rnorm(n*p),ncol=p)\%*\%D+rep(mu,rep(n,p)))
+}
+
+#= Spatial effects
+Vrho.target <- 5
 d <- 1	# Spatial dependence parameter = 1 for intrinsic CAR
-Q <- diag(n.neighbors)-d*A + diag(.0001,ncell) # Add small constant to make Q non-singular
+Q <- diag(n.neighbors)-d*A + diag(.0001,ncells) # Add small constant to make Q non-singular
 covrho <- Vrho.target*solve(Q) # Covariance of rhos
 set.seed(seed)
-rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
+# rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
+rho <- c(rmvn(1,mu=rep(0,ncells),V=covrho,seed=seed)) # Spatial Random Effects
 rho <- rho-mean(rho) # Centering rhos on zero
 
-# Visited cells
-n.visited <- 150 # Compare with 400, 350 and 100 for example
-set.seed(seed)
-visited.cells <- sort(sample(1:ncell,n.visited,replace=FALSE)) # Draw visited cells at random
-notvisited.cells <- c(1:ncell)[-visited.cells]
+#= Raster and plot spatial effects
+r.rho <- rasterFromXYZ(cbind(coords,rho))
+plot(r.rho)
 
-# Number of observations
-nobs <- 300
-
-# Cell vector
+# Sample the observation sites in the landscape
+nsite <- 250
 set.seed(seed)
-cells <- c(visited.cells,sample(visited.cells,nobs-n.visited,replace=TRUE))
-coords <- xyFromCell(Landscape,cells) # Get coordinates
-
-# Covariates for "suitability" process
-set.seed(seed)
-X1.cell <- rnorm(n=ncell,0,1) # Here, we decided to define one habitat by spatial entity (raster cell)
+x.coord <- runif(nsite,0,xLand)
 set.seed(2*seed)
-X2.cell <- rnorm(n=ncell,0,1)
-X1 <- X1.cell[cells]
-X2 <- X2.cell[cells]
-X <- cbind(rep(1,nobs),X1,X2)
+y.coord <- runif(nsite,0,yLand)
+sites.sp <- SpatialPoints(coords=cbind(x.coord,y.coord))
+cells <- extract(Landscape,sites.sp,cell=TRUE)[,1]
 
-# Covariates for "observability" process
-W <- cbind(rep(1,nobs))
-## Uncomment if you want covariates on the observability process 
-## set.seed(3*seed)
-## W1 <- rnorm(n=nobs,0,1)
-## set.seed(4*seed)
-## W2 <- rnorm(n=nobs,0,1)
-## W <- cbind(rep(1,nobs),W1,W2)
+# Ecological process (suitability)
+set.seed(seed)
+x1 <- rnorm(nsite,0,1)
+set.seed(2*seed)
+x2 <- rnorm(nsite,0,1)
+X <- cbind(rep(1,nsite),x1,x2)
+beta.target <- c(-1,1,-1)
+logit.theta <- X \%*\% beta.target + rho[cells]
+theta <- inv.logit(logit.theta)
+set.seed(seed)
+Z <- rbinom(nsite,1,theta)
 
-#== Simulating latent variables
+# Relative importance of spatial random effects
+RImp <- mean(abs(rho[cells])/abs(X \%*\% beta.target))
+RImp
 
-# Suitability
-logit.theta.1 <- vector()
-for (n in 1:nobs) {
-  logit.theta.1[n] <- X[n,]\%*\%beta.target+rho[cells[n]]
+# Number of visits associated to each observation point
+set.seed(seed)
+v <- rpois(nsite,3)
+v[v==0] <- 1
+# Vector of observation points
+sites <- vector()
+for (i in 1:nsite) {
+    sites <- c(sites,rep(i,v[i]))
 }
-theta.1 <- inv.logit(logit.theta.1)
+
+# Observation process (detectability)
+nobs <- sum(v)
 set.seed(seed)
-y.1 <- rbinom(nobs,1,theta.1)
-
-# Observability
+w1 <- rnorm(nobs,0,1)
+set.seed(2*seed)
+w2 <- rnorm(nobs,0,1)
+W <- cbind(rep(1,nobs),w1,w2)
+gamma.target <- c(-1,1,-1)
+logit.delta <- W \%*\% gamma.target
+delta <- inv.logit(logit.delta)
 set.seed(seed)
-trials <- rpois(nobs,5)	# Number of trial associated to each observation
-trials[trials==0] <- 1
-logit.theta.2 <- W\%*\%gamma.target
-theta.2 <- inv.logit(logit.theta.2)
-set.seed(seed)
-y.2 <- rbinom(nobs,trials,theta.2)
+Y <- rbinom(nobs,1,delta*Z[sites])
 
-#== Simulating response variable
-Y <- y.2*y.1
-
-#== Data-set
-Data <- data.frame(Y,trials,cells,X1,X2)
-## Uncomment if you want covariates on the observability process 
-## Data <- data.frame(Y,trials,cells,X1,X2,W1,W2)
-Data <- SpatialPointsDataFrame(coords=coords,data=Data)
-plot(Data)
-
-#== Data-set for predictions (suitability on each spatial cell)
-Data.pred <- data.frame(X1=X1.cell,X2=X2.cell,cells=c(1:ncell))
+# Data-sets
+data.obs <- data.frame(Y,w1,w2,site=sites)
+data.suit <- data.frame(x1,x2,cell=cells)
 
 #==================================
-#== Site-occupancy model
+#== siteocc.iCAR model
 
-mod.hSDM.siteocc.iCAR <- hSDM.siteocc.iCAR(presences=Data$Y,
-                                   trials=Data$trials,
-                                   suitability=~X1+X2,
-                                   observability=~1,
-                                   spatial.entity=Data$cells,
-                                   data=Data,
-                                   n.neighbors=n.neighbors,
-                                   neighbors=adj,
-                                   ## suitability.pred=NULL,
-                                   ## spatial.entity.pred=NULL,
-                                   suitability.pred=Data.pred,
-                                   spatial.entity.pred=Data.pred$cells,
-                                   burnin=5000, mcmc=5000, thin=5,
-                                   beta.start=0,
-                                   gamma.start=0,
-                                   Vrho.start=10,
-                                   priorVrho="1/Gamma",
-                                   #priorVrho="Uniform",
-                                   #priorVrho=10,
-                                   mubeta=0, Vbeta=1.0E6,
-                                   mugamma=0, Vgamma=1.0E6,
-                                   shape=0.5, rate=0.0005,
-                                   #Vrho.max=1000,
-                                   seed=1234, verbose=1,
-                                   save.rho=1, save.p=0)
+mod.hSDM.siteocc.iCAR <- hSDM.siteocc.iCAR(# Observations
+                                           presence=data.obs$Y,
+                                           observability=~w1+w2,
+                                           site=data.obs$site, data.observability=data.obs,
+                                           # Habitat
+                                           suitability=~x1+x2, data.suitability=data.suit,
+                                           # Spatial structure
+                                           spatial.entity=data.suit$cell,
+                                           n.neighbors=n.neighbors, neighbors=adj,
+                                           # Predictions
+                                           suitability.pred=NULL,
+                                           spatial.entity.pred=NULL,
+                                           # Chains
+                                           burnin=5000, mcmc=5000, thin=5,
+                                           # Starting values
+                                           beta.start=0,
+                                           gamma.start=0,
+                                           Vrho.start=1,
+                                           # Priors
+                                           mubeta=0, Vbeta=1.0E6,
+                                           mugamma=0, Vgamma=1.0E6,
+                                           priorVrho="Uniform",
+                                           # priorVrho="1/Gamma",
+                                           shape=2, rate=1,
+                                           Vrho.max=10,
+                                           # Various
+                                           seed=1234, verbose=1,
+                                           save.rho=1, save.p=0)
 
 #==========
 #== Outputs
@@ -446,30 +450,17 @@ dev.off()
 #= Summary plots
 
 # rho
-r.rho <- r.rho.pred <- r.visited <- Landscape
-r.rho[] <- rho
 rho.pred <- apply(mod.hSDM.siteocc.iCAR$rho.pred,2,mean)
-r.rho.pred[] <- rho.pred
-r.visited[] <- 0
-r.visited[visited.cells] <- 1
-# prob.p
-r.prob.p <- Landscape
-r.prob.p[] <- mod.hSDM.siteocc.iCAR$prob.p.pred
+r.rho.pred <- rasterFromXYZ(cbind(coords,rho.pred))
 
+# plot
 pdf(file="Summary_hSDM.siteocc.iCAR.pdf")
-par(mfrow=c(3,2))
-plot(r.rho, main="rho target")
-plot(r.visited,main="Visited cells and presences")
-plot(Data[Y>0,],add=TRUE,pch=16,cex=0.5)
-plot(r.rho.pred, main="rho estimated")
-plot(rho[visited.cells],rho.pred[visited.cells],
-     xlab="rho target",
-     ylab="rho estimated")
-points(rho[notvisited.cells],rho.pred[notvisited.cells],pch=16,col="blue")
-legend(x=-4,y=3.5,legend="Unvisited cells",col="blue",pch=16,bty="n")
+par(mfrow=c(2,2))
+plot(r.rho)
+plot(sites.sp,add=TRUE)
+plot(r.rho.pred)
+plot(rho,rho.pred)
 abline(a=0,b=1,col="red")
-plot(r.prob.p,main="Proba of presence")
-plot(Data[Y>0,],add=TRUE,pch=16,cex=0.5)
 dev.off()
 
 }

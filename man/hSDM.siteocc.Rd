@@ -40,11 +40,11 @@
   \item{observability}{A one-sided formula of the form
     \eqn{\sim w_1+...+w_q}{'~w_1+...+w_q'} with \eqn{q} terms specifying the
     explicative variables for the observability process.}
-  
-  \item{site}{A vector indicating the site identifier for each
-  observation. Values must be between 1 and 'nsite', the total number of
-  sites.}
 
+  \item{site}{A vector indicating the site identifier (from one to the
+    total number of sites) for each observation. Several observations
+    can occur at one site. A site can be a raster cell for example.}
+  
   \item{data.observability}{A data frame containing the model's
     variables for the observability process.}
 
@@ -136,7 +136,7 @@
     to the suitability process for each prediction.}
   
   \item{theta.latent}{Predictive posterior mean of the probability
-    associated to the suitability process for each observation.}
+    associated to the suitability process for each site.}
   
   \item{delta.latent}{Predictive posterior mean of the probability
     associated to the observability process for each observation.}
@@ -194,84 +194,91 @@ library(hSDM)
 #==================
 #== Data simulation
 
+# Number of observation sites
+nsite <- 200
+
 # Set seed for repeatability
 seed <- 1234
 
-# Number of observations
-nobs <- 1000
-
-# Target parameters
-beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-gamma.target <- matrix(c(1),ncol=1) #= This means that theta.2~0.75: 75\% of chance to detect the species
-## Uncomment if you want covariates on the observability process
-## gamma.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-
-# Covariates for "suitability" process
+# Number of visits associated to each observation point
 set.seed(seed)
-X1 <- rnorm(n=nobs,0,1)
+visits <- rpois(nsite,lambda=3) # Mean number of visits ~3
+# NB: Setting a too low mean number of visits per site (lambda < 3)
+# leads to inaccurate parameter estimates
+visits[visits==0] <- 1 # Number of visits must be > 0
+# Vector of observation sites
+sites <- vector()
+for (i in 1:nsite) {
+  sites <- c(sites,rep(i,visits[i]))
+}
+
+# Explicative variables for suitability process
+set.seed(seed)
+x1 <- rnorm(n=nsite,0,1)
 set.seed(2*seed)
-X2 <- rnorm(n=nobs,0,1)
-X <- cbind(rep(1,nobs),X1,X2)
+x2 <- rnorm(n=nsite,0,1)
+X <- cbind(rep(1,nsite),x1,x2)
+# Target parameters for suitability process
+beta.target <- matrix(c(-1,1,-1),ncol=1)
 
-# Covariates for "observability" process
-W <- cbind(rep(1,nobs))
-## Uncomment if you want covariates on the observability process 
-## set.seed(3*seed)
-## W1 <- rnorm(n=nobs,0,1)
-## set.seed(4*seed)
-## W2 <- rnorm(n=nobs,0,1)
-## W <- cbind(rep(1,nobs),W1,W2)
+# Explicative variables for observation process
+nobs <- sum(visits)
+set.seed(3*seed)
+w1 <- rnorm(n=nobs,0,1)
+set.seed(4*seed)
+w2 <- rnorm(n=nobs,0,1)
+W <- cbind(rep(1,nobs),w1,w2)
+# Target parameters for observation process
+gamma.target <- matrix(c(-1,1,-1),ncol=1)
 
-#== Simulating latent variables
-
-# Suitability
-logit.theta.1 <- X \%*\% beta.target
-theta.1 <- inv.logit(logit.theta.1)
+# Ecological process (suitability)
+logit.theta.site <- X \%*\% beta.target
+theta.site <- inv.logit(logit.theta.site)
 set.seed(seed)
-y.1 <- rbinom(nobs,1,theta.1)
-
-# Observability
+Z <- rbinom(nsite,1,theta.site)
+# Observation process (detectability)
+logit.delta.obs <- W \%*\% gamma.target
+delta.obs <- inv.logit(logit.delta.obs)
 set.seed(seed)
-trials <- rpois(nobs,5)	# Number of trial associated to each observation
-trials[trials==0] <- 1
-logit.theta.2 <- W \%*\% gamma.target
-theta.2 <- inv.logit(logit.theta.2)
-set.seed(seed)
-y.2 <- rbinom(nobs,trials,theta.2)
-
-#== Simulating response variable
-Y <- y.2*y.1
-
-#== Data-set
-Data <- data.frame(Y,trials,X1,X2)
-## Uncomment if you want covariates on the observability process 
-## Data <- data.frame(Y,trials,X1,X2,W1,W2)
+Y <- rbinom(nobs,1,delta.obs*Z[sites])
+# Data-sets
+data.obs <- data.frame(Y,w1,w2,site=sites)
+data.suit <- data.frame(x1,x2)
 
 #==================================
 #== siteocc model
 
-mod.hSDM.siteocc <- hSDM.siteocc(presences=Data$Y,
-                         trials=Data$trials,
-                         suitability=~X1+X2,
-                         observability=~1, #=~1+W1+W2 if covariates
-                         data=Data,
-                         suitability.pred=NULL,
-                         burnin=1000, mcmc=1000, thin=5,
-                         beta.start=0,
-                         gamma.start=0,
-                         mubeta=0, Vbeta=1.0E6,
-                         mugamma=0, Vgamma=1.0E6,
-                         seed=1234, verbose=1,
-                         save.p=0)
+mod.hSDM.siteocc <- hSDM.siteocc(# Observations
+                     presence=data.obs$Y,
+                     observability=~w1+w2,
+                     site=data.obs$site,
+                     data.observability=data.obs,
+                     # Habitat
+                     suitability=~x1+x2,
+                     data.suitability=data.suit,
+                     # Predictions
+                     suitability.pred=NULL,
+                     # Chains
+                     burnin=2000, mcmc=2000, thin=2,
+                     # Starting values
+                     beta.start=0,
+                     gamma.start=0,
+                     # Priors
+                     mubeta=0, Vbeta=1.0E6,
+                     mugamma=0, Vgamma=1.0E6,
+                     # Various
+                     seed=1234, verbose=1, save.p=0)
+
 
 #==========
 #== Outputs
+summary(mod.hSDM.siteocc$mcmc)
 pdf(file="Posteriors_hSDM.siteocc.pdf")
 plot(mod.hSDM.siteocc$mcmc)
 dev.off()
-summary(mod.hSDM.siteocc$prob.p.latent)
-summary(mod.hSDM.siteocc$prob.q.latent)
-summary(mod.hSDM.siteocc$prob.p.pred)
+summary(mod.hSDM.siteocc$theta.latent)
+summary(mod.hSDM.siteocc$delta.latent)
+summary(mod.hSDM.siteocc$theta.pred)
 
 }
 

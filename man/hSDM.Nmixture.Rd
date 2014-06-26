@@ -6,16 +6,16 @@
 \description{The \code{hSDM.Nmixture} function can be used to model
   species distribution including different processes in a hierarchical
   Bayesian framework: a \eqn{\mathcal{P}oisson}{Poisson} suitability
-  process (refering to environmental suitability) and a
-  \eqn{\mathcal{B}inomial}{Binomial} observability process (refering to
-  various ecological and methodological issues explaining the species
-  detection). The \code{hSDM.Nmixture} function calls a Gibbs
+  process (refering to environmental suitability explaining abundance)
+  and a \eqn{\mathcal{B}inomial}{Binomial} observability process
+  (refering to various ecological and methodological issues explaining
+  species detection). The \code{hSDM.Nmixture} function calls a Gibbs
   sampler written in C code which uses an adaptive Metropolis algorithm
   to estimate the conditional posterior distribution of hierarchical
   model's parameters.}
 
 \usage{hSDM.Nmixture(# Observations
-                     counts, observability, spatial.entity, data.observability,
+                     counts, observability, site, data.observability,
                      # Habitat
                      suitability, data.suitability,
                      # Predictions
@@ -41,10 +41,9 @@
     \eqn{\sim w_1+...+w_q}{'~w_1+...+w_q'} with \eqn{q} terms specifying the
     explicative variables for the observability process.}
   
-  \item{spatial.entity}{A vector indicating the spatial entity
-    identifier (from one to the total number of entities) for each
-    observation. Several observations can occur in one spatial entity. A
-    spatial entity can be a raster cell for example.}
+  \item{site}{A vector indicating the site identifier (from one to the
+    total number of sites) for each observation. Several observations
+    can occur at one site. A site can be a raster cell for example.}
 
   \item{data.observability}{A data frame containing the model's
     variables for the observability process.}
@@ -152,7 +151,7 @@
   \item{lambda.latent}{Predictive posterior mean of the abundance
     associated to the suitability process for each observation.}
   
-  \item{theta.latent}{Predictive posterior mean of the probability
+  \item{delta.latent}{Predictive posterior mean of the probability
     associated to the observability process for each observation.}
   
 }
@@ -160,8 +159,8 @@
 \details{
 
   The model integrates two processes, an ecological process associated
-  to the presence or absence of the species due to habitat suitability
-  and an observation process that takes into account the fact that the
+  to the abundance of the species due to habitat suitability and an
+  observation process that takes into account the fact that the
   probability of detection of the species is inferior to one.
 
   \bold{Ecological process:}
@@ -279,7 +278,7 @@ Data.pred <- Data.suit
 
 mod.hSDM.Nmixture <- hSDM.Nmixture(# Observations
                                    counts=Data.obs$Y, observability=~1,
-                                   spatial.entity=Data.obs$cells, data.observability=Data.obs,
+                                   site=Data.obs$cells, data.observability=Data.obs,
                                    # Habitat
                                    suitability=~X1+X2, data.suitability=Data.suit,
                                    # Predictions

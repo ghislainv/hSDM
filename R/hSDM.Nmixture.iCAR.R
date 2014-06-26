@@ -21,10 +21,11 @@
 
 hSDM.Nmixture.iCAR <- function (# Observations
                                 counts, observability,
-                                spatial.entity, data.observability,
+                                site, data.observability,
                                 # Habitat
                                 suitability, data.suitability,
                                 # Spatial structure
+                                spatial.entity,
                                 n.neighbors, neighbors,
                                 # Predictions
                                 suitability.pred=NULL, spatial.entity.pred=NULL,
@@ -67,21 +68,25 @@ hSDM.Nmixture.iCAR <- function (# Observations
   #= Observability
   mf.obs <- model.frame(formula=observability,data=data.observability)
   W <- model.matrix(attr(mf.obs,"terms"),data=mf.obs)
-  #= Spatial correlation
+  #= Sites
+  Levels.site <- sort(unique(site))
+  nsite <- length(Levels.site)
+  sites <- as.numeric(as.factor(site))
+  #= Spatial entity
   ncell <- length(n.neighbors)
   cells <- spatial.entity
-  visited <- sort(unique(cells))
+
   #= Predictions
   if (is.null(suitability.pred) | is.null(spatial.entity.pred)) {
       X.pred <- X
-      cells.pred <- cells
-      npred <- nobs
+      cells.pred <- spatial.entity
+      npred <- nsite
   }
   if (!is.null(suitability.pred) & !is.null(spatial.entity.pred)) {
       mf.pred <- model.frame(formula=suitability,data=suitability.pred)
       X.pred <- model.matrix(attr(mf.pred,"terms"),data=mf.pred)
       cells.pred <- spatial.entity.pred
-      npred <- length(cells.pred)
+      npred <- nrow(X.pred)
   }
   #= Model parameters
   np <- ncol(X)
@@ -95,9 +100,10 @@ hSDM.Nmixture.iCAR <- function (# Observations
   # Check data
   #==========
   check.Y.poisson(Y)
-  check.X(X,ncell) # X must be of dim (ncell x np) for the N-mixture model
+  check.X(X,nsite) # X must be of dim (nsite x np) for the N-mixture.iCAR model
   check.W(W,nobs)
-  check.cells(cells,nobs)
+  check.sites(sites,nobs)
+  check.cells(cells,nsite)
   check.neighbors(n.neighbors,ncell,neighbors)
 
   #========
@@ -107,11 +113,10 @@ hSDM.Nmixture.iCAR <- function (# Observations
   gamma.start <- form.gamma.start(gamma.start,nq)
   rho.start <- rep(0,ncell) # Starting values for spatial random effects set to zero.
   Vrho.start <- check.Vrho.start(Vrho.start)
-  # For N, we compute the MAX of the observations on each cell
-  N.start <- rep(0,ncell)
-  Levels.cells <- sort(unique(cells))
-  for (i in 1:length(Levels.cells)) {
-      N.start[Levels.cells[i]] <- max(Y[cells==Levels.cells[i]])
+  # For N, we compute the MAX of the observations on each site
+  N.start <- rep(0,nsite)
+  for (i in 1:nsite) {
+      N.start[i] <- max(Y[sites==Levels.site[i]])
   }
   
   #========
@@ -133,13 +138,13 @@ hSDM.Nmixture.iCAR <- function (# Observations
   if (save.rho==0) {rho_pred <- rho.start}
   if (save.rho==1) {rho_pred <- rep(rho.start,nsamp)}
   Vrho <- rep(Vrho.start,nsamp)
-  prob_p_latent <- rep(0,nobs)
-  prob_q_latent <- rep(0,nobs)
-  if (save.p==0) {prob_p_pred <- rep(0,npred)}
-  if (save.p==1) {prob_p_pred <- rep(0,npred*nsamp)}
+  lambda_latent <- rep(0,nsite)
+  delta_latent <- rep(0,nobs)
+  if (save.p==0) {lambda_pred <- rep(0,npred)}
+  if (save.p==1) {lambda_pred <- rep(0,npred*nsamp)}
   Deviance <- rep(0,nsamp)
-  if (save.N==0) {N_pred <- rep(0,ncell)}
-  if (save.N==1) {N_pred <- rep(0,ncell*nsamp)}
+  if (save.N==0) {N_pred <- rep(0,nsite)}
+  if (save.N==1) {N_pred <- rep(0,nsite*nsamp)}
 
   #========
   # call C++ code to draw sample
@@ -147,13 +152,14 @@ hSDM.Nmixture.iCAR <- function (# Observations
   Sample <- .C("hSDM_Nmixture_iCAR",
                #= Constants and data
                ngibbs=as.integer(ngibbs), nthin=as.integer(nthin), nburn=as.integer(nburn), ## Number of iterations, burning and samples
-               nobs=as.integer(nobs),
-               ncell=as.integer(ncell),
+               nobs=as.integer(nobs), nsite=as.integer(nsite), ncell=as.integer(ncell),
                np=as.integer(np),
                nq=as.integer(nq),
                Y_vect=as.integer(c(Y)),
                W_vect=as.double(c(W)),
                X_vect=as.double(c(X)),
+               #= Sites
+               S_vect=as.integer(c(sites)-1),
                #= Spatial correlation
                C_vect=as.integer(c(cells)-1), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term. 
                nNeigh=as.integer(c(n.neighbors)),
@@ -181,9 +187,9 @@ hSDM.Nmixture.iCAR <- function (# Observations
                Vrho.max=as.double(Vrho.max),
                #= Diagnostic
                Deviance.nonconst=as.double(Deviance),
-               prob_p_latent.nonconst=as.double(prob_p_latent), ## Predictive posterior mean
-               prob_q_latent.nonconst=as.double(prob_q_latent), ## Predictive posterior mean
-               prob_p_pred.nonconst=as.double(prob_p_pred),
+               lambda_latent.nonconst=as.double(lambda_latent), ## Predictive posterior mean
+               delta_latent.nonconst=as.double(delta_latent), ## Predictive posterior mean
+               lambda_pred.nonconst=as.double(lambda_pred),
                #= Seed
                seed=as.integer(seed),
                #= Verbose
@@ -200,46 +206,44 @@ hSDM.Nmixture.iCAR <- function (# Observations
   colnames(Matrix) <- c(names.fixed,"Vrho","Deviance")
   
   #= Filling-in the matrix
-  Matrix[,c(1:np)] <- matrix(Sample[[21]],ncol=np)
-  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[22]],ncol=nq)
-  Matrix[,ncol(Matrix)-1] <- Sample[[24]]
-  Matrix[,ncol(Matrix)] <- Sample[[34]]
+  Matrix[,c(1:np)] <- matrix(Sample[[23]],ncol=np)
+  Matrix[,c((np+1):(np+nq))] <- matrix(Sample[[24]],ncol=nq)
+  Matrix[,ncol(Matrix)-1] <- Sample[[26]]
+  Matrix[,ncol(Matrix)] <- Sample[[36]]
 
   #= Transform Sample list in an MCMC object
   MCMC <- mcmc(Matrix,start=nburn+1,end=ngibbs,thin=nthin)
 
   #= Save rho
-  if (save.rho==0) {rho.pred <- Sample[[23]]}
+  if (save.rho==0) {rho.pred <- Sample[[25]]}
   if (save.rho==1) {
-      Matrix.rho.pred <- matrix(Sample[[23]],ncol=ncell)
+      Matrix.rho.pred <- matrix(Sample[[25]],ncol=ncell)
       colnames(Matrix.rho.pred) <- paste("rho.",c(1:ncell),sep="")
       rho.pred <- mcmc(Matrix.rho.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Save pred
-  if (save.p==0) {lambda.pred <- Sample[[37]]}
+  if (save.p==0) {lambda.pred <- Sample[[39]]}
   if (save.p==1) {
-      Matrix.p.pred <- matrix(Sample[[37]],ncol=npred)
+      Matrix.p.pred <- matrix(Sample[[39]],ncol=npred)
       colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
       lambda.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Save N
   if (save.N==0) {
-      N.pred <- Sample[[25]]
-      N.pred.visited <- N.pred[visited]
+      N.pred <- Sample[[27]]
   }
   if (save.N==1) {
-      Matrix.N.pred <- matrix(Sample[[25]],ncol=ncell)
-      Matrix.N.pred.visited <- Matrix.N.pred[,visited]
-      colnames(Matrix.N.pred.visited) <- paste("N.",visited,sep="")
-      N.pred.visited=mcmc(Matrix.N.pred.visited,start=nburn+1,end=ngibbs,thin=nthin)
+      Matrix.N.pred <- matrix(Sample[[27]],ncol=nsite)
+      colnames(Matrix.N.pred) <- paste("N.",c(1:nsite),sep="")
+      N.pred=mcmc(Matrix.N.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Output
   return (list(mcmc=MCMC,
-               rho.pred=rho.pred, lambda.pred=lambda.pred, N.pred=N.pred.visited,
-               lambda.latent=Sample[[35]], theta.latent=Sample[[36]]))
+               rho.pred=rho.pred, lambda.pred=lambda.pred, N.pred=N.pred,
+               lambda.latent=Sample[[37]], delta.latent=Sample[[38]]))
 
 }
 

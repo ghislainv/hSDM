@@ -132,7 +132,7 @@ hSDM.siteocc.iCAR <- function (# Observations
   if (save.rho==0) {rho_pred <- rho.start}
   if (save.rho==1) {rho_pred <- rep(rho.start,nsamp)}
   Vrho <- rep(Vrho.start,nsamp)
-  theta_latent <- rep(0,ncell)
+  theta_latent <- rep(0,nsite)
   delta_latent <- rep(0,nobs)
   if (save.p==0) {theta_pred <- rep(0,npred)}
   if (save.p==1) {theta_pred <- rep(0,npred*nsamp)}

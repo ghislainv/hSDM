@@ -6,20 +6,21 @@
 \description{The \code{hSDM.Nmixture.iCAR} function can be used to model
   species distribution including different processes in a hierarchical
   Bayesian framework: a \eqn{\mathcal{P}oisson}{Poisson} suitability
-  process (refering to environmental suitability) which takes into
-  account the spatial dependence of the observations, and a
-  \eqn{\mathcal{B}inomial}{Binomial} observability process (refering to
-  various ecological and methodological issues explaining the species
-  detection). The \code{hSDM.Nmixture.iCAR} function calls a Gibbs
-  sampler written in C code which uses an adaptive Metropolis algorithm
-  to estimate the conditional posterior distribution of hierarchical
-  model's parameters.}
+  process (refering to environmental suitability explaining abundance)
+  which takes into account the spatial dependence of the observations,
+  and a \eqn{\mathcal{B}inomial}{Binomial} observability process
+  (refering to various ecological and methodological issues explaining
+  the species detection). The \code{hSDM.Nmixture.iCAR} function calls a
+  Gibbs sampler written in C code which uses an adaptive Metropolis
+  algorithm to estimate the conditional posterior distribution of
+  hierarchical model's parameters.}
 
 \usage{hSDM.Nmixture.iCAR(# Observations
-                     counts, observability, spatial.entity, data.observability,
+                     counts, observability, site, data.observability,
                      # Habitat
                      suitability, data.suitability,
                      # Spatial structure
+                     spatial.entity,
                      n.neighbors, neighbors,
                      # Predictions
                      suitability.pred = NULL, spatial.entity.pred = NULL,
@@ -47,13 +48,11 @@
   \item{observability}{A one-sided formula of the form
     \eqn{\sim w_1+...+w_q}{'~w_1+...+w_q'} with \eqn{q} terms specifying the
     explicative variables for the observability process.}
-  
-  \item{spatial.entity}{A vector of integer indicating the spatial
-    entity identifier (in the interval [1,total number of spatial
-    entities]) for each observation. Several observations can occur in
-    one spatial entity. A spatial entity can be a raster cell for
-    example.}
 
+  \item{site}{A vector indicating the site identifier (from one to the
+    total number of sites) for each observation. Several observations
+    can occur at one site. A site can be a raster cell for example.}
+  
   \item{data.observability}{A data frame containing the model's
     variables for the observability process.}
 
@@ -64,6 +63,12 @@
   \item{data.suitability}{A data frame containing the model's variables
     for the suitability process. The number of rows of the data frame
     should be equal to the total number of spatial entities.}
+
+  \item{spatial.entity}{A vector (of length 'nsite') indicating the
+    spatial entity identifier for each site. Values must be between 1
+    and the total number of spatial entities. Several sites can be found
+    in one spatial entity. A spatial entity can be a raster cell for
+    example.}
 
   \item{n.neighbors}{A vector of integers that indicates the number of
     neighbors (adjacent entities) of each spatial
@@ -210,7 +215,7 @@
   \item{lambda.latent}{Predictive posterior mean of the abundance
     associated to the suitability process for each observation.}
   
-  \item{theta.latent}{Predictive posterior mean of the probability
+  \item{delta.latent}{Predictive posterior mean of the probability
   associated to the observability process for each observation.}
   
 }
@@ -218,14 +223,13 @@
 \details{
 
   The model integrates two processes, an ecological process associated
-  to the presence or absence of the species due to habitat suitability
-  and an observation process that takes into account the fact that the
+  to the abundance of the species due to habitat suitability and an
+  observation process that takes into account the fact that the
   probability of detection of the species is inferior to one. The
   ecological process includes an intrinsic conditional autoregressive
   model (iCAR) model for spatial autocorrelation between observations,
-  assuming that the probability of presence of the species at one site
-  depends on the probability of presence of the species on neighboring
-  sites.
+  assuming that the abundance of the species at one site depends on the
+  abundance of the species on neighboring sites.
 
   \bold{Ecological process:}
   \deqn{N_i \sim \mathcal{P}oisson(\lambda_i)}{N_i ~ Poisson(lambda_i)}

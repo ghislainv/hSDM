@@ -228,102 +228,106 @@ verbose = 1, save.rho = 0, save.p = 0)}
 library(hSDM)
 library(raster)
 library(sp)
-library(mvtnorm)
 
 #==================
 #== Data simulation
 
-# Set seed for repeatability
+#= Seed
 seed <- 1234
 
-# Target parameters
-beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-Vrho.target <- 1 # Spatial Variance
+#= Landscape
+xLand <- 30
+yLand <- 30 
+Landscape <- raster(ncol=xLand,nrow=yLand,crs='+proj=utm +zone=1')
+Landscape[] <- 0
+extent(Landscape) <- c(0,xLand,0,yLand)
+coords <- coordinates(Landscape)
+ncells <- ncell(Landscape)
 
-# Landscape
-Landscape <- raster(ncol=20,nrow=20,crs='+proj=utm +zone=1')
-ncell <- ncell(Landscape)
-
-# Neighbors
-neighbors.mat <- adjacent(Landscape, cells=c(1:ncell), directions=8, pairs=TRUE, sorted=TRUE)
+#= Neighbors
+neighbors.mat <- adjacent(Landscape, cells=c(1:ncells), directions=8, pairs=TRUE, sorted=TRUE)
 n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
 adj <- neighbors.mat[,2]
 
-# Generate symmetric adjacency matrix, A
-A <- matrix(0,ncell,ncell)
+#= Generate symmetric adjacency matrix, A
+A <- matrix(0,ncells,ncells)
 index.start <- 1
-for (i in 1:ncell) {
+for (i in 1:ncells) {
     index.end <- index.start+n.neighbors[i]-1
     A[i,adj[c(index.start:index.end)]] <- 1
     index.start <- index.end+1
 }
 
-# Spatial effects
+# Multivariate normal distribution
+rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
+    p <- length(mu)
+    if (any(is.na(match(dim(V), p)))) {
+        stop("Dimension problem!")
+    }
+    D <- chol(V)
+    set.seed(seed)
+    t(matrix(rnorm(n*p),ncol=p)\%*\%D+rep(mu,rep(n,p)))
+}
+
+#= Spatial effects
+Vrho.target <- 5
 d <- 1	# Spatial dependence parameter = 1 for intrinsic CAR
-Q <- diag(n.neighbors)-d*A + diag(.0001,ncell) # Add small constant to make Q non-singular
+Q <- diag(n.neighbors)-d*A + diag(.0001,ncells) # Add small constant to make Q non-singular
 covrho <- Vrho.target*solve(Q) # Covariance of rhos
 set.seed(seed)
-rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
+# rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
+rho <- c(rmvn(1,mu=rep(0,ncells),V=covrho,seed=seed)) # Spatial Random Effects
 rho <- rho-mean(rho) # Centering rhos on zero
 
-# Visited cells
-n.visited <- 150 # Compare with 400, 350 and 100 for example
-set.seed(seed)
-visited.cells <- sort(sample(1:ncell,n.visited,replace=FALSE)) # Draw visited cells at random
-notvisited.cells <- c(1:ncell)[-visited.cells]
+#= Raster and plot spatial effects
+r.rho <- rasterFromXYZ(cbind(coords,rho))
+plot(r.rho)
 
-# Number of observations
-nobs <- 300
-
-# Cell vector
+# Sample the observation sites in the landscape
+nsite <- 250
 set.seed(seed)
-cells <- c(visited.cells,sample(visited.cells,nobs-n.visited,replace=TRUE))
-coords <- xyFromCell(Landscape,cells) # Get coordinates
-
-# Covariates for "suitability" process
-set.seed(seed)
-X1.cell <- rnorm(n=ncell,0,1) # Here, we decided to define one habitat by spatial entity (raster cell)
+x.coord <- runif(nsite,0,xLand)
 set.seed(2*seed)
-X2.cell <- rnorm(n=ncell,0,1)
-X1 <- X1.cell[cells]
-X2 <- X2.cell[cells]
-X <- cbind(rep(1,nobs),X1,X2)
+y.coord <- runif(nsite,0,yLand)
+sites.sp <- SpatialPoints(coords=cbind(x.coord,y.coord))
+cells <- extract(Landscape,sites.sp,cell=TRUE)[,1]
 
-#== Simulating latent variables
-
-# Suitability
-logit.theta <- vector()
-for (n in 1:nobs) {
-  logit.theta[n] <- X[n,]\%*\%beta.target+rho[cells[n]]
-}
-theta <- inv.logit(logit.theta)
-
-#== Simulating response variable
-trials <- rpois(nobs,5)	# Number of trial associated to each observation
-trials[trials==0] <- 1
+# Number of visits associated to each observation point
 set.seed(seed)
-Y <- rbinom(nobs,trials,theta)
+v <- rpois(nsite,3)
+v[v==0] <- 1
 
-#== Data-set
-Data <- data.frame(Y,trials,cells,X1,X2)
-Data <- SpatialPointsDataFrame(coords=coords,data=Data)
-plot(Data)
+# Ecological process (suitability)
+set.seed(seed)
+x1 <- rnorm(nsite,0,1)
+set.seed(2*seed)
+x2 <- rnorm(nsite,0,1)
+X <- cbind(rep(1,nsite),x1,x2)
+beta.target <- c(-1,1,-1)
+logit.theta <- X \%*\% beta.target + rho[cells]
+theta <- inv.logit(logit.theta)
+set.seed(seed)
+Y <- rbinom(nsite,v,theta)
 
-#== Data-set for predictions (suitability on each spatial cell)
-Data.pred <- data.frame(X1=X1.cell,X2=X2.cell,cells=c(1:ncell))
+# Relative importance of spatial random effects
+RImp <- mean(abs(rho[cells])/abs(X \%*\% beta.target))
+RImp
+
+# Data-sets
+data.obs <- data.frame(Y,trials=v,x1,x2,cell=cells)
 
 #==================================
 #== Site-occupancy model
 
-mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=Data$Y,
-                                               trials=Data$trials,
-                                               suitability=~X1+X2,
-                                               spatial.entity=Data$cells,
-                                               data=Data,
+mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=data.obs$Y,
+                                               trials=data.obs$trials,
+                                               suitability=~x1+x2,
+                                               spatial.entity=data.obs$cell,
+                                               data=data.obs,
                                                n.neighbors=n.neighbors,
                                                neighbors=adj,
-                                               suitability.pred=Data.pred,
-                                               spatial.entity.pred=Data.pred$cells,
+                                               suitability.pred=NULL,
+                                               spatial.entity.pred=NULL,
                                                burnin=5000, mcmc=5000, thin=5,
                                                beta.start=0,
                                                Vrho.start=10,
@@ -354,30 +358,17 @@ dev.off()
 #= Summary plots
 
 # rho
-r.rho <- r.rho.pred <- r.visited <- Landscape
-r.rho[] <- rho
 rho.pred <- apply(mod.hSDM.binomial.iCAR$rho.pred,2,mean)
-r.rho.pred[] <- rho.pred
-r.visited[] <- 0
-r.visited[visited.cells] <- 1
-# theta
-r.theta <- Landscape
-r.theta[] <- mod.hSDM.binomial.iCAR$theta.pred
+r.rho.pred <- rasterFromXYZ(cbind(coords,rho.pred))
 
+# plot
 pdf(file="Summary_hSDM.binomial.iCAR.pdf")
-par(mfrow=c(3,2))
-plot(r.rho, main="rho target")
-plot(r.visited,main="Visited cells and presences")
-plot(Data[Y>0,],add=TRUE,pch=16,cex=0.5)
-plot(r.rho.pred, main="rho estimated")
-plot(rho[visited.cells],rho.pred[visited.cells],
-     xlab="rho target",
-     ylab="rho estimated")
-points(rho[notvisited.cells],rho.pred[notvisited.cells],pch=16,col="blue")
-legend(x=-4,y=3.5,legend="Unvisited cells",col="blue",pch=16,bty="n")
+par(mfrow=c(2,2))
+plot(r.rho)
+plot(sites.sp,add=TRUE)
+plot(r.rho.pred)
+plot(rho,rho.pred)
 abline(a=0,b=1,col="red")
-plot(r.theta,main="Proba of presence")
-plot(Data[Y>0,],add=TRUE,pch=16,cex=0.5)
 dev.off()
 
 }

@@ -11,8 +11,8 @@
 ####################################################################
 ##
 ## This software is distributed under the terms of the GNU GENERAL
-## PUBLIC LICENSE Version 2, June 1991.  See the package LICENSE
-## file for more information.
+## PUBLIC LICENSE Version 3. See the package LICENSE file for more
+## information.
 ##
 ## Copyright (C) 2011 Ghislain Vieilledent
 ## 
@@ -20,7 +20,8 @@
 
 
 hSDM.Nmixture <- function (# Observations
-                           counts, observability, spatial.entity, data.observability,
+                           counts, observability,
+                           site, data.observability,
                            # Habitat
                            suitability, data.suitability,
                            # Predictions
@@ -60,14 +61,14 @@ hSDM.Nmixture <- function (# Observations
   mf.obs <- model.frame(formula=observability,data=data.observability)
   W <- model.matrix(attr(mf.obs,"terms"),data=mf.obs)
   #= Spatial entity
-  Levels.spatial.entity <- sort(unique(spatial.entity))
-  ncell <- length(Levels.spatial.entity)
-  cells <- as.numeric(as.factor(spatial.entity))
+  Levels.site <- sort(unique(site))
+  nsite <- length(Levels.site)
+  sites <- as.numeric(as.factor(site))
 
   #= Predictions
   if (is.null(suitability.pred)) {
       X.pred <- X
-      npred <- nobs
+      npred <- nsite
   }
   if (!is.null(suitability.pred)) {
       mf.pred <- model.frame(formula=suitability,data=suitability.pred)
@@ -86,20 +87,20 @@ hSDM.Nmixture <- function (# Observations
   # Check data
   #==========
   check.Y.poisson(Y)
-  check.X(X,ncell) # X must be of dim (ncell x np) for the N-mixture model
+  check.X(X,nsite) # X must be of dim (nsite x np) for the N-mixture model
   check.W(W,nobs)
-  check.cells(cells,nobs)
+  check.sites(sites,nobs)
 
   #========
   # Initial starting values for M-H
   #========
   beta.start <- form.beta.start(beta.start,np)
   gamma.start <- form.gamma.start(gamma.start,nq)
-  # For N, we compute the MAX of the observations on each cell
-  N.start <- rep(0,ncell)
-  Levels.cells <- sort(unique(cells))
-  for (i in 1:length(Levels.cells)) {
-      N.start[Levels.cells[i]] <- max(Y[cells==Levels.cells[i]])
+  # For N, we compute the MAX of the observations on each site
+  N.start <- rep(0,nsite)
+  Levels.sites <- sort(unique(sites))
+  for (i in 1:length(Levels.sites)) {
+      N.start[Levels.sites[i]] <- max(Y[sites==Levels.sites[i]])
   }
   
   #========
@@ -115,13 +116,13 @@ hSDM.Nmixture <- function (# Observations
   #========
   beta <- rep(beta.start,nsamp)
   gamma <- rep(gamma.start,nsamp)
-  prob_p_latent <- rep(0,nobs)
-  prob_q_latent <- rep(0,nobs)
-  if (save.p==0) {prob_p_pred <- rep(0,npred)}
-  if (save.p==1) {prob_p_pred <- rep(0,npred*nsamp)}
+  lambda_latent <- rep(0,nsite)
+  delta_latent <- rep(0,nobs)
+  if (save.p==0) {lambda_pred <- rep(0,npred)}
+  if (save.p==1) {lambda_pred <- rep(0,npred*nsamp)}
   Deviance <- rep(0,nsamp)
-  if (save.N==0) {N_pred <- rep(0,ncell)}
-  if (save.N==1) {N_pred <- rep(0,ncell*nsamp)}
+  if (save.N==0) {N_pred <- rep(0,nsite)}
+  if (save.N==1) {N_pred <- rep(0,nsite*nsamp)}
 
   #========
   # call C++ code to draw sample
@@ -130,14 +131,14 @@ hSDM.Nmixture <- function (# Observations
                #= Constants and data
                ngibbs=as.integer(ngibbs), nthin=as.integer(nthin), nburn=as.integer(nburn), ## Number of iterations, burning and samples
                nobs=as.integer(nobs),
-               ncell=as.integer(ncell),
+               nsite=as.integer(nsite),
                np=as.integer(np),
                nq=as.integer(nq),
                Y_vect=as.integer(c(Y)),
                W_vect=as.double(c(W)),
                X_vect=as.double(c(X)),
-               #= Spatial cells
-               C_vect=as.integer(c(cells)-1), # Cells range is 1,...,ncell in R. Must start at 0 for C. Don't forget the "-1" term. 
+               #= Spatial sites
+               C_vect=as.integer(c(sites)-1), # Sites range is 1,...,nsite in R. Must start at 0 for C. Don't forget the "-1" term. 
                #= Predictions
                npred=as.integer(npred),
                X_pred_vect=as.double(c(X.pred)),
@@ -154,9 +155,9 @@ hSDM.Nmixture <- function (# Observations
                mugamma=as.double(c(mugamma)), Vgamma=as.double(c(Vgamma)),
                #= Diagnostic
                Deviance.nonconst=as.double(Deviance),
-               prob_p_latent.nonconst=as.double(prob_p_latent), ## Predictive posterior mean
-               prob_q_latent.nonconst=as.double(prob_q_latent), ## Predictive posterior mean
-               prob_p_pred.nonconst=as.double(prob_p_pred),
+               lambda_latent.nonconst=as.double(lambda_latent), ## Predictive posterior mean
+               delta_latent.nonconst=as.double(delta_latent), ## Predictive posterior mean
+               lambda_pred.nonconst=as.double(lambda_pred),
                #= Seed
                seed=as.integer(seed),
                #= Verbose
@@ -192,15 +193,15 @@ hSDM.Nmixture <- function (# Observations
       N.pred <- Sample[[19]]
   }
   if (save.N==1) {
-      Matrix.N.pred <- matrix(Sample[[19]],ncol=ncell)
-      colnames(Matrix.N.pred) <- paste("N.",Levels.spatial.entity,sep="")
+      Matrix.N.pred <- matrix(Sample[[19]],ncol=nsite)
+      colnames(Matrix.N.pred) <- paste("N.",Levels.site,sep="")
       N.pred=mcmc(Matrix.N.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
   #= Output
   return (list(mcmc=MCMC,
                lambda.pred=lambda.pred, N.pred=N.pred,
-               lambda.latent=Sample[[25]], theta.latent=Sample[[26]]))
+               lambda.latent=Sample[[25]], delta.latent=Sample[[26]]))
 
 }
 

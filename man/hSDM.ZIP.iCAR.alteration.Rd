@@ -228,6 +228,10 @@ suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
 
 \references{
 
+  Flores, O.; Rossi, V. and Mortier, F. (2009) Autocorrelation offsets
+  zero-inflation in models of tropical saplings density. \emph{Ecological
+  Modelling}, 220, 1797-1809.
+  
   Gelfand, A. E.; Schmidt, A. M.; Wu, S.; Silander, J. A.; Latimer, A. and
   Rebelo, A. G. (2005) Modelling species diversity through species level
   hierarchical modelling. \emph{Applied Statistics}, 54, 1-20.

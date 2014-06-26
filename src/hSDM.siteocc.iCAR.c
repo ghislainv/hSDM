@@ -40,14 +40,14 @@ struct dens_par {
     int *Y;
     /* Sites */
     int NSITE;
-    int *IdSite;
+    int *IdSiteforObs;
     int *nObsSite;
-    int **PosSite;
+    int **ListObsBySite;
     int *SumYbySite;
     /* Spatial cells */
-    int *IdCell;
+    int *IdCellforSite;
     int *nSiteCell;
-    int **PosCell;
+    int **ListSiteByCell;
     /* Spatial correlation */
     int *nNeigh;
     int **Neigh;
@@ -90,23 +90,23 @@ static double betadens (double beta_k, void *dens_data) {
 	    }
 	}
 	Xpart_theta+=d->X[i][k]*beta_k;
-	double theta=invlogit(Xpart_theta+d->rho_run[d->IdCell[i]]);
+	double theta=invlogit(Xpart_theta+d->rho_run[d->IdCellforSite[i]]);
 	/* delta */
 	double logLpart=0.0;
 	// At least one presence
 	if (d->SumYbySite[i]>0) {
 	    for (int m=0; m<d->nObsSite[i]; m++) {
-		int w=d->PosSite[i][m]; // which observation
+		int wo=d->ListObsBySite[i][m]; // which observation
 		double logit_delta=0.0;
 		for (int q=0; q<d->NQ; q++) {
-		    logit_delta+=d->W[w][q]*d->gamma_run[q];
+		    logit_delta+=d->W[wo][q]*d->gamma_run[q];
 		}
 		double delta=invlogit(logit_delta);
 		/* logLpart */
-		if (d->Y[w]==1) {
+		if (d->Y[wo]==1) {
 		    logLpart+=log(delta);
 		}
-		if (d->Y[w]==0) {
+		if (d->Y[wo]==0) {
 		    logLpart+=log(1-delta);
 		}
 	    }
@@ -115,10 +115,10 @@ static double betadens (double beta_k, void *dens_data) {
 	// Only absences
 	if (d->SumYbySite[i]==0) {
 	    for (int m=0; m<d->nObsSite[i]; m++) {
-		int w=d->PosSite[i][m]; // which observation
+		int wo=d->ListObsBySite[i][m]; // which observation
 		double logit_delta=0.0;
 		for (int q=0; q<d->NQ; q++) {
-		    logit_delta+=d->W[w][q]*d->gamma_run[q];
+		    logit_delta+=d->W[wo][q]*d->gamma_run[q];
 		}
 		double delta=invlogit(logit_delta);
 		/* logLpart */
@@ -149,26 +149,26 @@ static double gammadens (double gamma_k, void *dens_data) {
 	for (int p=0; p<d->NP; p++) {
 	    Xpart_theta+=d->X[i][p]*d->beta_run[p];
 	}
-	double theta=invlogit(Xpart_theta+d->rho_run[d->IdCell[i]]);
+	double theta=invlogit(Xpart_theta+d->rho_run[d->IdCellforSite[i]]);
 	/* delta */
 	double logLpart=0.0;
 	// At least one presence
 	if (d->SumYbySite[i]>0) {
 	    for (int m=0; m<d->nObsSite[i]; m++) {
-		int w=d->PosSite[i][m]; // which observation
+		int wo=d->ListObsBySite[i][m]; // which observation
 		double logit_delta=0.0;
 		for (int q=0; q<d->NQ; q++) {
 		    if (q!=k) {
-			logit_delta+=d->W[w][q]*d->gamma_run[q];
+			logit_delta+=d->W[wo][q]*d->gamma_run[q];
 		    }
 		}
-		logit_delta+=d->W[w][k]*gamma_k;
+		logit_delta+=d->W[wo][k]*gamma_k;
 		double delta=invlogit(logit_delta);
 		/* logLpart */
-		if (d->Y[w]==1) {
+		if (d->Y[wo]==1) {
 		    logLpart+=log(delta);
 		}
-		if (d->Y[w]==0) {
+		if (d->Y[wo]==0) {
 		    logLpart+=log(1-delta);
 		}
 	    }
@@ -177,14 +177,14 @@ static double gammadens (double gamma_k, void *dens_data) {
 	// Only absences
 	if (d->SumYbySite[i]==0) {
 	    for (int m=0; m<d->nObsSite[i]; m++) {
-		int w=d->PosSite[i][m]; // which observation
+		int wo=d->ListObsBySite[i][m]; // which observation
 		double logit_delta=0.0;
 		for (int q=0; q<d->NQ; q++) {
 		    if (q!=k) {
-			logit_delta+=d->W[w][q]*d->gamma_run[q];
+			logit_delta+=d->W[wo][q]*d->gamma_run[q];
 		    }
 		}
-		logit_delta+=d->W[w][k]*gamma_k;
+		logit_delta+=d->W[wo][k]*gamma_k;
 		double delta=invlogit(logit_delta);
 		/* logLpart */
 		logLpart+=log(1-delta);
@@ -210,7 +210,7 @@ static double rhodens_visited (double rho_j, void *dens_data) {
     double logL=0.0;
     // Loop on sites in the cell
     for (int i=0; i<d->nSiteCell[j]; i++) {
-	int ws=d->PosCell[j][i]; // which site
+	int ws=d->ListSiteByCell[j][i]; // which site
 	/* theta */
 	double Xpart_theta=0.0;
 	for (int p=0; p<d->NP; p++) {
@@ -220,31 +220,31 @@ static double rhodens_visited (double rho_j, void *dens_data) {
 	/* delta */
 	double logLpart=0.0;
 	// At least one presence
-	if (d->SumYbySite[i]>0) {
-	    for (int m=0; m<d->nObsSite[i]; m++) {
-		int w=d->PosSite[i][m]; // which observation
+	if (d->SumYbySite[ws]>0) {
+	    for (int m=0; m<d->nObsSite[ws]; m++) {
+		int wo=d->ListObsBySite[ws][m]; // which observation
 		double logit_delta=0.0;
 		for (int q=0; q<d->NQ; q++) {
-		    logit_delta+=d->W[w][q]*d->gamma_run[q];
+		    logit_delta+=d->W[wo][q]*d->gamma_run[q];
 		}
 		double delta=invlogit(logit_delta);
 		/* logLpart */
-		if (d->Y[w]==1) {
+		if (d->Y[wo]==1) {
 		    logLpart+=log(delta);
 		}
-		if (d->Y[w]==0) {
+		if (d->Y[wo]==0) {
 		    logLpart+=log(1-delta);
 		}
 	    }
 	    logL+=logLpart+log(theta);
 	}
 	// Only absences
-	if (d->SumYbySite[i]==0) {
-	    for (int m=0; m<d->nObsSite[i]; m++) {
-		int w=d->PosSite[i][m]; // which observation
+	if (d->SumYbySite[ws]==0) {
+	    for (int m=0; m<d->nObsSite[ws]; m++) {
+		int wo=d->ListObsBySite[ws][m]; // which observation
 		double logit_delta=0.0;
 		for (int q=0; q<d->NQ; q++) {
-		    logit_delta+=d->W[w][q]*d->gamma_run[q];
+		    logit_delta+=d->W[wo][q]*d->gamma_run[q];
 		}
 		double delta=invlogit(logit_delta);
 		/* logLpart */
@@ -387,29 +387,29 @@ void hSDM_siteocc_iCAR (
     }
     
     /* Sites */
-    // IdSite
-    dens_data.IdSite=malloc(NOBS*sizeof(int));
+    // IdSiteforObs
+    dens_data.IdSiteforObs=malloc(NOBS*sizeof(int));
     for (int n=0; n<NOBS; n++) {
-    	dens_data.IdSite[n]=S_vect[n];
+    	dens_data.IdSiteforObs[n]=S_vect[n];
     }
     // nObsSite
     dens_data.nObsSite=malloc(NSITE*sizeof(int));
     for (int i=0; i<NSITE; i++) {
     	dens_data.nObsSite[i]=0;
     	for (int n=0; n<NOBS; n++) {
-    	    if (dens_data.IdSite[n]==i) {
+    	    if (dens_data.IdSiteforObs[n]==i) {
     		dens_data.nObsSite[i]++;
     	    }
     	}
     }
-    // PosSite
-    dens_data.PosSite=malloc(NSITE*sizeof(int*));
+    // ListObsBySite
+    dens_data.ListObsBySite=malloc(NSITE*sizeof(int*));
     for (int i=0; i<NSITE; i++) {
-	dens_data.PosSite[i]=malloc(dens_data.nObsSite[i]*sizeof(int));
+	dens_data.ListObsBySite[i]=malloc(dens_data.nObsSite[i]*sizeof(int));
 	int repSite=0;
 	for (int n=0; n<NOBS; n++) {
-	    if (dens_data.IdSite[n]==i) {
-		dens_data.PosSite[i][repSite]=n;
+	    if (dens_data.IdSiteforObs[n]==i) {
+		dens_data.ListObsBySite[i][repSite]=n;
 		repSite++;
 	    }
 	}
@@ -419,35 +419,35 @@ void hSDM_siteocc_iCAR (
     for (int i=0; i<NSITE; i++) {
 	dens_data.SumYbySite[i]=0;
 	for (int m=0; m<dens_data.nObsSite[i]; m++) {
-	    int w=dens_data.PosSite[i][m]; // which observation
-	    dens_data.SumYbySite[i]+=Y_vect[w];
+	    int wo=dens_data.ListObsBySite[i][m]; // which observation
+	    dens_data.SumYbySite[i]+=Y_vect[wo];
 	}
     }
 
     /* Spatial correlation */
-    // IdCell
-    dens_data.IdCell=malloc(NSITE*sizeof(int));
+    // IdCellforSite
+    dens_data.IdCellforSite=malloc(NSITE*sizeof(int));
     for (int i=0; i<NSITE; i++) {
-    	dens_data.IdCell[i]=C_vect[i];
+    	dens_data.IdCellforSite[i]=C_vect[i];
     }
     // nSiteCell
     dens_data.nSiteCell=malloc(NCELL*sizeof(int));
     for (int j=0; j<NCELL; j++) {
     	dens_data.nSiteCell[j]=0;
     	for (int i=0; i<NSITE; i++) {
-    	    if (dens_data.IdCell[i]==j) {
+    	    if (dens_data.IdCellforSite[i]==j) {
     		dens_data.nSiteCell[j]++;
     	    }
     	}
     }
-    // PosCell
-    dens_data.PosCell=malloc(NCELL*sizeof(int*));
+    // ListSiteByCell
+    dens_data.ListSiteByCell=malloc(NCELL*sizeof(int*));
     for (int j=0; j<NCELL; j++) {
-	dens_data.PosCell[j]=malloc(dens_data.nSiteCell[j]*sizeof(int));
+	dens_data.ListSiteByCell[j]=malloc(dens_data.nSiteCell[j]*sizeof(int));
 	int repCell=0;
 	for (int i=0; i<NSITE; i++) {
-	    if (dens_data.IdCell[i]==j) {
-		dens_data.PosCell[j][repCell]=i;
+	    if (dens_data.IdCellforSite[i]==j) {
+		dens_data.ListSiteByCell[j][repCell]=i;
 		repCell++;
 	    }
 	}
@@ -524,7 +524,7 @@ void hSDM_siteocc_iCAR (
 	viscell[j]=0;
     }
     for (int i=0; i<NSITE; i++) {
-	viscell[dens_data.IdCell[i]]++;
+	viscell[dens_data.IdCellforSite[i]]++;
     }
     int NVISCELL=0;
     for (int j=0; j<NCELL; j++) {
@@ -708,24 +708,24 @@ void hSDM_siteocc_iCAR (
 	    for (int p=0; p<dens_data.NP; p++) {
 		    Xpart_theta+=dens_data.X[i][p]*dens_data.beta_run[p];
 	    }
-	    theta_run[i]=invlogit(Xpart_theta+dens_data.rho_run[dens_data.IdCell[i]]);
+	    theta_run[i]=invlogit(Xpart_theta+dens_data.rho_run[dens_data.IdCellforSite[i]]);
 	    /* delta */
 	    double logLpart=0.0;
 	    // At least one presence
 	    if (dens_data.SumYbySite[i]>0) {
 		for (int m=0; m<dens_data.nObsSite[i]; m++) {
-		    int w=dens_data.PosSite[i][m]; // which observation
+		    int wo=dens_data.ListObsBySite[i][m]; // which observation
 		    double logit_delta=0.0;
 		    for (int q=0; q<dens_data.NQ; q++) {
-			logit_delta+=dens_data.W[w][q]*dens_data.gamma_run[q];
+			logit_delta+=dens_data.W[wo][q]*dens_data.gamma_run[q];
 		    }
-		    delta_run[w]=invlogit(logit_delta);
+		    delta_run[wo]=invlogit(logit_delta);
 		    /* logLpart */
-		    if (dens_data.Y[w]==1) {
-			logLpart+=log(delta_run[w]);
+		    if (dens_data.Y[wo]==1) {
+			logLpart+=log(delta_run[wo]);
 		    }
-		    if (dens_data.Y[w]==0) {
-			logLpart+=log(1-delta_run[w]);
+		    if (dens_data.Y[wo]==0) {
+			logLpart+=log(1-delta_run[wo]);
 		    }
 		}
 		logL+=logLpart+log(theta_run[i]);
@@ -733,14 +733,14 @@ void hSDM_siteocc_iCAR (
 	    // Only absences
 	    if (dens_data.SumYbySite[i]==0) {
 		for (int m=0; m<dens_data.nObsSite[i]; m++) {
-		    int w=dens_data.PosSite[i][m]; // which observation
+		    int wo=dens_data.ListObsBySite[i][m]; // which observation
 		    double logit_delta=0.0;
 		    for (int q=0; q<dens_data.NQ; q++) {
-			logit_delta+=dens_data.W[w][q]*dens_data.gamma_run[q];
+			logit_delta+=dens_data.W[wo][q]*dens_data.gamma_run[q];
 		    }
-		    delta_run[w]=invlogit(logit_delta);
+		    delta_run[wo]=invlogit(logit_delta);
 		    /* logLpart */
-		    logLpart+=log(1-delta_run[w]);
+		    logLpart+=log(1-delta_run[wo]);
 		}
 		logL+=log(exp(logLpart)*theta_run[i]+(1-theta_run[i]));
 	    }
@@ -811,7 +811,7 @@ void hSDM_siteocc_iCAR (
 
     	///////////////////////////////////////////////////////
     	// Adaptive sampling (on the burnin period)
-    	const double ropt=0.24;
+    	const double ropt=0.234;
     	int DIV=0;
     	if (NGIBBS >=1000) DIV=100;
     	else DIV=NGIBBS/10;
@@ -906,20 +906,20 @@ void hSDM_siteocc_iCAR (
     /* Obs */
     free(dens_data.Y);
     /* Site */
-    free(dens_data.IdSite);
+    free(dens_data.IdSiteforObs);
     free(dens_data.nObsSite);
     for (int i=0; i<NSITE; i++) {
-    	free(dens_data.PosSite[i]);
+    	free(dens_data.ListObsBySite[i]);
     }
-    free(dens_data.PosSite);
+    free(dens_data.ListObsBySite);
     free(dens_data.SumYbySite);
     /* Spatial correlation */
-    free(dens_data.IdCell);
+    free(dens_data.IdCellforSite);
     free(dens_data.nSiteCell);
     for (int j=0; j<NCELL; j++) {
-    	free(dens_data.PosCell[j]);
+    	free(dens_data.ListSiteByCell[j]);
     }
-    free(dens_data.PosCell);
+    free(dens_data.ListSiteByCell);
     free(dens_data.nNeigh);
     for (int j=0; j<NCELL; j++) {
     	free(dens_data.Neigh[j]);

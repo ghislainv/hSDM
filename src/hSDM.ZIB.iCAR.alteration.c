@@ -684,7 +684,7 @@ void hSDM_ZIB_iCAR_alteration (
 
 	///////////////////////////////////////////////////////
 	// Adaptive sampling (on the burnin period)
-	const double ropt=0.24;
+	const double ropt=0.234;
 	int DIV=0;
 	if (NGIBBS >=1000) DIV=100;
 	else DIV=NGIBBS/10;
