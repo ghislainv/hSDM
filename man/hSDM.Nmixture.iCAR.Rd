@@ -292,192 +292,199 @@
 library(hSDM)
 library(raster)
 library(sp)
-library(mvtnorm)
+
+#===================================
+#== Multivariate normal distribution
+rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
+    p <- length(mu)
+    if (any(is.na(match(dim(V), p)))) {
+        stop("Dimension problem!")
+    }
+    D <- chol(V)
+    set.seed(seed)
+    t(matrix(rnorm(n*p),ncol=p)\%*\%D+rep(mu,rep(n,p)))
+}
+
 
 #==================
 #== Data simulation
 
-# Set seed for repeatability
-seed <- 1234
+#= Set seed for repeatability
+seed <- 4321
 
-# Target parameters
-beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-gamma.target <- matrix(c(1),ncol=1) #= This means that theta.2~0.75: 75\% of chance to detect the species
-## Uncomment if you want covariates on the observability process
-## gamma.target <- matrix(c(1,0.5,0.5),ncol=1)
-Vrho.target <- 1 # Spatial Variance
+#= Landscape
+xLand <- 20
+yLand <- 20 
+Landscape <- raster(ncol=xLand,nrow=yLand,crs='+proj=utm +zone=1')
+Landscape[] <- 0
+extent(Landscape) <- c(0,xLand,0,yLand)
+coords <- coordinates(Landscape)
+ncells <- ncell(Landscape)
 
-# Landscape
-Landscape <- raster(ncol=20,nrow=20,crs='+proj=utm +zone=1')
-ncell <- ncell(Landscape)
-
-# Neighbors
-neighbors.mat <- adjacent(Landscape, cells=c(1:ncell), directions=8, pairs=TRUE, sorted=TRUE)
+#= Neighbors
+neighbors.mat <- adjacent(Landscape, cells=c(1:ncells), directions=8, pairs=TRUE, sorted=TRUE)
 n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
 adj <- neighbors.mat[,2]
 
-# Generate symmetric adjacency matrix, A
-A <- matrix(0,ncell,ncell)
+#= Generate symmetric adjacency matrix, A
+A <- matrix(0,ncells,ncells)
 index.start <- 1
-for (i in 1:ncell) {
+for (i in 1:ncells) {
     index.end <- index.start+n.neighbors[i]-1
     A[i,adj[c(index.start:index.end)]] <- 1
     index.start <- index.end+1
 }
 
-# Spatial effects
+#= Spatial effects
+Vrho.target <- 5
 d <- 1	# Spatial dependence parameter = 1 for intrinsic CAR
-Q <- diag(n.neighbors)-d*A + diag(.0001,ncell) # Add small constant to make Q non-singular
+Q <- diag(n.neighbors)-d*A + diag(.0001,ncells) # Add small constant to make Q non-singular
 covrho <- Vrho.target*solve(Q) # Covariance of rhos
 set.seed(seed)
-rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
+rho <- c(rmvn(1,mu=rep(0,ncells),V=covrho,seed=seed)) # Spatial Random Effects
 rho <- rho-mean(rho) # Centering rhos on zero
 
-# Visited cells
-n.visited <- 150 # Compare with 400, 350 and 100 for example
-set.seed(seed)
-visited.cells <- sort(sample(1:ncell,n.visited,replace=FALSE)) # Draw visited cells at random
-notvisited.cells <- c(1:ncell)[-visited.cells]
+#= Raster and plot spatial effects
+r.rho <- rasterFromXYZ(cbind(coords,rho))
+plot(r.rho)
 
-# Number of observations
-nobs <- 300
-
-# Cell vector
+#= Sample the observation sites in the landscape
+nsite <- 150
 set.seed(seed)
-cells <- c(visited.cells,sample(visited.cells,nobs-n.visited,replace=TRUE))
-coords <- xyFromCell(Landscape,cells) # Get coordinates
-
-# Covariates for "suitability" process
-set.seed(seed)
-X1 <- rnorm(n=ncell,0,1) # Here, we decided to define one habitat by spatial entity (raster cell)
+x.coord <- runif(nsite,0,xLand)
 set.seed(2*seed)
-X2 <- rnorm(n=ncell,0,1)
-X <- cbind(rep(1,ncell),X1,X2)
+y.coord <- runif(nsite,0,yLand)
+sites.sp <- SpatialPoints(coords=cbind(x.coord,y.coord))
+cells <- extract(Landscape,sites.sp,cell=TRUE)[,1]
 
-# Covariates for "observability" process
-W <- cbind(rep(1,nobs))
-## Uncomment if you want covariates on the observability process 
-## set.seed(3*seed)
-## W1 <- rnorm(n=nobs,0,1)
-## set.seed(4*seed)
-## W2 <- rnorm(n=nobs,0,1)
-## W <- cbind(rep(1,nobs),W1,W2)
-
-#== Simulating latent variables
-
-# Suitability
-log.lambda <- vector()
-log.lambda <- X\%*\%beta.target+rho
+#= Ecological process (suitability)
+set.seed(seed)
+x1 <- rnorm(nsite,0,1)
+set.seed(2*seed)
+x2 <- rnorm(nsite,0,1)
+X <- cbind(rep(1,nsite),x1,x2)
+beta.target <- c(-1,1,-1)
+log.lambda <- X \%*\% beta.target + rho[cells]
 lambda <- exp(log.lambda)
 set.seed(seed)
-N <- rpois(ncell,lambda)
+N <- rpois(nsite,lambda)
 
-# Observability
-logit.theta <- W\%*\%gamma.target
-theta <- inv.logit(logit.theta)
+#= Relative importance of spatial random effects
+RImp <- mean(abs(rho[cells])/abs(X \%*\% beta.target))
+RImp
 
-#== Simulating response variable
+#= Number of visits associated to each observation point
 set.seed(seed)
-Y <- rbinom(nobs,N[cells],theta)
+visits <- rpois(nsite,3)
+visits[visits==0] <- 1
+# Vector of observation points
+sites <- vector()
+for (i in 1:nsite) {
+    sites <- c(sites,rep(i,visits[i]))
+}
 
-#== Data-sets
-Data.obs <- data.frame(Y,cells)
-## Uncomment if you want covariates on the observability process 
-## Data.obs <- data.frame(Y,cells,W1,W2)
-Data.suit <- data.frame(cells=c(1:ncell),X1,X2)
-Data.obs <- SpatialPointsDataFrame(coords=coords,data=Data.obs)
-plot(Data.obs)
-Data.pred <- Data.suit
+#= Observation process (detectability)
+nobs <- sum(visits)
+set.seed(seed)
+w1 <- rnorm(nobs,0,1)
+set.seed(2*seed)
+w2 <- rnorm(nobs,0,1)
+W <- cbind(rep(1,nobs),w1,w2)
+gamma.target <- c(-1,1,-1)
+logit.delta <- W \%*\% gamma.target
+delta <- inv.logit(logit.delta)
+set.seed(seed)
+Y <- rbinom(nobs,N[sites],delta)
 
-#==================================
-#== N-mixture model
+#= Data-sets
+data.obs <- data.frame(Y,w1,w2,site=sites)
+data.suit <- data.frame(x1,x2,cell=cells)
 
+#================================
+#== Parameter inference with hSDM
+
+Start <- Sys.time() # Start the clock
 mod.hSDM.Nmixture.iCAR <- hSDM.Nmixture.iCAR(# Observations
-                                   counts=Data.obs$Y, observability=~1,
-                                   spatial.entity=Data.obs$cells, data.observability=Data.obs,
-                                   # Habitat
-                                   suitability=~X1+X2, data.suitability=Data.suit,
-                                   # Spatial structure
-                                   n.neighbors=n.neighbors, neighbors=adj,
-                                   # Predictions
-                                   suitability.pred=Data.pred, spatial.entity.pred=Data.pred$cells,
-                                   # Chains
-                                   burnin=10000, mcmc=10000, thin=10,
-                                   # Starting values
-                                   beta.start=0,
-                                   gamma.start=0,
-                                   Vrho.start=10,
-                                   # Priors
-                                   mubeta=0, Vbeta=1.0E6,
-                                   mugamma=0, Vgamma=1.0E6,
-                                   priorVrho="1/Gamma",
-                                   #priorVrho="Uniform",
-                                   #priorVrho=10,
-                                   shape=0.5, rate=0.0005,
-                                   #Vrho.max=1000,
-                                   # Various
-                                   seed=1234, verbose=1,
-                                   save.rho=1, save.p=0, save.N=1)
+                           counts=data.obs$Y,
+                           observability=~w1+w2,
+                           site=data.obs$site,
+                           data.observability=data.obs,
+                           # Habitat
+                           suitability=~x1+x2, data.suitability=data.suit,
+                           # Spatial structure
+                           spatial.entity=data.suit$cell,
+                           n.neighbors=n.neighbors, neighbors=adj,
+                           # Predictions
+                           suitability.pred=NULL,
+                           spatial.entity.pred=NULL,
+                           # Chains
+                           burnin=5000, mcmc=5000, thin=5,
+                           # Starting values
+                           beta.start=0,
+                           gamma.start=0,
+                           Vrho.start=1,
+                           # Priors
+                           mubeta=0, Vbeta=1.0E6,
+                           mugamma=0, Vgamma=1.0E6,
+                           priorVrho="1/Gamma",
+                           shape=0.5, rate=0.005,
+                           Vrho.max=10,
+                           # Various
+                           seed=1234, verbose=1,
+                           save.rho=1, save.p=0, save.N=1)
+Time.hSDM <- difftime(Sys.time(),Start,units="sec") # Time difference
+
+#= Computation time
+Time.hSDM
 
 #==========
 #== Outputs
-
-#= Parameter estimates
 summary(mod.hSDM.Nmixture.iCAR$mcmc)
-
-#= MCMC and posteriors
 pdf(file="Posteriors_hSDM.Nmixture.iCAR.pdf")
 plot(mod.hSDM.Nmixture.iCAR$mcmc)
 dev.off()
 
-pdf(file="Posteriors.rho_hSDM.Nmixture.iCAR.pdf")
-plot(mod.hSDM.Nmixture.iCAR$rho.pred)
-dev.off()
-
-pdf(file="Posteriors.N_hSDM.Nmixture.iCAR.pdf")
+#= MCMC for latent variable N
+pdf(file="MCMC_N.pdf")
 plot(mod.hSDM.Nmixture.iCAR$N.pred)
 dev.off()
 
-#= Check that Ns are correctly estimated
+#= Check that Ns are corretly estimated
 M <- as.matrix(mod.hSDM.Nmixture.iCAR$N.pred)
 N.est <- apply(M,2,mean)
-Y.by.cell <- tapply(Data.obs$Y,Data.obs$cells,mean)
+Y.by.site <- tapply(data.obs$Y,data.obs$site,mean) # Mean by site
 pdf(file="Check_N.pdf",width=10,height=5)
 par(mfrow=c(1,2))
-plot(Y.by.cell, N.est) ## More individuals are expected in reality (N > Y) due to detection process
+plot(Y.by.site, N.est) ## More individuals are expected (N > Y) due to detection process
 abline(a=0,b=1,col="red")
-plot(N[visited.cells], N.est) ## N are well estimated
+plot(N, N.est) ## N are well estimated
 abline(a=0,b=1,col="red")
-cor(N[visited.cells], N.est) ## Close to 1
+cor(N, N.est) ## Very close to 1
 dev.off()
 
 #= Summary plots
 
-# rho
-r.rho <- r.rho.pred <- r.visited <- Landscape
-r.rho[] <- rho
+# rho.pred
 rho.pred <- apply(mod.hSDM.Nmixture.iCAR$rho.pred,2,mean)
-r.rho.pred[] <- rho.pred
-r.visited[] <- 0
-r.visited[visited.cells] <- tapply(Data.obs$Y,Data.obs$cells,mean)
-# lambda
-r.lambda <- Landscape
-r.lambda[] <- mod.hSDM.Nmixture.iCAR$lambda.pred
+r.rho.pred <- rasterFromXYZ(cbind(coords,rho.pred))
 
-pdf(file="Summary_hSDM.Nmixture.iCAR.pdf")
-par(mfrow=c(3,2))
+# plot
+pdf(file="Summary_hSDM.Nmixture.pdf")
+par(mfrow=c(2,2))
+# rho target
 plot(r.rho, main="rho target")
-plot(r.visited,main="Visited cells and abundance")
-plot(Data.obs[Y>0,],add=TRUE,pch=16,cex=0.5)
+plot(sites.sp,add=TRUE)
+# rho estimated
 plot(r.rho.pred, main="rho estimated")
-plot(rho[visited.cells],rho.pred[visited.cells],
+# correlation and "shrinkage"
+plot(rho[-Levels.cells],rho.pred[-Levels.cells],
+     xlim=range(rho),
+     ylim=range(rho),
      xlab="rho target",
      ylab="rho estimated")
-points(rho[notvisited.cells],rho.pred[notvisited.cells],pch=16,col="blue")
-legend(x=-4,y=3.5,legend="Unvisited cells",col="blue",pch=16,bty="n")
+points(rho[Levels.cells],rho.pred[Levels.cells],pch=16,col="blue")
+legend(x=-2,y=3,legend="Visited cells",col="blue",pch=16,bty="n")
 abline(a=0,b=1,col="red")
-plot(r.lambda,main="Predicted abundance")
-plot(Data.obs[Y>0,],add=TRUE,pch=16,cex=0.5)
 dev.off()
 
 }

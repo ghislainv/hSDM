@@ -511,10 +511,10 @@ void hSDM_Nmixture_iCAR (
     }
 
     // rho
-    double *sigmap_rho = malloc(NSITE*sizeof(double));
-    int *nA_rho = malloc(NSITE*sizeof(int));
-    double *Ar_rho = malloc(NSITE*sizeof(double)); // Acceptance rate 
-    for (int i=0; i<NSITE; i++) {
+    double *sigmap_rho = malloc(NCELL*sizeof(double));
+    int *nA_rho = malloc(NCELL*sizeof(int));
+    double *Ar_rho = malloc(NCELL*sizeof(double)); // Acceptance rate 
+    for (int i=0; i<NCELL; i++) {
 	nA_rho[i]=0;
 	sigmap_rho[i]=1.0;
 	Ar_rho[i]=0.0;
@@ -697,7 +697,6 @@ void hSDM_Nmixture_iCAR (
 	double logL1=0.0;
 	for (int n=0; n<NOBS; n++) {
 	    int ws=dens_data.IdSiteforObs[n]; // which site
-	    int wc=dens_data.IdCellforSite[ws]; // which cell
 	    /* delta */
 	    double logit_delta=0.0;
 	    for (int q=0; q<NQ; q++) {
@@ -817,11 +816,13 @@ void hSDM_Nmixture_iCAR (
 		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
 	    }
 	    // rho
-	    for (int i=0; i<NSITE; i++) {
-		Ar_rho[i]=((double) nA_rho[i])/DIV;
-		if(Ar_rho[i]>=ropt) sigmap_rho[i]=sigmap_rho[i]*(2-(1-Ar_rho[i])/(1-ropt));
-		else sigmap_rho[i]=sigmap_rho[i]/(2-Ar_rho[i]/ropt);
-		nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+	    for (int j=0; j<NCELL; j++) {
+		if (viscell[j]>0) {
+		    Ar_rho[j]=((double) nA_rho[j])/DIV;
+		    if(Ar_rho[j]>=ropt) sigmap_rho[j]=sigmap_rho[j]*(2-(1-Ar_rho[j])/(1-ropt));
+		    else sigmap_rho[j]=sigmap_rho[j]/(2-Ar_rho[j]/ropt);
+		    nA_rho[j]=0.0; // We reinitialize the number of acceptance to zero
+		}
 	    }
 	    // N
 	    for (int i=0; i<NSITE; i++) {
@@ -842,9 +843,11 @@ void hSDM_Nmixture_iCAR (
 		nA_gamma[q]=0.0; // We reinitialize the number of acceptance to zero
 	    }
 	    // rho
-	    for (int i=0; i<NSITE; i++) {
-		Ar_rho[i]=((double) nA_rho[i])/DIV;
-		nA_rho[i]=0.0; // We reinitialize the number of acceptance to zero
+	    for (int j=0; j<NCELL; j++) {
+		if (viscell[j]>0) {
+		    Ar_rho[j]=((double) nA_rho[j])/DIV;
+		    nA_rho[j]=0.0; // We reinitialize the number of acceptance to zero
+		}
 	    }
 	    // N
 	    for (int i=0; i<NSITE; i++) {
@@ -875,12 +878,14 @@ void hSDM_Nmixture_iCAR (
 	    	    mAr_gamma+=Ar_gamma[q]/NQ;
 	    	}
 	    	// rho
-	    	for (int i=0; i<NSITE; i++) {
-		    mAr_rho+=Ar_rho[i]/NVISCELL;
+	    	for (int j=0; j<NCELL; j++) {
+		    if (viscell[j]>0) {
+			mAr_rho+=Ar_rho[j]/NVISCELL;
+		    }
 	    	}
 		// N
 	    	for (int i=0; i<NSITE; i++) {
-		    mAr_N+=Ar_N[i]/NVISCELL;
+		    mAr_N+=Ar_N[i]/NSITE;
 	    	}
 	    	Rprintf(":%.1f%%, mean accept. rates= beta:%.3f, gamma:%.3f, rho:%.3f, N:%.3f\n",Perc,mAr_beta,mAr_gamma,mAr_rho,mAr_N);
 	    	R_FlushConsole();
