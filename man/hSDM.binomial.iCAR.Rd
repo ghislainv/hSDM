@@ -219,20 +219,32 @@ verbose = 1, save.rho = 0, save.p = 0)}
 \dontrun{ 
 
 #==============================================
-# hSDM.binomial.iCAR()
+# hSDM.siteocc.iCAR()
 # Example with simulated data
 #==============================================
 
-#============
-#== Preambule
+#=================
+#== Load libraries
 library(hSDM)
 library(raster)
 library(sp)
 
+#===================================
+#== Multivariate normal distribution
+rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
+    p <- length(mu)
+    if (any(is.na(match(dim(V), p)))) {
+        stop("Dimension problem!")
+    }
+    D <- chol(V)
+    set.seed(seed)
+    t(matrix(rnorm(n*p),ncol=p)\%*\%D+rep(mu,rep(n,p)))
+}
+
 #==================
 #== Data simulation
 
-#= Seed
+#= Set seed for repeatability
 seed <- 1234
 
 #= Landscape
@@ -258,24 +270,12 @@ for (i in 1:ncells) {
     index.start <- index.end+1
 }
 
-# Multivariate normal distribution
-rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
-    p <- length(mu)
-    if (any(is.na(match(dim(V), p)))) {
-        stop("Dimension problem!")
-    }
-    D <- chol(V)
-    set.seed(seed)
-    t(matrix(rnorm(n*p),ncol=p)\%*\%D+rep(mu,rep(n,p)))
-}
-
 #= Spatial effects
 Vrho.target <- 5
 d <- 1	# Spatial dependence parameter = 1 for intrinsic CAR
 Q <- diag(n.neighbors)-d*A + diag(.0001,ncells) # Add small constant to make Q non-singular
 covrho <- Vrho.target*solve(Q) # Covariance of rhos
 set.seed(seed)
-# rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
 rho <- c(rmvn(1,mu=rep(0,ncells),V=covrho,seed=seed)) # Spatial Random Effects
 rho <- rho-mean(rho) # Centering rhos on zero
 
@@ -283,7 +283,7 @@ rho <- rho-mean(rho) # Centering rhos on zero
 r.rho <- rasterFromXYZ(cbind(coords,rho))
 plot(r.rho)
 
-# Sample the observation sites in the landscape
+#= Sample the observation sites in the landscape
 nsite <- 250
 set.seed(seed)
 x.coord <- runif(nsite,0,xLand)
@@ -292,12 +292,7 @@ y.coord <- runif(nsite,0,yLand)
 sites.sp <- SpatialPoints(coords=cbind(x.coord,y.coord))
 cells <- extract(Landscape,sites.sp,cell=TRUE)[,1]
 
-# Number of visits associated to each observation point
-set.seed(seed)
-v <- rpois(nsite,3)
-v[v==0] <- 1
-
-# Ecological process (suitability)
+#= Ecological process (suitability)
 set.seed(seed)
 x1 <- rnorm(nsite,0,1)
 set.seed(2*seed)
@@ -307,67 +302,116 @@ beta.target <- c(-1,1,-1)
 logit.theta <- X \%*\% beta.target + rho[cells]
 theta <- inv.logit(logit.theta)
 set.seed(seed)
-Y <- rbinom(nsite,v,theta)
+Z <- rbinom(nsite,1,theta)
 
-# Relative importance of spatial random effects
+#= Relative importance of spatial random effects
 RImp <- mean(abs(rho[cells])/abs(X \%*\% beta.target))
 RImp
 
-# Data-sets
-data.obs <- data.frame(Y,trials=v,x1,x2,cell=cells)
+#= Number of visits associated to each observation point
+set.seed(seed)
+visits <- rpois(nsite,3)
+visits[visits==0] <- 1
+# Vector of observation points
+sites <- vector()
+for (i in 1:nsite) {
+    sites <- c(sites,rep(i,visits[i]))
+}
 
-#==================================
-#== Site-occupancy model
+#= Observation process (detectability)
+nobs <- sum(visits)
+set.seed(seed)
+w1 <- rnorm(nobs,0,1)
+set.seed(2*seed)
+w2 <- rnorm(nobs,0,1)
+W <- cbind(rep(1,nobs),w1,w2)
+gamma.target <- c(-1,1,-1)
+logit.delta <- W \%*\% gamma.target
+delta <- inv.logit(logit.delta)
+set.seed(seed)
+Y <- rbinom(nobs,1,delta*Z[sites])
 
-mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=data.obs$Y,
-                                               trials=data.obs$trials,
-                                               suitability=~x1+x2,
-                                               spatial.entity=data.obs$cell,
-                                               data=data.obs,
-                                               n.neighbors=n.neighbors,
-                                               neighbors=adj,
-                                               suitability.pred=NULL,
-                                               spatial.entity.pred=NULL,
-                                               burnin=5000, mcmc=5000, thin=5,
-                                               beta.start=0,
-                                               Vrho.start=10,
-                                               priorVrho="1/Gamma",
-                                               #priorVrho="Uniform",
-                                               #priorVrho=10,
-                                               mubeta=0, Vbeta=1.0E6,
-                                               shape=0.5, rate=0.0005,
-                                               #Vrho.max=1000,
-                                               seed=1234, verbose=1,
-                                               save.rho=1, save.p=0)
+#= Data-sets
+data.obs <- data.frame(Y,w1,w2,site=sites)
+data.suit <- data.frame(x1,x2,cell=cells)
+
+#================================
+#== Parameter inference with hSDM
+
+Start <- Sys.time() # Start the clock
+mod.hSDM.siteocc.iCAR <- hSDM.siteocc.iCAR(# Observations
+                                           presence=data.obs$Y,
+                                           observability=~w1+w2,
+                                           site=data.obs$site,
+                                           data.observability=data.obs,
+                                           # Habitat
+                                           suitability=~x1+x2, data.suitability=data.suit,
+                                           # Spatial structure
+                                           spatial.entity=data.suit$cell,
+                                           n.neighbors=n.neighbors, neighbors=adj,
+                                           # Predictions
+                                           suitability.pred=NULL,
+                                           spatial.entity.pred=NULL,
+                                           # Chains
+                                           burnin=10000, mcmc=5000, thin=5,
+                                           # Starting values
+                                           beta.start=0,
+                                           gamma.start=0,
+                                           Vrho.start=1,
+                                           # Priors
+                                           mubeta=0, Vbeta=1.0E6,
+                                           mugamma=0, Vgamma=1.0E6,
+                                           priorVrho="Uniform",
+                                           Vrho.max=10,
+                                           # Various
+                                           seed=1234, verbose=1,
+                                           save.rho=1, save.p=0)
+Time.hSDM <- difftime(Sys.time(),Start,units="sec") # Time difference
+
+#= Computation time
+Time.hSDM
 
 #==========
 #== Outputs
 
-#= Parameter estimates
-summary(mod.hSDM.binomial.iCAR$mcmc)
-
-#= MCMC and posteriors
-pdf(file="Posteriors_hSDM.binomial.iCAR.pdf")
-plot(mod.hSDM.binomial.iCAR$mcmc)
+#= Parameter estimates 
+summary(mod.hSDM.siteocc.iCAR$mcmc)
+pdf("Posteriors_hSDM.siteocc.iCAR.pdf")
+plot(mod.hSDM.siteocc.iCAR$mcmc)
 dev.off()
 
-pdf(file="Posteriors.rho_hSDM.binomial.iCAR.pdf")
-plot(mod.hSDM.binomial.iCAR$rho.pred)
+#= Predictions
+summary(mod.hSDM.siteocc.iCAR$theta.latent)
+summary(mod.hSDM.siteocc.iCAR$delta.latent)
+summary(mod.hSDM.siteocc.iCAR$theta.pred)
+pdf(file="Pred-Init.pdf")
+plot(theta,mod.hSDM.siteocc.iCAR$theta.pred)
+abline(a=0,b=1,col="red")
 dev.off()
 
-#= Summary plots
+#= Summary plots for spatial random effects
 
-# rho
-rho.pred <- apply(mod.hSDM.binomial.iCAR$rho.pred,2,mean)
+# rho.pred
+rho.pred <- apply(mod.hSDM.siteocc.iCAR$rho.pred,2,mean)
 r.rho.pred <- rasterFromXYZ(cbind(coords,rho.pred))
 
 # plot
-pdf(file="Summary_hSDM.binomial.iCAR.pdf")
+pdf(file="Summary_hSDM.siteocc.iCAR.pdf")
 par(mfrow=c(2,2))
-plot(r.rho)
+# rho target
+plot(r.rho, main="rho target")
 plot(sites.sp,add=TRUE)
-plot(r.rho.pred)
-plot(rho,rho.pred)
+# rho estimated
+plot(r.rho.pred, main="rho estimated")
+# correlation and "shrinkage"
+Levels.cells <- sort(unique(cells))
+plot(rho[-Levels.cells],rho.pred[-Levels.cells],
+     xlim=range(rho),
+     ylim=range(rho),
+     xlab="rho target",
+     ylab="rho estimated")
+points(rho[Levels.cells],rho.pred[Levels.cells],pch=16,col="blue")
+legend(x=-3,y=4,legend="Visited cells",col="blue",pch=16,bty="n")
 abline(a=0,b=1,col="red")
 dev.off()
 

@@ -287,8 +287,8 @@
 # Example with simulated data
 #==============================================
 
-#============
-#== Preambule
+#=================
+#== Load libraries
 library(hSDM)
 library(raster)
 library(sp)
@@ -439,9 +439,20 @@ Time.hSDM
 
 #==========
 #== Outputs
+
+#= Parameter estimates 
 summary(mod.hSDM.Nmixture.iCAR$mcmc)
 pdf(file="Posteriors_hSDM.Nmixture.iCAR.pdf")
 plot(mod.hSDM.Nmixture.iCAR$mcmc)
+dev.off()
+
+#= Predictions
+summary(mod.hSDM.Nmixture.iCAR$lambda.latent)
+summary(mod.hSDM.Nmixture.iCAR$delta.latent)
+summary(mod.hSDM.Nmixture.iCAR$lambda.pred)
+pdf(file="Pred-Init.pdf")
+plot(lambda,mod.hSDM.Nmixture.iCAR$lambda.pred)
+abline(a=0,b=1,col="red")
 dev.off()
 
 #= MCMC for latent variable N
@@ -462,14 +473,14 @@ abline(a=0,b=1,col="red")
 cor(N, N.est) ## Very close to 1
 dev.off()
 
-#= Summary plots
+#= Summary plots for spatial random effects
 
 # rho.pred
 rho.pred <- apply(mod.hSDM.Nmixture.iCAR$rho.pred,2,mean)
 r.rho.pred <- rasterFromXYZ(cbind(coords,rho.pred))
 
 # plot
-pdf(file="Summary_hSDM.Nmixture.pdf")
+pdf(file="Summary_hSDM.Nmixture.iCAR.pdf")
 par(mfrow=c(2,2))
 # rho target
 plot(r.rho, main="rho target")
@@ -477,13 +488,14 @@ plot(sites.sp,add=TRUE)
 # rho estimated
 plot(r.rho.pred, main="rho estimated")
 # correlation and "shrinkage"
+Levels.cells <- sort(unique(cells))
 plot(rho[-Levels.cells],rho.pred[-Levels.cells],
      xlim=range(rho),
      ylim=range(rho),
      xlab="rho target",
      ylab="rho estimated")
 points(rho[Levels.cells],rho.pred[Levels.cells],pch=16,col="blue")
-legend(x=-2,y=3,legend="Visited cells",col="blue",pch=16,bty="n")
+legend(x=-3,y=4,legend="Visited cells",col="blue",pch=16,bty="n")
 abline(a=0,b=1,col="red")
 dev.off()
 

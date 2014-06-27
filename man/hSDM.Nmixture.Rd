@@ -212,118 +212,116 @@ library(hSDM)
 #==================
 #== Data simulation
 
-# Set seed for repeatability
-seed <- 1234
+# Number of observation sites
+nsite <- 200
 
-# Target parameters
-beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-gamma.target <- matrix(c(1),ncol=1) #= This means that theta.2~0.75: 75\% of chance to detect the species
-## Uncomment if you want covariates on the observability process
-## gamma.target <- matrix(c(1,0.5,0.5),ncol=1)
-Vrho.target <- 1 # Spatial Variance
+#= Set seed for repeatability
+seed <- 4321
 
-# Number of observations
-nobs <- 300
-
-# Cell vector
-ntotcell <- 100
+#= Ecological process (suitability)
 set.seed(seed)
-cells <- sample(c(1:ntotcell),nobs,replace=TRUE)
-Levels.cells <- sort(unique(cells))
-ncell <- length(Levels.cells)
-Ident.cells <- as.numeric(as.factor(cells))
-
-# Covariates for "suitability" process
-set.seed(seed)
-X1 <- rnorm(n=ncell,0,1)
+x1 <- rnorm(nsite,0,1)
 set.seed(2*seed)
-X2 <- rnorm(n=ncell,0,1)
-X <- cbind(rep(1,ncell),X1,X2)
-
-# Covariates for "observability" process
-W <- cbind(rep(1,nobs))
-## Uncomment if you want covariates on the observability process 
-## set.seed(3*seed)
-## W1 <- rnorm(n=nobs,0,1)
-## set.seed(4*seed)
-## W2 <- rnorm(n=nobs,0,1)
-## W <- cbind(rep(1,nobs),W1,W2)
-
-#== Simulating latent variables
-
-# Suitability
-log.lambda <- vector()
+x2 <- rnorm(nsite,0,1)
+X <- cbind(rep(1,nsite),x1,x2)
+beta.target <- c(-1,1,-1) # Target parameters
 log.lambda <- X \%*\% beta.target
 lambda <- exp(log.lambda)
 set.seed(seed)
-N <- rpois(ncell,lambda)
+N <- rpois(nsite,lambda)
 
-# Observability
-logit.theta <- W \%*\% gamma.target
-theta <- inv.logit(logit.theta)
-
-#== Simulating response variable
+#= Number of visits associated to each observation point
 set.seed(seed)
-Y <- rbinom(nobs,N[Ident.cells],theta)
+visits <- rpois(nsite,3)
+visits[visits==0] <- 1
+# Vector of observation points
+sites <- vector()
+for (i in 1:nsite) {
+    sites <- c(sites,rep(i,visits[i]))
+}
 
-#== Data-sets
-Data.obs <- data.frame(Y,cells)
-## Uncomment if you want covariates on the observability process 
-## Data.obs <- data.frame(Y,cells,W1,W2)
-Data.suit <- data.frame(Levels.cells,X1,X2)
-Data.pred <- Data.suit
+#= Observation process (detectability)
+nobs <- sum(visits)
+set.seed(seed)
+w1 <- rnorm(nobs,0,1)
+set.seed(2*seed)
+w2 <- rnorm(nobs,0,1)
+W <- cbind(rep(1,nobs),w1,w2)
+gamma.target <- c(-1,1,-1) # Target parameters
+logit.delta <- W \%*\% gamma.target
+delta <- inv.logit(logit.delta)
+set.seed(seed)
+Y <- rbinom(nobs,N[sites],delta)
 
-#==================================
-#== N-mixture model
+#= Data-sets
+data.obs <- data.frame(Y,w1,w2,site=sites)
+data.suit <- data.frame(x1,x2)
 
+#================================
+#== Parameter inference with hSDM
+
+Start <- Sys.time() # Start the clock
 mod.hSDM.Nmixture <- hSDM.Nmixture(# Observations
-                                   counts=Data.obs$Y, observability=~1,
-                                   site=Data.obs$cells, data.observability=Data.obs,
-                                   # Habitat
-                                   suitability=~X1+X2, data.suitability=Data.suit,
-                                   # Predictions
-                                   suitability.pred=Data.pred,
-                                   # Chains
-                                   burnin=10000, mcmc=10000, thin=10,
-                                   # Starting values
-                                   beta.start=0,
-                                   gamma.start=0,
-                                   # Priors
-                                   mubeta=0, Vbeta=1.0E6,
-                                   mugamma=0, Vgamma=1.0E6,
-                                   # Various
-                                   seed=1234, verbose=1,
-                                   save.p=0, save.N=1)
+                           counts=data.obs$Y,
+                           observability=~w1+w2,
+                           site=data.obs$site,
+                           data.observability=data.obs,
+                           # Habitat
+                           suitability=~x1+x2,
+                           data.suitability=data.suit,
+                           # Predictions
+                           suitability.pred=NULL,
+                           # Chains
+                           burnin=5000, mcmc=5000, thin=5,
+                           # Starting values
+                           beta.start=0,
+                           gamma.start=0,
+                           # Priors
+                           mubeta=0, Vbeta=1.0E6,
+                           mugamma=0, Vgamma=1.0E6,
+                           # Various
+                           seed=1234, verbose=1,
+                           save.p=0, save.N=1)
+Time.hSDM <- difftime(Sys.time(),Start,units="sec") # Time difference
+
+#= Computation time
+Time.hSDM
 
 #==========
 #== Outputs
 
 #= Parameter estimates
 summary(mod.hSDM.Nmixture$mcmc)
-
-#= MCMC and posteriors
 pdf(file="Posteriors_hSDM.Nmixture.pdf")
 plot(mod.hSDM.Nmixture$mcmc)
 dev.off()
 
-pdf(file="Posteriors.N_hSDM.Nmixture.pdf")
+#= Predictions
+summary(mod.hSDM.Nmixture$lambda.latent)
+summary(mod.hSDM.Nmixture$delta.latent)
+summary(mod.hSDM.Nmixture$lambda.pred)
+pdf(file="Pred-Init.pdf")
+plot(lambda,mod.hSDM.Nmixture$lambda.pred)
+abline(a=0,b=1,col="red")
+dev.off()
+
+#= MCMC for latent variable N
+pdf(file="MCMC_N.pdf")
 plot(mod.hSDM.Nmixture$N.pred)
 dev.off()
 
 #= Check that Ns are correctly estimated
 M <- as.matrix(mod.hSDM.Nmixture$N.pred)
 N.est <- apply(M,2,mean)
-Y.by.cell <- tapply(Data.obs$Y,Data.obs$cells,mean)
+Y.by.site <- tapply(data.obs$Y,data.obs$site,mean) # Mean by site
 pdf(file="Check_N.pdf",width=10,height=5)
 par(mfrow=c(1,2))
-plot(Y.by.cell, N.est) ## More individuals are expected in reality (N > Y) due to detection process
+plot(Y.by.site, N.est) ## More individuals are expected (N > Y) due to detection process
 abline(a=0,b=1,col="red")
 plot(N, N.est) ## N are well estimated
 abline(a=0,b=1,col="red")
-cor(N, N.est) ## Close to 1
+cor(N, N.est) ## Very close to 1
 dev.off()
-
-}
 
 }
 

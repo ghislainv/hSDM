@@ -194,91 +194,98 @@ library(hSDM)
 #==================
 #== Data simulation
 
-# Number of observation sites
+#= Number of observation sites
 nsite <- 200
 
-# Set seed for repeatability
-seed <- 1234
+#= Set seed for repeatability
+seed <- 4321
 
-# Number of visits associated to each observation point
+#= Ecological process (suitability)
 set.seed(seed)
-visits <- rpois(nsite,lambda=3) # Mean number of visits ~3
-# NB: Setting a too low mean number of visits per site (lambda < 3)
-# leads to inaccurate parameter estimates
-visits[visits==0] <- 1 # Number of visits must be > 0
-# Vector of observation sites
+x1 <- rnorm(nsite,0,1)
+set.seed(2*seed)
+x2 <- rnorm(nsite,0,1)
+X <- cbind(rep(1,nsite),x1,x2)
+beta.target <- c(-1,1,-1) # Target parameters
+logit.theta <- X \%*\% beta.target
+theta <- inv.logit(logit.theta)
+set.seed(seed)
+Z <- rbinom(nsite,1,theta)
+
+#= Number of visits associated to each observation point
+set.seed(seed)
+visits <- rpois(nsite,3)
+visits[visits==0] <- 1
+# Vector of observation points
 sites <- vector()
 for (i in 1:nsite) {
-  sites <- c(sites,rep(i,visits[i]))
+    sites <- c(sites,rep(i,visits[i]))
 }
 
-# Explicative variables for suitability process
-set.seed(seed)
-x1 <- rnorm(n=nsite,0,1)
-set.seed(2*seed)
-x2 <- rnorm(n=nsite,0,1)
-X <- cbind(rep(1,nsite),x1,x2)
-# Target parameters for suitability process
-beta.target <- matrix(c(-1,1,-1),ncol=1)
-
-# Explicative variables for observation process
+#= Observation process (detectability)
 nobs <- sum(visits)
-set.seed(3*seed)
-w1 <- rnorm(n=nobs,0,1)
-set.seed(4*seed)
-w2 <- rnorm(n=nobs,0,1)
+set.seed(seed)
+w1 <- rnorm(nobs,0,1)
+set.seed(2*seed)
+w2 <- rnorm(nobs,0,1)
 W <- cbind(rep(1,nobs),w1,w2)
-# Target parameters for observation process
-gamma.target <- matrix(c(-1,1,-1),ncol=1)
+gamma.target <- c(-1,1,-1) # Target parameters
+logit.delta <- W \%*\% gamma.target
+delta <- inv.logit(logit.delta)
+set.seed(seed)
+Y <- rbinom(nobs,1,delta*Z[sites])
 
-# Ecological process (suitability)
-logit.theta.site <- X \%*\% beta.target
-theta.site <- inv.logit(logit.theta.site)
-set.seed(seed)
-Z <- rbinom(nsite,1,theta.site)
-# Observation process (detectability)
-logit.delta.obs <- W \%*\% gamma.target
-delta.obs <- inv.logit(logit.delta.obs)
-set.seed(seed)
-Y <- rbinom(nobs,1,delta.obs*Z[sites])
-# Data-sets
+#= Data-sets
 data.obs <- data.frame(Y,w1,w2,site=sites)
 data.suit <- data.frame(x1,x2)
 
+#================================
+#== Parameter inference with hSDM
 #==================================
-#== siteocc model
 
+Start <- Sys.time() # Start the clock
 mod.hSDM.siteocc <- hSDM.siteocc(# Observations
-                     presence=data.obs$Y,
-                     observability=~w1+w2,
-                     site=data.obs$site,
-                     data.observability=data.obs,
-                     # Habitat
-                     suitability=~x1+x2,
-                     data.suitability=data.suit,
-                     # Predictions
-                     suitability.pred=NULL,
-                     # Chains
-                     burnin=2000, mcmc=2000, thin=2,
-                     # Starting values
-                     beta.start=0,
-                     gamma.start=0,
-                     # Priors
-                     mubeta=0, Vbeta=1.0E6,
-                     mugamma=0, Vgamma=1.0E6,
-                     # Various
-                     seed=1234, verbose=1, save.p=0)
+                                 presence=data.obs$Y,
+                                 observability=~w1+w2,
+                                 site=data.obs$site,
+                                 data.observability=data.obs,
+                                 # Habitat
+                                 suitability=~x1+x2,
+                                 data.suitability=data.suit,
+                                 # Predictions
+                                 suitability.pred=NULL,
+                                 # Chains
+                                 burnin=2000, mcmc=2000, thin=2,
+                                 # Starting values
+                                 beta.start=0,
+                                 gamma.start=0,
+                                 # Priors
+                                 mubeta=0, Vbeta=1.0E6,
+                                 mugamma=0, Vgamma=1.0E6,
+                                 # Various
+                                 seed=1234, verbose=1, save.p=0)
+Time.hSDM <- difftime(Sys.time(),Start,units="sec") # Time difference
 
+#= Computation time
+Time.hSDM
 
 #==========
 #== Outputs
+
+#= Parameter estimates
 summary(mod.hSDM.siteocc$mcmc)
 pdf(file="Posteriors_hSDM.siteocc.pdf")
 plot(mod.hSDM.siteocc$mcmc)
 dev.off()
+
+#= Predictions
 summary(mod.hSDM.siteocc$theta.latent)
 summary(mod.hSDM.siteocc$delta.latent)
 summary(mod.hSDM.siteocc$theta.pred)
+pdf(file="Pred-Init.pdf")
+plot(theta,mod.hSDM.siteocc$theta.pred)
+abline(a=0,b=1,col="red")
+dev.off()
 
 }
 
