@@ -325,6 +325,8 @@ dev.off()
 
 }
 
+}
+
 \keyword{biodiversity}
 \keyword{species distribution models}
 \keyword{hierarchical Bayesian models}

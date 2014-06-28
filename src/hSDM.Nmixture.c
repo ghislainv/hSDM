@@ -425,14 +425,16 @@ void hSDM_Nmixture (
     	for (int i=0; i<NSITE; i++) {
     	    dens_data.pos_N=i; // Specifying the rank of the parameter of interest
     	    int x_now=dens_data.N_run[i];
-    	    if (x_now==N_start[i]) {
+	    if (x_now==0) {
     		double s=myrunif();
     		if (s < 0.5) {
-    		    dens_data.N_run[i]=x_now;
+		    //dens_data.N_run[i]=x_now;
+    		    dens_data.N_run[i]=0;
     		}
     		else {
     		    // Proposal
-    		    int x_prop=x_now+1;
+    		    //int x_prop=x_now+1;
+		    int x_prop=1;
     		    // Ratio
     		    double p_now=Ndens(x_now, &dens_data);
     		    double p_prop=Ndens(x_prop, &dens_data);
