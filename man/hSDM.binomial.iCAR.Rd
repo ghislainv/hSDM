@@ -219,12 +219,12 @@ verbose = 1, save.rho = 0, save.p = 0)}
 \dontrun{ 
 
 #==============================================
-# hSDM.siteocc.iCAR()
+# hSDM.binomial.iCAR()
 # Example with simulated data
 #==============================================
 
 #=================
-#== Load libraries
+#== Load libraries                          
 library(hSDM)
 library(raster)
 library(sp)
@@ -292,6 +292,11 @@ y.coord <- runif(nsite,0,yLand)
 sites.sp <- SpatialPoints(coords=cbind(x.coord,y.coord))
 cells <- extract(Landscape,sites.sp,cell=TRUE)[,1]
 
+#= Number of visits associated to each observation point
+set.seed(seed)
+visits <- rpois(nsite,3)
+visits[visits==0] <- 1
+
 #= Ecological process (suitability)
 set.seed(seed)
 x1 <- rnorm(nsite,0,1)
@@ -302,70 +307,36 @@ beta.target <- c(-1,1,-1)
 logit.theta <- X \%*\% beta.target + rho[cells]
 theta <- inv.logit(logit.theta)
 set.seed(seed)
-Z <- rbinom(nsite,1,theta)
+Y <- rbinom(nsite,visits,theta)
 
 #= Relative importance of spatial random effects
 RImp <- mean(abs(rho[cells])/abs(X \%*\% beta.target))
 RImp
 
-#= Number of visits associated to each observation point
-set.seed(seed)
-visits <- rpois(nsite,3)
-visits[visits==0] <- 1
-# Vector of observation points
-sites <- vector()
-for (i in 1:nsite) {
-    sites <- c(sites,rep(i,visits[i]))
-}
-
-#= Observation process (detectability)
-nobs <- sum(visits)
-set.seed(seed)
-w1 <- rnorm(nobs,0,1)
-set.seed(2*seed)
-w2 <- rnorm(nobs,0,1)
-W <- cbind(rep(1,nobs),w1,w2)
-gamma.target <- c(-1,1,-1)
-logit.delta <- W \%*\% gamma.target
-delta <- inv.logit(logit.delta)
-set.seed(seed)
-Y <- rbinom(nobs,1,delta*Z[sites])
-
 #= Data-sets
-data.obs <- data.frame(Y,w1,w2,site=sites)
-data.suit <- data.frame(x1,x2,cell=cells)
+data.obs <- data.frame(Y,visits,x1,x2,cell=cells)
 
-#================================
-#== Parameter inference with hSDM
+#==================================
+#== Site-occupancy model
 
 Start <- Sys.time() # Start the clock
-mod.hSDM.siteocc.iCAR <- hSDM.siteocc.iCAR(# Observations
-                                           presence=data.obs$Y,
-                                           observability=~w1+w2,
-                                           site=data.obs$site,
-                                           data.observability=data.obs,
-                                           # Habitat
-                                           suitability=~x1+x2, data.suitability=data.suit,
-                                           # Spatial structure
-                                           spatial.entity=data.suit$cell,
-                                           n.neighbors=n.neighbors, neighbors=adj,
-                                           # Predictions
-                                           suitability.pred=NULL,
-                                           spatial.entity.pred=NULL,
-                                           # Chains
-                                           burnin=10000, mcmc=5000, thin=5,
-                                           # Starting values
-                                           beta.start=0,
-                                           gamma.start=0,
-                                           Vrho.start=1,
-                                           # Priors
-                                           mubeta=0, Vbeta=1.0E6,
-                                           mugamma=0, Vgamma=1.0E6,
-                                           priorVrho="Uniform",
-                                           Vrho.max=10,
-                                           # Various
-                                           seed=1234, verbose=1,
-                                           save.rho=1, save.p=0)
+mod.hSDM.binomial.iCAR <- hSDM.binomial.iCAR(presences=data.obs$Y,
+                                               trials=data.obs$visits,
+                                               suitability=~x1+x2,
+                                               spatial.entity=data.obs$cell,
+                                               data=data.obs,
+                                               n.neighbors=n.neighbors,
+                                               neighbors=adj,
+                                               suitability.pred=NULL,
+                                               spatial.entity.pred=NULL,
+                                               burnin=5000, mcmc=5000, thin=5,
+                                               beta.start=0,
+                                               Vrho.start=1,
+                                               mubeta=0, Vbeta=1.0E6,
+                                               priorVrho="1/Gamma",
+                                               shape=0.5, rate=0.0005,
+                                               seed=1234, verbose=1,
+                                               save.rho=1, save.p=0)
 Time.hSDM <- difftime(Sys.time(),Start,units="sec") # Time difference
 
 #= Computation time
@@ -375,28 +346,27 @@ Time.hSDM
 #== Outputs
 
 #= Parameter estimates 
-summary(mod.hSDM.siteocc.iCAR$mcmc)
-pdf("Posteriors_hSDM.siteocc.iCAR.pdf")
-plot(mod.hSDM.siteocc.iCAR$mcmc)
+summary(mod.hSDM.binomial.iCAR$mcmc)
+pdf("Posteriors_hSDM.binomial.iCAR.pdf")
+plot(mod.hSDM.binomial.iCAR$mcmc)
 dev.off()
 
 #= Predictions
-summary(mod.hSDM.siteocc.iCAR$theta.latent)
-summary(mod.hSDM.siteocc.iCAR$delta.latent)
-summary(mod.hSDM.siteocc.iCAR$theta.pred)
+summary(mod.hSDM.binomial.iCAR$theta.latent)
+summary(mod.hSDM.binomial.iCAR$theta.pred)
 pdf(file="Pred-Init.pdf")
-plot(theta,mod.hSDM.siteocc.iCAR$theta.pred)
+plot(theta,mod.hSDM.binomial.iCAR$theta.pred)
 abline(a=0,b=1,col="red")
 dev.off()
 
 #= Summary plots for spatial random effects
 
 # rho.pred
-rho.pred <- apply(mod.hSDM.siteocc.iCAR$rho.pred,2,mean)
+rho.pred <- apply(mod.hSDM.binomial.iCAR$rho.pred,2,mean)
 r.rho.pred <- rasterFromXYZ(cbind(coords,rho.pred))
 
 # plot
-pdf(file="Summary_hSDM.siteocc.iCAR.pdf")
+pdf(file="Summary_hSDM.binomial.iCAR.pdf")
 par(mfrow=c(2,2))
 # rho target
 plot(r.rho, main="rho target")

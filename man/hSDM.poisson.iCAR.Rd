@@ -211,166 +211,167 @@ Vrho.max=1000, seed = 1234, verbose = 1, save.rho = 0, save.p = 0)}
 
 \examples{
 
-\dontrun{ 
+\dontrun{
 
 #==============================================
 # hSDM.poisson.iCAR()
 # Example with simulated data
 #==============================================
 
-#============
-#== Preambule
+#=================
+#== Load libraries                          
 library(hSDM)
 library(raster)
 library(sp)
-library(mvtnorm)
+
+#===================================
+#== Multivariate normal distribution
+rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
+    p <- length(mu)
+    if (any(is.na(match(dim(V), p)))) {
+        stop("Dimension problem!")
+    }
+    D <- chol(V)
+    set.seed(seed)
+    t(matrix(rnorm(n*p),ncol=p)\%*\%D+rep(mu,rep(n,p)))
+}
 
 #==================
 #== Data simulation
 
-# Set seed for repeatability
+#= Set seed for repeatability
 seed <- 1234
 
-# Target parameters
-beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-Vrho.target <- 1 # Spatial Variance
+#= Landscape
+xLand <- 30
+yLand <- 30 
+Landscape <- raster(ncol=xLand,nrow=yLand,crs='+proj=utm +zone=1')
+Landscape[] <- 0
+extent(Landscape) <- c(0,xLand,0,yLand)
+coords <- coordinates(Landscape)
+ncells <- ncell(Landscape)
 
-# Landscape
-Landscape <- raster(ncol=20,nrow=20,crs='+proj=utm +zone=1')
-ncell <- ncell(Landscape)
-
-# Neighbors
-neighbors.mat <- adjacent(Landscape, cells=c(1:ncell), directions=8, pairs=TRUE, sorted=TRUE)
+#= Neighbors
+neighbors.mat <- adjacent(Landscape, cells=c(1:ncells), directions=8, pairs=TRUE, sorted=TRUE)
 n.neighbors <- as.data.frame(table(as.factor(neighbors.mat[,1])))[,2]
 adj <- neighbors.mat[,2]
 
-# Generate symmetric adjacency matrix, A
-A <- matrix(0,ncell,ncell)
+#= Generate symmetric adjacency matrix, A
+A <- matrix(0,ncells,ncells)
 index.start <- 1
-for (i in 1:ncell) {
+for (i in 1:ncells) {
     index.end <- index.start+n.neighbors[i]-1
     A[i,adj[c(index.start:index.end)]] <- 1
     index.start <- index.end+1
 }
 
-# Spatial effects
+#= Spatial effects
+Vrho.target <- 5
 d <- 1	# Spatial dependence parameter = 1 for intrinsic CAR
-Q <- diag(n.neighbors)-d*A + diag(.0001,ncell) # Add small constant to make Q non-singular
+Q <- diag(n.neighbors)-d*A + diag(.0001,ncells) # Add small constant to make Q non-singular
 covrho <- Vrho.target*solve(Q) # Covariance of rhos
 set.seed(seed)
-rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
+rho <- c(rmvn(1,mu=rep(0,ncells),V=covrho,seed=seed)) # Spatial Random Effects
 rho <- rho-mean(rho) # Centering rhos on zero
 
-# Visited cells
-n.visited <- 150 # Compare with 400, 350 and 100 for example
-set.seed(seed)
-visited.cells <- sort(sample(1:ncell,n.visited,replace=FALSE)) # Draw visited cells at random
-notvisited.cells <- c(1:ncell)[-visited.cells]
+#= Raster and plot spatial effects
+r.rho <- rasterFromXYZ(cbind(coords,rho))
+plot(r.rho)
 
-# Number of observations
-nobs <- 300
-
-# Cell vector
+#= Sample the observation sites in the landscape
+nsite <- 250
 set.seed(seed)
-cells <- c(visited.cells,sample(visited.cells,nobs-n.visited,replace=TRUE))
-coords <- xyFromCell(Landscape,cells) # Get coordinates
-
-# Covariates for "suitability" process
-set.seed(seed)
-X1.cell <- rnorm(n=ncell,0,1) # Here, we decided to define one habitat by spatial entity (raster cell)
+x.coord <- runif(nsite,0,xLand)
 set.seed(2*seed)
-X2.cell <- rnorm(n=ncell,0,1)
-X1 <- X1.cell[cells]
-X2 <- X2.cell[cells]
-X <- cbind(rep(1,nobs),X1,X2)
+y.coord <- runif(nsite,0,yLand)
+sites.sp <- SpatialPoints(coords=cbind(x.coord,y.coord))
+cells <- extract(Landscape,sites.sp,cell=TRUE)[,1]
 
-#== Simulating latent variables
-
-# Suitability
-log.lambda <- vector()
-for (n in 1:nobs) {
-  log.lambda[n] <- X[n,]\%*\%beta.target+rho[cells[n]]
-}
-lambda <- exp(log.lambda)
-
-#== Simulating response variable
+#= Ecological process (suitability)
 set.seed(seed)
-Y <- rpois(nobs,lambda)
+x1 <- rnorm(nsite,0,1)
+set.seed(2*seed)
+x2 <- rnorm(nsite,0,1)
+X <- cbind(rep(1,nsite),x1,x2)
+beta.target <- c(-1,1,-1)
+log.lambda <- X \%*\% beta.target + rho[cells]
+lambda <- exp(log.lambda)
+set.seed(seed)
+Y <- rpois(nsite,lambda)
 
-#== Data-set
-Data <- data.frame(Y,cells,X1,X2)
-Data <- SpatialPointsDataFrame(coords=coords,data=Data)
-plot(Data)
+#= Relative importance of spatial random effects
+RImp <- mean(abs(rho[cells])/abs(X \%*\% beta.target))
+RImp
 
-#== Data-set for predictions (suitability on each spatial cell)
-Data.pred <- data.frame(X1=X1.cell,X2=X2.cell,cells=c(1:ncell))
+#= Data-sets
+data.obs <- data.frame(Y,x1,x2,cell=cells)
 
 #==================================
-#== Statistical model
+#== Site-occupancy model
 
-mod.hSDM.poisson.iCAR <- hSDM.poisson.iCAR(counts=Data$Y,
-                                               suitability=~X1+X2,
-                                               spatial.entity=Data$cells,
-                                               data=Data,
-                                               n.neighbors=n.neighbors,
-                                               neighbors=adj,
-                                               ## suitability.pred=NULL,
-                                               ## spatial.entity.pred=NULL,
-                                               suitability.pred=Data.pred,
-                                               spatial.entity.pred=Data.pred$cells,
-                                               burnin=5000, mcmc=5000, thin=5,
-                                               beta.start=0,
-                                               Vrho.start=10,
-                                               priorVrho="1/Gamma",
-                                               #priorVrho="Uniform",
-                                               #priorVrho=10,
-                                               mubeta=0, Vbeta=1.0E6,
-                                               shape=0.5, rate=0.0005,
-                                               #Vrho.max=1000,
-                                               seed=1234, verbose=1,
-                                               save.rho=1, save.p=0)
+Start <- Sys.time() # Start the clock
+mod.hSDM.poisson.iCAR <- hSDM.poisson.iCAR(counts=data.obs$Y,
+                                           suitability=~x1+x2,
+                                           spatial.entity=data.obs$cell,
+                                           data=data.obs,
+                                           n.neighbors=n.neighbors,
+                                           neighbors=adj,
+                                           suitability.pred=NULL,
+                                           spatial.entity.pred=NULL,
+                                           burnin=5000, mcmc=5000, thin=5,
+                                           beta.start=0,
+                                           Vrho.start=1,
+                                           mubeta=0, Vbeta=1.0E6,
+                                           priorVrho="1/Gamma",
+                                           shape=0.5, rate=0.0005,
+                                           seed=1234, verbose=1,
+                                           save.rho=1, save.p=0)
+Time.hSDM <- difftime(Sys.time(),Start,units="sec") # Time difference
+
+#= Computation time
+Time.hSDM
 
 #==========
 #== Outputs
 
-#= Parameter estimates
+#= Parameter estimates 
 summary(mod.hSDM.poisson.iCAR$mcmc)
-
-#= MCMC and posteriors
-pdf(file="Posteriors_hSDM.poisson.iCAR.pdf")
+pdf("Posteriors_hSDM.poisson.iCAR.pdf")
 plot(mod.hSDM.poisson.iCAR$mcmc)
 dev.off()
 
-pdf(file="Posteriors.rho_hSDM.poisson.iCAR.pdf")
-plot(mod.hSDM.poisson.iCAR$rho.pred)
+#= Predictions
+summary(mod.hSDM.poisson.iCAR$lambda.latent)
+summary(mod.hSDM.poisson.iCAR$lambda.pred)
+pdf(file="Pred-Init.pdf")
+plot(lambda,mod.hSDM.poisson.iCAR$lambda.pred)
+abline(a=0,b=1,col="red")
 dev.off()
 
-#= Summary plots
+#= Summary plots for spatial random effects
 
-# rho
-r.rho <- r.rho.pred <- r.visited <- Landscape
-r.rho[] <- rho
+# rho.pred
 rho.pred <- apply(mod.hSDM.poisson.iCAR$rho.pred,2,mean)
-r.rho.pred[] <- rho.pred
-r.visited[] <- 0
-r.visited[visited.cells] <- tapply(Data$Y,Data$cells,mean)
-# lambda
-r.lambda <- Landscape
-r.lambda[] <- mod.hSDM.poisson.iCAR$lambda.pred
+r.rho.pred <- rasterFromXYZ(cbind(coords,rho.pred))
 
+# plot
 pdf(file="Summary_hSDM.poisson.iCAR.pdf")
-par(mfrow=c(3,2))
+par(mfrow=c(2,2))
+# rho target
 plot(r.rho, main="rho target")
-plot(r.visited,main="Visited cells and abundance")
-plot(Data,add=TRUE,pch=16,cex=0.5)
+plot(sites.sp,add=TRUE)
+# rho estimated
 plot(r.rho.pred, main="rho estimated")
-plot(rho[visited.cells],rho.pred[visited.cells],
+# correlation and "shrinkage"
+Levels.cells <- sort(unique(cells))
+plot(rho[-Levels.cells],rho.pred[-Levels.cells],
+     xlim=range(rho),
+     ylim=range(rho),
      xlab="rho target",
      ylab="rho estimated")
-points(rho[notvisited.cells],rho.pred[notvisited.cells],pch=16,col="blue")
-legend(x=-4,y=3.5,legend="Unvisited cells",col="blue",pch=16,bty="n")
+points(rho[Levels.cells],rho.pred[Levels.cells],pch=16,col="blue")
+legend(x=-3,y=4,legend="Visited cells",col="blue",pch=16,bty="n")
 abline(a=0,b=1,col="red")
-plot(r.lambda,main="Predicted abundance")
 dev.off()
 
 }
