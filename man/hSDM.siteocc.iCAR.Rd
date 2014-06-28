@@ -288,8 +288,8 @@
 # Example with simulated data
 #==============================================
 
-#============
-#== Preambule
+#=================
+#== Load libraries
 library(hSDM)
 library(raster)
 library(sp)
@@ -375,16 +375,16 @@ RImp
 
 # Number of visits associated to each observation point
 set.seed(seed)
-v <- rpois(nsite,3)
-v[v==0] <- 1
-# Vector of observation points
-sites <- vector()
+visits <- rpois(nsite,3)
+visits[visits==0] <- 1
+# Vector of observisitsation points
+sites <- visitsector()
 for (i in 1:nsite) {
-    sites <- c(sites,rep(i,v[i]))
+    sites <- c(sites,rep(i,visits[i]))
 }
 
 # Observation process (detectability)
-nobs <- sum(v)
+nobs <- sum(visits)
 set.seed(seed)
 w1 <- rnorm(nobs,0,1)
 set.seed(2*seed)
@@ -447,7 +447,7 @@ pdf(file="Posteriors.rho_hSDM.siteocc.iCAR.pdf")
 plot(mod.hSDM.siteocc.iCAR$rho.pred)
 dev.off()
 
-#= Summary plots
+#= Summary plots for spatial random effects
 
 # rho
 rho.pred <- apply(mod.hSDM.siteocc.iCAR$rho.pred,2,mean)

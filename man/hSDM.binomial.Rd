@@ -132,81 +132,78 @@ beta.start, mubeta = 0, Vbeta = 1e+06, seed = 1234, verbose = 1, save.p
 
 \dontrun{
 
-
 #==============================================
 # hSDM.binomial()
 # Example with simulated data
 #==============================================
 
-#============
-#== Preambule
+#=================
+#== Load libraries
 library(hSDM)
 
 #==================
 #== Data simulation
 
-# Set seed for repeatability
+#= Number of sites
+nsite <- 200
+
+#= Set seed for repeatability
 seed <- 1234
 
-# Constants
-nobs <- 1000
+#= Number of visits associated to each site
 set.seed(seed)
-trials <- rpois(nobs,5)	# Number of trial associated to each observation
+visits<- rpois(nsite,3)
+visits[visits==0] <- 1
 
-# Covariates for "suitability" process
+#= Ecological process (suitability)
 set.seed(seed)
-X1 <- rnorm(n=nobs,0,1)
+x1 <- rnorm(nsite,0,1)
 set.seed(2*seed)
-X2 <- rnorm(n=nobs,0,1)
-X <- cbind(rep(1,nobs),X1,X2)
-
-# Target parameters
-beta.target <- matrix(c(0.2,0.1,0.1),ncol=1) # fixed effects
-
-#== Simulating latent variables
-
-# Suitability
+x2 <- rnorm(nsite,0,1)
+X <- cbind(rep(1,nsite),x1,x2)
+beta.target <- c(-1,1,-1)
 logit.theta <- X \%*\% beta.target
 theta <- inv.logit(logit.theta)
-
-#== Simulating response variable
 set.seed(seed)
-Y <- rbinom(n=nobs,size=trials,prob=theta)
+Y <- rbinom(nsite,visits,theta)
 
-#== Data-set
-Data <- data.frame(Y,trials,X1,X2)
-str(Data)
-par(mfrow=c(2,1))
-plot(Data$X1,logit.theta)
-plot(Data$X2,logit.theta)
+#= Data-sets
+data.obs <- data.frame(Y,visits,x1,x2)
 
 #==================================
-#== Statistical modelling
+#== Site-occupancy model
 
-#== glm resolution to compare
-mod.glm <- glm(cbind(Y,trials-Y)~X1+X2,family="binomial",data=Data)
-summary(mod.glm)
-beta.hat.glm <- coef(mod.glm)
-
-#== hSDM
-mod.hSDM.binomial <- hSDM.binomial(presences=Data$Y,
-                                   trials=Data$trials,
-                                   suitability=~X1+X2,
-                                   data=Data,
+mod.hSDM.binomial <- hSDM.binomial(presences=data.obs$Y,
+                                   trials=data.obs$visits,
+                                   suitability=~x1+x2,
+                                   data=data.obs,
                                    suitability.pred=NULL,
                                    burnin=1000, mcmc=1000, thin=1,
-                                   beta.start=beta.hat.glm,
+                                   beta.start=0,
                                    mubeta=0, Vbeta=1.0E6,
-                                   seed=1234, verbose=1, save.p=0)
+                                   seed=1234, verbose=1,
+                                   save.p=0)
 
 #==========
 #== Outputs
+
+#= Parameter estimates
 summary(mod.hSDM.binomial$mcmc)
 pdf(file="Posteriors_hSDM.binomial.pdf")
 plot(mod.hSDM.binomial$mcmc)
 dev.off()
+
+#== glm resolution to compare
+mod.glm <- glm(cbind(Y,visits-Y)~x1+x2,family="binomial",data=data.obs)
+summary(mod.glm)
+
+#= Predictions
 summary(mod.hSDM.binomial$theta.latent)
 summary(mod.hSDM.binomial$theta.pred)
+pdf(file="Pred-Init.pdf")
+plot(theta,mod.hSDM.binomial$theta.pred)
+abline(a=0,b=1,col="red")
+dev.off()
 
 }
 

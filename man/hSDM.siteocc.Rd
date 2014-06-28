@@ -187,8 +187,8 @@
 # Example with simulated data
 #==============================================
 
-#============
-#== Preambule
+#=================
+#== Load libraries
 library(hSDM)
 
 #==================
