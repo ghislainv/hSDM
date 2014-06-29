@@ -294,10 +294,22 @@ library(hSDM)
 library(raster)
 library(sp)
 
+#===================================
+#== Multivariate normal distribution
+rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
+    p <- length(mu)
+    if (any(is.na(match(dim(V), p)))) {
+        stop("Dimension problem!")
+    }
+    D <- chol(V)
+    set.seed(seed)
+    t(matrix(rnorm(n*p),ncol=p)\%*\%D+rep(mu,rep(n,p)))
+}
+
 #==================
 #== Data simulation
 
-#= Seed
+#= Set seed for repeatability
 seed <- 1234
 
 #= Landscape
@@ -323,24 +335,12 @@ for (i in 1:ncells) {
     index.start <- index.end+1
 }
 
-# Multivariate normal distribution
-rmvn <- function(n, mu = 0, V = matrix(1), seed=1234) {
-    p <- length(mu)
-    if (any(is.na(match(dim(V), p)))) {
-        stop("Dimension problem!")
-    }
-    D <- chol(V)
-    set.seed(seed)
-    t(matrix(rnorm(n*p),ncol=p)\%*\%D+rep(mu,rep(n,p)))
-}
-
 #= Spatial effects
 Vrho.target <- 5
 d <- 1	# Spatial dependence parameter = 1 for intrinsic CAR
 Q <- diag(n.neighbors)-d*A + diag(.0001,ncells) # Add small constant to make Q non-singular
 covrho <- Vrho.target*solve(Q) # Covariance of rhos
 set.seed(seed)
-# rho <- c(rmvnorm(1,sigma=covrho)) # Spatial Random Effects
 rho <- c(rmvn(1,mu=rep(0,ncells),V=covrho,seed=seed)) # Spatial Random Effects
 rho <- rho-mean(rho) # Centering rhos on zero
 
@@ -348,7 +348,7 @@ rho <- rho-mean(rho) # Centering rhos on zero
 r.rho <- rasterFromXYZ(cbind(coords,rho))
 plot(r.rho)
 
-# Sample the observation sites in the landscape
+#= Sample the observation sites in the landscape
 nsite <- 250
 set.seed(seed)
 x.coord <- runif(nsite,0,xLand)
@@ -357,7 +357,7 @@ y.coord <- runif(nsite,0,yLand)
 sites.sp <- SpatialPoints(coords=cbind(x.coord,y.coord))
 cells <- extract(Landscape,sites.sp,cell=TRUE)[,1]
 
-# Ecological process (suitability)
+#= Ecological process (suitability)
 set.seed(seed)
 x1 <- rnorm(nsite,0,1)
 set.seed(2*seed)
@@ -369,21 +369,21 @@ theta <- inv.logit(logit.theta)
 set.seed(seed)
 Z <- rbinom(nsite,1,theta)
 
-# Relative importance of spatial random effects
+#= Relative importance of spatial random effects
 RImp <- mean(abs(rho[cells])/abs(X \%*\% beta.target))
 RImp
 
-# Number of visits associated to each observation point
+#= Number of visits associated to each observation point
 set.seed(seed)
 visits <- rpois(nsite,3)
 visits[visits==0] <- 1
-# Vector of observisitsation points
-sites <- visitsector()
+# Vector of observation points
+sites <- vector()
 for (i in 1:nsite) {
     sites <- c(sites,rep(i,visits[i]))
 }
 
-# Observation process (detectability)
+#= Observation process (detectability)
 nobs <- sum(visits)
 set.seed(seed)
 w1 <- rnorm(nobs,0,1)
@@ -396,17 +396,19 @@ delta <- inv.logit(logit.delta)
 set.seed(seed)
 Y <- rbinom(nobs,1,delta*Z[sites])
 
-# Data-sets
+#= Data-sets
 data.obs <- data.frame(Y,w1,w2,site=sites)
 data.suit <- data.frame(x1,x2,cell=cells)
 
-#==================================
-#== siteocc.iCAR model
+#================================
+#== Parameter inference with hSDM
 
+Start <- Sys.time() # Start the clock
 mod.hSDM.siteocc.iCAR <- hSDM.siteocc.iCAR(# Observations
                                            presence=data.obs$Y,
                                            observability=~w1+w2,
-                                           site=data.obs$site, data.observability=data.obs,
+                                           site=data.obs$site,
+                                           data.observability=data.obs,
                                            # Habitat
                                            suitability=~x1+x2, data.suitability=data.suit,
                                            # Spatial structure
@@ -416,7 +418,7 @@ mod.hSDM.siteocc.iCAR <- hSDM.siteocc.iCAR(# Observations
                                            suitability.pred=NULL,
                                            spatial.entity.pred=NULL,
                                            # Chains
-                                           burnin=5000, mcmc=5000, thin=5,
+                                           burnin=10000, mcmc=5000, thin=5,
                                            # Starting values
                                            beta.start=0,
                                            gamma.start=0,
@@ -425,41 +427,56 @@ mod.hSDM.siteocc.iCAR <- hSDM.siteocc.iCAR(# Observations
                                            mubeta=0, Vbeta=1.0E6,
                                            mugamma=0, Vgamma=1.0E6,
                                            priorVrho="Uniform",
-                                           # priorVrho="1/Gamma",
-                                           shape=2, rate=1,
                                            Vrho.max=10,
                                            # Various
                                            seed=1234, verbose=1,
                                            save.rho=1, save.p=0)
+Time.hSDM <- difftime(Sys.time(),Start,units="sec") # Time difference
+
+#= Computation time
+Time.hSDM
 
 #==========
 #== Outputs
 
-#= Parameter estimates
+#= Parameter estimates 
 summary(mod.hSDM.siteocc.iCAR$mcmc)
-
-#= MCMC and posteriors
-pdf(file="Posteriors_hSDM.siteocc.iCAR.pdf")
+pdf("Posteriors_hSDM.siteocc.iCAR.pdf")
 plot(mod.hSDM.siteocc.iCAR$mcmc)
 dev.off()
 
-pdf(file="Posteriors.rho_hSDM.siteocc.iCAR.pdf")
-plot(mod.hSDM.siteocc.iCAR$rho.pred)
+#= Predictions
+summary(mod.hSDM.siteocc.iCAR$theta.latent)
+summary(mod.hSDM.siteocc.iCAR$delta.latent)
+summary(mod.hSDM.siteocc.iCAR$theta.pred)
+pdf(file="Pred-Init.pdf")
+plot(theta,mod.hSDM.siteocc.iCAR$theta.pred)
+abline(a=0,b=1,col="red")
 dev.off()
 
 #= Summary plots for spatial random effects
 
-# rho
+# rho.pred
 rho.pred <- apply(mod.hSDM.siteocc.iCAR$rho.pred,2,mean)
 r.rho.pred <- rasterFromXYZ(cbind(coords,rho.pred))
 
 # plot
 pdf(file="Summary_hSDM.siteocc.iCAR.pdf")
 par(mfrow=c(2,2))
-plot(r.rho)
+# rho target
+plot(r.rho, main="rho target")
 plot(sites.sp,add=TRUE)
-plot(r.rho.pred)
-plot(rho,rho.pred)
+# rho estimated
+plot(r.rho.pred, main="rho estimated")
+# correlation and "shrinkage"
+Levels.cells <- sort(unique(cells))
+plot(rho[-Levels.cells],rho.pred[-Levels.cells],
+     xlim=range(rho),
+     ylim=range(rho),
+     xlab="rho target",
+     ylab="rho estimated")
+points(rho[Levels.cells],rho.pred[Levels.cells],pch=16,col="blue")
+legend(x=-3,y=4,legend="Visited cells",col="blue",pch=16,bty="n")
 abline(a=0,b=1,col="red")
 dev.off()
 
