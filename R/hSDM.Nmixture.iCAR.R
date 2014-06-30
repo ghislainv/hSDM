@@ -115,8 +115,9 @@ hSDM.Nmixture.iCAR <- function (# Observations
   Vrho.start <- check.Vrho.start(Vrho.start)
   # For N, we compute the MAX of the observations on each site
   N.start <- rep(0,nsite)
+  Levels.sites <- sort(unique(sites))
   for (i in 1:nsite) {
-      N.start[i] <- max(Y[sites==Levels.site[i]])
+      N.start[i] <- max(Y[sites==Levels.sites[i]]) # ! Levels.sites here
   }
   
   #========

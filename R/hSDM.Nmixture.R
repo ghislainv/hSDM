@@ -100,7 +100,7 @@ hSDM.Nmixture <- function (# Observations
   N.start <- rep(0,nsite)
   Levels.sites <- sort(unique(sites))
   for (i in 1:length(Levels.sites)) {
-      N.start[Levels.sites[i]] <- max(Y[sites==Levels.sites[i]])
+      N.start[Levels.sites[i]] <- max(Y[sites==Levels.sites[i]]) # ! Levels.sites here
   }
   
   #========
