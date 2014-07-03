@@ -192,7 +192,7 @@ nobs <- 1000
 
 # Target parameters
 beta.target <- matrix(c(0.2,0.5,0.5),ncol=1)
-gamma.target <- matrix(c(1),ncol=1) #= This means that theta.2~0.75: 75\% of chance to detect the species
+gamma.target <- matrix(c(1),ncol=1)
 ## Uncomment if you want covariates on the observability process
 ## gamma.target <- matrix(c(0.2,0.5,0.5),ncol=1)
 
