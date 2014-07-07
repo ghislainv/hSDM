@@ -124,57 +124,29 @@ check.save.N <- function (save.N) {
 
 ##=======================================================================
 ##
-## Check data
+## Check K
 ##
 ##=======================================================================
 
-check.T.poisson <- function (T,nobs) {
-  if(length(T)!=nobs) {
-    cat("Error: 'trials' must have the same length as the response variable.\n")
+check.K <- function (K,Y) {
+  if (K<0 | K%%1!=0) {
+    cat("Error: 'K' must be a positive integer.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
-  if(!is.numeric(T)) {
-    cat("Error: 'trials' must be a vector of numeric values.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
-  if (sum(is.na(T))>0) {
-    cat("Error: 'trials' must not contain missing values.\n")
-    stop("Please respecify and call ", calling.function(), " again.",
-         call.=FALSE)
-  }
-  if (sum(T!=0 & T!=1)>0) {
-    cat("Error: 'trials' must be a vector of 0 or 1.\n")
+  if (K<max(Y,na.rm=TRUE)) {
+    cat("Error: 'K' must be superior or equal to the maximal observed abundance.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
   return(0)
 }
 
-## check.Y.poisson.old <- function (Y,T) {
-##   if(!is.numeric(Y)) {
-##     cat("Error: 'counts' must be a vector of numeric values.\n")
-##     stop("Please respecify and call ", calling.function(), " again.",
-##          call.=FALSE)
-##   }
-##   if (sum(is.na(Y))>0) {
-##     cat("Error: 'counts' must not contain missing values.\n")
-##     stop("Please respecify and call ", calling.function(), " again.",
-##          call.=FALSE)
-##   }
-##   if (sum(Y<0 | Y%%1!=0)>0) {
-##     cat("Error: 'counts' must be a vector of positive integers.\n")
-##     stop("Please respecify and call ", calling.function(), " again.",
-##          call.=FALSE)
-##   }
-##   if (sum(Y!=0 & T==0)>0) {
-##     cat("Error: 'counts' must be zero when 'trials' equals zero.\n")
-##     stop("Please respecify and call ", calling.function(), " again.",
-##          call.=FALSE)
-##   }
-##   return(0)
-## }
+##=======================================================================
+##
+## Check data
+##
+##=======================================================================
 
 check.Y.poisson <- function (Y) {
   if(!is.numeric(Y)) {
@@ -266,7 +238,6 @@ check.U <- function (U,nobs) {
   }
   return(0)
 }
-
 
 check.X <- function (X,n) {
   if(!is.numeric(c(X))) {

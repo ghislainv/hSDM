@@ -15,6 +15,7 @@ export(hSDM.binomial,
        hSDM.ZIP.iCAR,
        hSDM.ZIP.iCAR.alteration,
        hSDM.Nmixture,
+       hSDM.Nmixture.K,
        hSDM.Nmixture.iCAR,
        inv.logit,
        logit)
