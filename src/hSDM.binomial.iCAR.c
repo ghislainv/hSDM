@@ -414,7 +414,7 @@ void hSDM_binomial_iCAR (
 		    nA_rho[i]++;
 		}
 	    }
-	    if (viscell[i]==0) {
+	    else {
 	    	dens_data.rho_run[i]=rhodens_unvisited(&dens_data);
 	    }
 	}
@@ -433,7 +433,7 @@ void hSDM_binomial_iCAR (
 	////////////////////////////////////////////////
 	// Vrho
 	
-	if (priorVrho[0]>0.0) {      // fixed value for Vrho
+	if (priorVrho[0]>0.0) { // fixed value for Vrho
 	    dens_data.Vrho_run=priorVrho[0];
 	}
 	else {

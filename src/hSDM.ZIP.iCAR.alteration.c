@@ -544,7 +544,7 @@ void hSDM_ZIP_iCAR_alteration (
 		    nA_rho[i]++;
 		}
 	    }
-	    if (viscell[i]==0) {
+	    else {
 	    	dens_data.rho_run[i]=rhodens_unvisited(&dens_data);
 	    }
 	}

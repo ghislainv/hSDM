@@ -651,7 +651,7 @@ void hSDM_siteocc_iCAR (
 		    nA_rho[j]++;
 		}
 	    }
-	    if (viscell[j]==0) {
+	    else {
 	    	dens_data.rho_run[j]=rhodens_unvisited(&dens_data);
 	    }
 	}
