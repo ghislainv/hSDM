@@ -312,8 +312,8 @@ check.neighbors <- function (n.neighbors,ncell,neighbors) {
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
-  if (sum(n.neighbors<0 | n.neighbors%%1!=0)>0) {
-    cat("Error: 'n.neighbors' must be a vector of positive integers.\n")
+  if (sum(n.neighbors<=0 | n.neighbors%%1!=0)>0) {
+    cat("Error: 'n.neighbors' must be a vector of integers superior to zero.\n")
     stop("Please respecify and call ", calling.function(), " again.",
          call.=FALSE)
   }
