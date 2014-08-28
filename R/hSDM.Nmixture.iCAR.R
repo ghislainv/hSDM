@@ -105,6 +105,7 @@ hSDM.Nmixture.iCAR <- function (# Observations
   check.sites(sites,nobs)
   check.cells(cells,nsite)
   check.neighbors(n.neighbors,ncell,neighbors)
+  check.cells.pred(cells.pred,npred)
 
   #========
   # Initial starting values for M-H

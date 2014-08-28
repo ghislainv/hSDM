@@ -98,7 +98,8 @@ hSDM.ZIP.iCAR.alteration <- function (# Observations
   check.W(W,nobs)
   check.cells(cells,nobs)
   check.neighbors(n.neighbors,ncell,neighbors)
-
+  check.cells.pred(cells.pred,npred)
+  
   #========
   # Initial starting values for M-H
   #========

@@ -387,6 +387,30 @@ check.cells <- function (cells,nsite) {
   return(0)
 }
 
+check.cells.pred <- function (cells.pred,npred) {
+  if(length(cells.pred)!=npred) {
+    cat("Error: 'spatial.entity.pred' must be of length equals to the number of predictions.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if(!is.numeric(cells.pred)) {
+    cat("Error: 'spatial.entity.pred' must be a vector of numeric values.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if (sum(is.na(cells.pred))>0) {
+    cat("Error: 'spatial.entity.pred' must not contain missing values.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  if (sum(cells.pred<=0 | cells.pred%%1!=0)>0) {
+    cat("Error: 'spatial.entity.pred' must be a vector of integers superior to zero.\n")
+    stop("Please respecify and call ", calling.function(), " again.",
+         call.=FALSE)
+  }
+  return(0)
+}
+
 ##=======================================================================
 ##
 ## Check and form starting parameters for Metropolis-Hastings

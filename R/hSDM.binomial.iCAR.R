@@ -90,6 +90,7 @@ hSDM.binomial.iCAR <- function (# Observations
   check.X(X,nobs)
   check.cells(cells,nobs)
   check.neighbors(n.neighbors,ncell,neighbors)
+  check.cells.pred(cells.pred,npred)
 
   #========
   # Initial starting values for M-H
