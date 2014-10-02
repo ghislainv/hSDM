@@ -168,8 +168,16 @@ hSDM.ZIB <- function (# Observations
       prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
+  # build metadata object
+  model=list(
+    data=data.frame(presences=presences,trials=trials,data),
+    preddata=suitability.pred,
+    suitability=suitability,
+    observability=observability)
+
   #= Output
-  return (list(mcmc=MCMC,
+  return (list(model=model,
+               mcmc=MCMC,
                prob.p.pred=prob.p.pred,
                prob.p.latent=Sample[[22]], prob.q.latent=Sample[[23]]))
 
