@@ -1,6 +1,6 @@
 ###################################################################
 ##
-## hSDM.nc.R
+## hSDM.ncWriteOutput.R
 ##
 ####################################################################
 ##
@@ -18,7 +18,7 @@
 ## 
 ####################################################################
 
-hSDM.nc<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=NULL,verbose=T){
+hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=NULL,verbose=T){
 require(ncdf4)
 require(dismo)
 

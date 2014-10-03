@@ -3,8 +3,8 @@ Type: Package
 Title: hierarchical Bayesian species distribution models
 Version: 1.4
 Date: 2014-07-01
-Imports: coda, ncdf4
-Suggests: knitr, raster, sp
+Imports: coda
+Suggests: knitr, raster, sp, ncdf4
 Author: Ghislain Vieilledent, Cory Merow, Jérôme Guélat, Andrew M. Latimer, Marc Kéry, Alan E. Gelfand, Adam M. Wilson, Frédéric Mortier and John A. Silander Jr.
 Maintainer: Ghislain Vieilledent <ghislain.vieilledent@cirad.fr>
 Description: hSDM is an R package for estimating parameters of hierarchical Bayesian species distribution models. Such models allow interpreting the observations (occurrence and abundance of a species) as a result of several hierarchical processes including ecological processes (habitat suitability, spatial dependence and anthropogenic disturbance) and observation processes (species detectability). Hierarchical species distribution models are essential for accurately characterizing the environmental response of species, predicting their probability of occurrence, and assessing uncertainty in the model results.

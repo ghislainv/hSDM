@@ -1,5 +1,5 @@
-\name{hSDM.nc}
-\alias{hSDM.nc}
+\name{hSDM.ncWriteOutput}
+\alias{hSDM.ncWriteOutput}
 
 \title{Export hSDM output to a netCDF file for archiving and model comparison}
 
