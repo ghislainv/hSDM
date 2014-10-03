@@ -48,8 +48,8 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   ## todo: add option when full posteriors are saved to export quantiles, etc.
   if(verbose) writeLines("Summarizing pixel-level posteriors")
   
-  pred=data.frame(x=results[[1]]$model$predcoords$lon,
-                  y=results[[1]]$model$predcoords$lat,
+  pred=data.frame(x=results[[1]]$model$predcoords$x,
+                  y=results[[1]]$model$predcoords$y,
                   cell=results[[1]]$model$predcoords$cell,
                   pred=rowMeans(do.call(cbind,lapply(results,FUN=function(x) x$prob.p.pred))))
   ## convert to raster
@@ -158,11 +158,13 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   ## Global Attributes
   ncatt_put(nc,varid=0, "Conventions","Cf-1.4",prec="character")
   ncatt_put(nc,varid=0, "title",paste0("Predicted p(occurrence)"),prec="character")
-  ncatt_put(nc,varid=0, "model",as.character(results[[1]]$meta$model),prec="character")
+  ncatt_put(nc,varid=0, "modeltype",as.character(results[[1]]$meta$modeltype),prec="character")
+  ncatt_put(nc,varid=0, "suitability",as.character(results[[1]]$meta$suitability),prec="character")
+  ncatt_put(nc,varid=0, "observability",as.character(results[[1]]$meta$observability),prec="character")
   ncatt_put(nc,varid=0, "date",as.character(today),prec="character")
-  ## add all metadata listed in the meta object
+  ## add any additional metadata listed in the meta object
   if(!is.null(meta))
-      for(i in 1:length(meta)) ncatt_put(nc,varid=0, names(meta)[i],unlist(meta[i]),prec="character")
+      for(i in 1:length(meta)) ncatt_put(nc,varid=0, as.character(names(meta)[i]),as.character(unlist(meta[i])),prec="character")
   
   ## Close the file
   nc_sync(nc)

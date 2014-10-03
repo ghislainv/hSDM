@@ -171,11 +171,14 @@ hSDM.ZIB <- function (# Observations
 
   # add model type to metadata list
   # Could add other things here (prior values, mcmc settings, seed, etc.)
-  # This is to facilitate better metadata through the modeling workflow
-  meta$model="hSDM.ZIB"
+  # This is to facilitate better metadata handling through the modeling workflow
+  meta$modeltype="hSDM.ZIB"
+  meta$suitability=as.character(paste0(suitability))
+  meta$observability=as.character(paste0(observability))
+  
   model=list(
-    data=data.obs,
-    predcoords=suitability.pred[,c("lon","lat","cell")])
+    data=cbind.data.frame(trials=trials,presences=presences,cell=fdata$cell),
+    predcoords=suitability.pred[,c("x","y","cell")])
 
   #= Output
   return (list(meta=meta,
