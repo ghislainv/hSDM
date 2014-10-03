@@ -1,9 +1,9 @@
-hSDM.ncExtract <- function(files,what=c("eval","coef","autocor","data")){
+hSDM.ncExtract <- function(files,what=c("eval","coef","autocor","predictions","envdata")){
   ## collect various metadata from a list of hSDM netCDF output
   foreach(f=files,.combine=rbind.data.frame)%do%{
     nc=nc_open(f,write=F)
     ## metadata
-    model=ncatt_get(nc, 0, attname="model", verbose=FALSE )$value
+    modeltype=ncatt_get(nc, 0, attname="modeltype", verbose=FALSE )$value
     modelname=ncatt_get(nc, 0, attname="modelname", verbose=FALSE )$value
     species=ncatt_get(nc, 0, attname="species", verbose=FALSE )$value        
     if(what=="eval"){
@@ -30,6 +30,19 @@ hSDM.ncExtract <- function(files,what=c("eval","coef","autocor","data")){
       data=data[,!grepl("fit",colnames(data))]
       return(cbind.data.frame(species,modelname,model,data))
     }
+    if(what=="predictions"){
+      r=raster(f,varname="p")
+      rd=cbind(coordinates(r),pred=values(r))
+      return(cbind.data.frame(species,modelname,model,rd))
+    }
+    if(what=="envdata"){
+      ## extract data from an data "input" object 
+      r=stack(f,varname="envdata")
+      names(r)=strsplit(ncatt_get(nc, "envdata", attname="names", verbose=FALSE )$value,",")[[1]]
+      cell=raster(f,varname="cell")
+      rd=cbind(coordinates(r),pred=values(r),cell=values(cell))
+      return(cbind.data.frame(species,rd))
+    }   
     nc_close(nc)
   }
 }
