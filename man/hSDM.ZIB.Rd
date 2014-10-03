@@ -17,7 +17,7 @@
 \usage{hSDM.ZIB(presences, trials, suitability,
 observability, data, suitability.pred=NULL, burnin = 5000, mcmc = 10000,
 thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
-0, Vgamma = 1e+06, seed = 1234, verbose = 1, save.p = 0)}
+0, Vgamma = 1e+06, seed = 1234, verbose = 1, save.p = 0, meta=NULL)}
 
 \arguments{
   
@@ -99,6 +99,12 @@ thin = 10, beta.start, gamma.start, mubeta = 0, Vbeta = 1e+06, mugamma =
     posterior mean is computed and returned in the \code{prob.p.pred}
     vector. Be careful, setting \code{save.p} to 1 might require a large
     amount of memory.}
+
+
+  \item{meta}{A list of arbitrary character strings that will be embedded in the model output.
+  This may be useful to indicate species, a name for the model, region, etc., as follows: 
+  \code{meta=list(species="Protea cynaroides",model="Full",region="CFR")}. 
+  The list will be saved as metadata when using the \code{hSDM.ncWrite} funcion.}
 
 }
 

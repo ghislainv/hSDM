@@ -12,6 +12,7 @@ cfr.env$cell=1:nrow(cfr.env)
 
 #= Sample the observation sites in the landscape
 nsite <- 250
+seed=1234
 set.seed(seed)
 
 covar=c("min07","smdwin","fert3")
@@ -37,6 +38,9 @@ Y <- rbinom(nsite,visits,theta)
 #= Data-sets
 data.obs <- data.frame(presences=Y,trials=visits,X,cell=pts$cell)
 
+## metadata
+meta=list(species="simulated species")
+
 #==================================
 #== Site-occupancy model
 library(coda)
@@ -52,10 +56,12 @@ mod1=foreach(ch=1:nchains) %dopar% {
                   beta.start=0,gamma.start=0,
                   mubeta=0, Vbeta=1.0E6,
                   seed=1234, verbose=1,
-                  save.p=0)
+                  save.p=0,
+                  meta=meta)
 }
 ## summarize and write to disk
-hSDM.nc(mod1,file="mod1.nc",overwrite=T,meta=list(modelname="Full"),autocor=F)
+
+hSDM.ncWriteOutput(mod1,file="mod1.nc",overwrite=T,meta=list(modelname="Full"),autocor=F)
 
 ## reduced model (first two covariates)
 mod2=foreach(ch=1:nchains) %dopar% {
@@ -73,7 +79,7 @@ mod2=foreach(ch=1:nchains) %dopar% {
 }
 
 ## summarize and write to disk
-hSDM.nc(mod2,file="mod2.nc",overwrite=T,meta=list(modelname="Reduced"),autocor=F)
+hSDM.ncWriteOutput(mod2,file="mod2.nc",overwrite=T,meta=list(modelname="Reduced"),autocor=F)
 
 
 ## show contents of file

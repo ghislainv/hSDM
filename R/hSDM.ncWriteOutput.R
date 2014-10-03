@@ -19,8 +19,6 @@
 ####################################################################
 
 hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=NULL,verbose=T){
-require(ncdf4)
-require(dismo)
 
   today=format(Sys.Date(),format="%Y%m%d")
   time=format(Sys.time(),format="%H%M%S")
@@ -50,9 +48,9 @@ require(dismo)
   ## todo: add option when full posteriors are saved to export quantiles, etc.
   if(verbose) writeLines("Summarizing pixel-level posteriors")
   
-  pred=data.frame(x=results[[1]]$model$preddata$lon,
-                  y=results[[1]]$model$preddata$lat,
-                  cell=results[[1]]$model$preddata$cell,
+  pred=data.frame(x=results[[1]]$model$predcoords$lon,
+                  y=results[[1]]$model$predcoords$lat,
+                  cell=results[[1]]$model$predcoords$cell,
                   pred=rowMeans(do.call(cbind,lapply(results,FUN=function(x) x$prob.p.pred))))
   ## convert to raster
   predr=pred

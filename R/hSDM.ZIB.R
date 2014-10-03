@@ -169,18 +169,17 @@ hSDM.ZIB <- function (# Observations
       prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
-  # build list of model data
-  model=list(
-    data=data.frame(presences=presences,trials=trials,data),
-    preddata=suitability.pred,
-    suitability=suitability,
-    observability=observability)
   # add model type to metadata list
+  # Could add other things here (prior values, mcmc settings, seed, etc.)
+  # This is to facilitate better metadata through the modeling workflow
   meta$model="hSDM.ZIB"
+  model=list(
+    data=data.obs,
+    predcoords=suitability.pred[,c("lon","lat","cell")])
 
   #= Output
-  return (list(model=model,
-               meta=meta,
+  return (list(meta=meta,
+               model=model,
                mcmc=MCMC,
                prob.p.pred=prob.p.pred,
                prob.p.latent=Sample[[22]], prob.q.latent=Sample[[23]]))
