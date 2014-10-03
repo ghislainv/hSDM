@@ -182,6 +182,7 @@ hSDM.ZIB <- function (# Observations
 
   #= Output
   return (list(meta=meta,
+               model=model,
                mcmc=MCMC,
                prob.p.pred=prob.p.pred,
                prob.p.latent=Sample[[22]], prob.q.latent=Sample[[23]]))
