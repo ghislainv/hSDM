@@ -173,8 +173,8 @@ hSDM.ZIB <- function (# Observations
   # Could add other things here (prior values, mcmc settings, seed, etc.)
   # This is to facilitate better metadata handling through the modeling workflow
   meta$modeltype="hSDM.ZIB"
-  meta$suitability=as.character(paste0(suitability))
-  meta$observability=as.character(paste0(observability))
+  meta$suitability=as.character(paste0(suitability,collapse=""))
+  meta$observability=as.character(paste0(observability,collapse=""))
   
   model=list(
     data=cbind.data.frame(trials=trials,presences=presences,cell=fdata$cell),
@@ -182,7 +182,6 @@ hSDM.ZIB <- function (# Observations
 
   #= Output
   return (list(meta=meta,
-               model=model,
                mcmc=MCMC,
                prob.p.pred=prob.p.pred,
                prob.p.latent=Sample[[22]], prob.q.latent=Sample[[23]]))
