@@ -130,7 +130,7 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   if(!keepall&!autocor) nc_create(file,vars=list(v_var_mean,v_var_parameters,v_var_evaluate),verbose=F)   #save every iteration
 
   nc=nc_open(file,write=T)
-  if(verbose) print("NetCDF file created, adding data")
+  if(verbose) writeLines("NetCDF file created, adding data")
 
   ncatt_put(nc,"parameters", "colnames", paste(colnames(parameters),collapse=","))
   ncatt_put(nc,"parameters", "rownames", paste(rownames(parameters),collapse=","))
@@ -143,7 +143,8 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   ncvar_put(nc,"evaluation",vals=t(as.matrix(evaluation)),start=c(1,1),c(-1,-1),verb=F)
   
   ## Add map data
-  ncvar_put(nc,"p",vals=1000*t(as.matrix(predr))[,nrow(predr):1],start=c(1,1),c(-1,-1),verb=F)
+  predr2=1000*t(as.matrix(predr))[,nrow(predr):1]
+  ncvar_put(nc,"p",vals=predr2,start=c(1,1),c(-1,-1),verb=F)
   ncatt_put(nc,varid="p", "projection",projection(predr),prec="character")
   ncatt_put(nc,varid="p", "projection_format","PROJ.4",prec="character")
   ncatt_put(nc,varid="p", "scale_factor",.001,prec="double")
@@ -152,7 +153,7 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
     ncvar_put(nc,"ac",vals=t(as.matrix(ac)),start=c(1,1),c(-1,-1),verb=F)
   }
   
-  if(verbose) print("Data added, updating attributes")
+  if(verbose) writeLines("Data added, updating attributes")
   ################################
   ## Attributes
   ## Global Attributes
