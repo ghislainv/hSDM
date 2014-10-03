@@ -143,8 +143,8 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   ncvar_put(nc,"evaluation",vals=t(as.matrix(evaluation)),start=c(1,1),c(-1,-1),verb=F)
   
   ## Add map data
-  predr2=1000*t(as.matrix(predr))[,nrow(predr):1]
-  ncvar_put(nc,"p",vals=predr2,start=c(1,1),c(-1,-1),verb=F)
+  predr2=t(as.matrix(predr))[,nrow(predr):1]
+  ncvar_put(nc,"p",vals=predr2*1000,start=c(1,1),c(-1,-1),verb=F)
   ncatt_put(nc,varid="p", "projection",projection(predr),prec="character")
   ncatt_put(nc,varid="p", "projection_format","PROJ.4",prec="character")
   ncatt_put(nc,varid="p", "scale_factor",.001,prec="double")
