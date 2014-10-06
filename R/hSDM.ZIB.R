@@ -177,7 +177,7 @@ hSDM.ZIB <- function (# Observations
   meta$observability=as.character(paste0(observability,collapse=""))
   
   model=list(
-    data=cbind.data.frame(trials=trials,presences=presences,cell=fdata$cell),
+    data=cbind.data.frame(trials=trials,presences=presences,cell=data$cell),
     predcoords=suitability.pred[,c("x","y","cell")])
 
   #= Output
