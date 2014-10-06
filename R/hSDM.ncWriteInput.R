@@ -7,11 +7,11 @@ hSDM.ncWriteInput<-function(envdata,points,ncfile,meta=NULL,overwrite=F,verbose=
   ## scale environmental data
   cmeans=cellStats(envdata,"mean")
   csd=cellStats(envdata,"sd")
-  senv=scale(envdata)
+  senv=raster::scale(envdata)
   
   ## add cell id to facilitate linking points to raster
   cell=envdata[[1]]
-  values(cell)=1:ncell(cell)
+  raster::values(cell)=1:ncell(cell)
   names(cell)="cell"
   
   ## rasterize points
@@ -42,14 +42,15 @@ hSDM.ncWriteInput<-function(envdata,points,ncfile,meta=NULL,overwrite=F,verbose=
   
   
   ## Add data
-  lapply(1:nlayers(senv), function(i) ncvar_put(nc,"envdata",vals=t(as.matrix(senv[[i]])),start=c(1,1,i),c(-1,-1,1),verb=F))
+  lapply(1:nlayers(senv), function(i) ncvar_put(nc,"envdata",vals=t(raster::as.matrix(senv[[i]])),
+                                                start=c(1,1,i),c(-1,-1,1),verb=F))
   ncatt_put(nc,varid="envdata", "scales",csd,prec="float")
   ncatt_put(nc,varid="envdata", "offsets",cmeans,prec="float")
   ncatt_put(nc,varid="envdata", "names", paste(names(envdata),collapse=","))
   
-  ncvar_put(nc,"obs",vals=t(as.matrix(presences)),start=c(1,1),c(-1,-1),verb=F)
-  ncvar_put(nc,"trials",vals=t(as.matrix(trials)),start=c(1,1),c(-1,-1),verb=F)
-  ncvar_put(nc,"cell",vals=t(as.matrix(cell)),start=c(1,1),c(-1,-1),verb=F)
+  ncvar_put(nc,"obs",vals=t(raster::as.matrix(presences)),start=c(1,1),c(-1,-1),verb=F)
+  ncvar_put(nc,"trials",vals=t(raster::as.matrix(trials)),start=c(1,1),c(-1,-1),verb=F)
+  ncvar_put(nc,"cell",vals=t(raster::as.matrix(cell)),start=c(1,1),c(-1,-1),verb=F)
   
     
   if(verbose) print("Data added, updating attributes")

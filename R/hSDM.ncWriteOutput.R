@@ -55,19 +55,19 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   ## convert to raster
   predr=pred
   coordinates(predr)=c("x","y")
-  predr=SpatialPixelsDataFrame(predr,tolerance=0.005,data=data.frame(predr$pred))
+  predr=SpatialPixelsDataFrame(predr,tolerance=0.005,data=data.frame(predr[,c("pred","cell")]))
   fullgrid(predr)=T
-  predr=raster(predr)
+  predr=stack(predr)
   projection(predr)='+proj=longlat'
 
 
   ##### Autocorrelation
   if(autocor){
     if(verbose) writeLines("Calculating autocorrelation of output")
-    ac=acor_table(predr,verbose=F)
+    ac=acor_table(predr[["pred"]],verbose=F)
     ## Global Spatial Autocorrelation
-    spac=c(MoransI=Moran(predr,w=matrix(1,11,11)),
-           GearyC=Geary(predr,w=matrix(1,11,11)))
+    spac=c(MoransI=Moran(predr[["pred"]],w=matrix(1,11,11)),
+           GearyC=Geary(predr[["pred"]],w=matrix(1,11,11)))
   }
   
   ## AUC
@@ -98,8 +98,10 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
       d_iter=ncdim_def("iter",units="iterations",longname="Posterior Iterations",vals=1:nrow(results[[1]]$mcmc),unlim=TRUE)
 
       v_var_mean=ncvar_def("p",units="probability",dim=list(d_lon,d_lat),missval=-999,
-                           longname="p(occurrence|data)",compression=comp,prec="integer")
-      
+                           longname="p(occurrence|data)",compress=comp,prec="integer")
+      v_var_cell=ncvar_def("cell",units="cell",dim=list(d_lon,d_lat),missval=-999,
+                       longname="Unique gridcell ID",compress=comp,prec="integer")
+  
       #autocorrelation summaries
       if(autocor){
         d_ac1=ncdim_def("autocorrelation1",units="",create_dimvar=F,vals=1:ncol(ac))  
@@ -126,8 +128,8 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   if(!overwrite&file.exists(file)) stop("File exists, set overwrite=T to overwrite")
   if(overwrite&file.exists(file)) file.remove(file)
 
-  if(!keepall&autocor) nc_create(file,vars=list(v_var_mean,v_var_parameters,v_var_evaluate,v_var_ac),verbose=F)   #save every iteration
-  if(!keepall&!autocor) nc_create(file,vars=list(v_var_mean,v_var_parameters,v_var_evaluate),verbose=F)   #save every iteration
+  if(!keepall&autocor) nc_create(file,vars=list(v_var_mean,v_var_cell,v_var_parameters,v_var_evaluate,v_var_ac),verbose=F)   #save every iteration
+  if(!keepall&!autocor) nc_create(file,vars=list(v_var_mean,v_var_cell,v_var_parameters,v_var_evaluate),verbose=F)   #save every iteration
 
   nc=nc_open(file,write=T)
   if(verbose) writeLines("NetCDF file created, adding data")
@@ -143,14 +145,20 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   ncvar_put(nc,"evaluation",vals=t(as.matrix(evaluation)),start=c(1,1),c(-1,-1),verbose=F)
   
   ## Add map data
-  predr2=t(as.matrix(predr))[,nrow(predr):1]
-  ncvar_put(nc,"p",vals=predr2*1000,start=c(1,1),c(-1,-1),verbose=F)
+  predr2=t(raster::as.matrix(predr[["pred"]]))[,nrow(predr):1]
+  ncvar_put(nc,"p",vals=predr2*1000,start=c(1,1),c(-1,-1),verb=F)
   ncatt_put(nc,varid="p", "projection",projection(predr),prec="character")
   ncatt_put(nc,varid="p", "projection_format","PROJ.4",prec="character")
   ncatt_put(nc,varid="p", "scale_factor",.001,prec="double")
+
+  cell2=t(raster::as.matrix(predr[["cell"]]))[,nrow(predr):1]
+  ncvar_put(nc,"cell",vals=cell2,start=c(1,1),c(-1,-1),verb=F)
+  ncatt_put(nc,varid="cell", "projection",projection(predr),prec="character")
+  ncatt_put(nc,varid="cell", "projection_format","PROJ.4",prec="character")
+  
   if(autocor){
     ncatt_put(nc,"ac","colnames",paste(colnames(ac),collapse=","),prec="char")
-    ncvar_put(nc,"ac",vals=t(as.matrix(ac)),start=c(1,1),c(-1,-1),verbose=F)
+    ncvar_put(nc,"ac",vals=t(raster::as.matrix(ac)),start=c(1,1),c(-1,-1),verb=F)
   }
   
   if(verbose) writeLines("Data added, updating attributes")
