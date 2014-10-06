@@ -98,16 +98,16 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
       d_iter=ncdim_def("iter",units="iterations",longname="Posterior Iterations",vals=1:nrow(results[[1]]$mcmc),unlim=TRUE)
 
       v_var_mean=ncvar_def("p",units="probability",dim=list(d_lon,d_lat),missval=-999,
-                           longname="p(occurrence|data)",compress=comp,prec="integer")
+                           longname="p(occurrence|data)",compression=comp,prec="integer")
       v_var_cell=ncvar_def("cell",units="cell",dim=list(d_lon,d_lat),missval=-999,
-                       longname="Unique gridcell ID",compress=comp,prec="integer")
+                       longname="Unique gridcell ID",compression=comp,prec="integer")
   
       #autocorrelation summaries
       if(autocor){
         d_ac1=ncdim_def("autocorrelation1",units="",create_dimvar=F,vals=1:ncol(ac))  
         d_ac2=ncdim_def("autocorrelation2",units="",create_dimvar=F,vals=1:nrow(ac))  
           v_var_ac=ncvar_def("ac",units="values",dim=list(d_ac1,d_ac2),missval=-999,
-                             longname="Autocorrelation",compress=comp)
+                             longname="Autocorrelation",compression=comp)
       }
   
   
@@ -120,12 +120,12 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   
   ## Define variables
   v_var_parameters=ncvar_def("parameters",units="values",dim=list(d_params1,d_params2),missval=-999,
-                             longname="Posterior Parameter Values",compress=comp)
+                             longname="Posterior Parameter Values",compression=comp)
   v_var_evaluate=ncvar_def("evaluation",units="values",dim=list(d_eval1,d_eval2),missval=-999,
-                           longname="Evaluation Metrics",compress=comp)
+                           longname="Evaluation Metrics",compression=comp)
     
   ## set up nc file
-  if(!overwrite&file.exists(file)) error("File exists, set overwrite=T to overwrite")
+  if(!overwrite&file.exists(file)) stop("File exists, set overwrite=T to overwrite")
   if(overwrite&file.exists(file)) file.remove(file)
 
   if(!keepall&autocor) nc_create(file,vars=list(v_var_mean,v_var_cell,v_var_parameters,v_var_evaluate,v_var_ac),verbose=F)   #save every iteration
@@ -141,24 +141,24 @@ hSDM.ncWriteOutput<-function(results,file,overwrite=T,autocor=F,keepall=F,meta=N
   ncatt_put(nc,"evaluation","rownames",paste(rownames(evaluation),collapse=","),prec="char")
   
   ## Add data
-  ncvar_put(nc,"parameters",vals=t(as.matrix(parameters)),start=c(1,1),c(-1,-1),verb=F)
-  ncvar_put(nc,"evaluation",vals=t(as.matrix(evaluation)),start=c(1,1),c(-1,-1),verb=F)
+  ncvar_put(nc,"parameters",vals=t(as.matrix(parameters)),start=c(1,1),c(-1,-1),verbose=F)
+  ncvar_put(nc,"evaluation",vals=t(as.matrix(evaluation)),start=c(1,1),c(-1,-1),verbose=F)
   
   ## Add map data
   predr2=t(raster::as.matrix(predr[["pred"]]))[,nrow(predr):1]
-  ncvar_put(nc,"p",vals=predr2*1000,start=c(1,1),c(-1,-1),verb=F)
+  ncvar_put(nc,"p",vals=predr2*1000,start=c(1,1),c(-1,-1),verbose=F)
   ncatt_put(nc,varid="p", "projection",projection(predr),prec="character")
   ncatt_put(nc,varid="p", "projection_format","PROJ.4",prec="character")
   ncatt_put(nc,varid="p", "scale_factor",.001,prec="double")
 
   cell2=t(raster::as.matrix(predr[["cell"]]))[,nrow(predr):1]
-  ncvar_put(nc,"cell",vals=cell2,start=c(1,1),c(-1,-1),verb=F)
+  ncvar_put(nc,"cell",vals=cell2,start=c(1,1),c(-1,-1),verbose=F)
   ncatt_put(nc,varid="cell", "projection",projection(predr),prec="character")
   ncatt_put(nc,varid="cell", "projection_format","PROJ.4",prec="character")
   
   if(autocor){
     ncatt_put(nc,"ac","colnames",paste(colnames(ac),collapse=","),prec="char")
-    ncvar_put(nc,"ac",vals=t(raster::as.matrix(ac)),start=c(1,1),c(-1,-1),verb=F)
+    ncvar_put(nc,"ac",vals=t(raster::as.matrix(ac)),start=c(1,1),c(-1,-1),verbose=F)
   }
   
   if(verbose) writeLines("Data added, updating attributes")
