@@ -59,7 +59,7 @@ hSDM.ncWriteInput<-function(envdata,points,ncfile,meta=NULL,overwrite=F,verbose=
   ## Global Attributes
   ncatt_put(nc,varid=0, "Conventions","Cf-1.4",prec="character")
   ncatt_put(nc,varid=0, "title","Model Input Data",prec="character")
-  ncatt_put(nc,varid=0, "date",as.character(today),prec="character")
+  ncatt_put(nc,varid=0, "date",as.character(Sys.time()),prec="character")
   ncatt_put(nc,varid=0, "projection",projection(envdata),prec="character")
   ncatt_put(nc,varid=0, "projection_format","PROJ.4",prec="character")
   

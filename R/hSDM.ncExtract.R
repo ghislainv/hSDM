@@ -1,4 +1,4 @@
-hSDM.ncExtract <- function(files,what=c("eval","coef","autocor","predictions","envdata")){
+hSDM.ncExtract <- function(files,what=c("eval","coef","autocor","predictions","envdata","spdata"),unscale=F){
   ## collect various metadata from a list of hSDM netCDF output
   foreach(f=files,.combine=rbind.data.frame)%do%{
     nc=nc_open(f,write=F)
@@ -44,10 +44,26 @@ hSDM.ncExtract <- function(files,what=c("eval","coef","autocor","predictions","e
       ## extract data from an data "input" object 
       r=stack(f,varname="envdata")
       names(r)=strsplit(ncatt_get(nc, "envdata", attname="names", verbose=FALSE )$value,",")[[1]]
+      if(unscale){
+        ## If unscale=T, use the embedded scales and offsets to rescale the environmental data
+        cmeans=ncatt_get(nc, "envdata", attname="offsets", verbose=FALSE )$value
+        if(length(cmeans)==1&cmeans[1]==0) stop("No Offsets found in the file, correct this or set unscale=F")
+        csd=ncatt_get(nc, "envdata", attname="scales", verbose=FALSE )$value
+        if(length(csd)==1&csd[1]==0) stop("No Scales found in the file, correct this or set unscale=F")
+        for(l in 1:nlayers(r)) {
+          r@layers[[l]]@data@gain=csd[l]
+          r@layers[[l]]@data@offset=cmeans[l]
+        }  
+      }
       cell=raster(f,varname="cell")
       rd=cbind(coordinates(r),pred=values(r),cell=values(cell))
       return(cbind.data.frame(species,rd))
-    }   
+    }
+    if(what=="spdata"){
+      ## input data
+      data=hSDM.ncReadInput(f)
+      return(data)
+    }
     nc_close(nc)
   }
 }
