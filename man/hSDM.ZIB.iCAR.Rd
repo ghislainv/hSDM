@@ -18,7 +18,7 @@
 
 \usage{hSDM.ZIB.iCAR(presences, trials, suitability,
 observability, spatial.entity, data, n.neighbors, neighbors,
-suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
+suitability.pred=NULL, suitability.coord=NULL,spatial.entity.pred=NULL, burnin = 5000, mcmc =
 10000, thin = 10, beta.start, gamma.start, Vrho.start, mubeta = 0, Vbeta
 = 1e+06, mugamma = 0, Vgamma = 1e+06, priorVrho = "1/Gamma", shape =
 0.5, rate = 0.0005, Vrho.max=1000, seed = 1234, verbose = 1, save.rho =
@@ -62,6 +62,11 @@ suitability.pred=NULL, spatial.entity.pred=NULL, burnin = 5000, mcmc =
   \item{suitability.pred}{An optional data frame in which to look for
     variables with which to predict. If NULL, the observations are
     used.}
+
+ \item{suitability.coord}{An optional character vector of column names
+  in \code{suitability.pred} indicating \code{x} and \code{y} coordinates
+  of the prediction locations.  For example \code{suitability.coord=c("lon","lat")} or 
+  \code{suitability.coord=c("x","y")}.}
 
   \item{spatial.entity.pred}{An optional vector indicating the spatial
     entity identifier (from one to the total number of entities) for

@@ -170,7 +170,6 @@ hSDM.ZIB <- function (# Observations
   }
 
   # add model type to metadata list
-  # Could add other things here (prior values, mcmc settings, seed, etc.)
   # This is to facilitate better metadata handling through the modeling workflow
   meta$modeltype="hSDM.ZIB"
   meta$suitability=as.character(paste0(suitability,collapse=""))

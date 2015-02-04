@@ -22,7 +22,7 @@ cfr.env[,covar]=scale(cfr.env[,covar])
 pts=cfr.env[sample(1:nrow(cfr.env),nsite,replace = F),]
 X=as.matrix(pts[,covar])
 
-## nubmer of visits
+## number of visits
 set.seed(seed)
 visits<- rpois(nsite,3)
 visits[visits==0] <- 1

@@ -411,6 +411,17 @@ check.cells.pred <- function (cells.pred,npred) {
   return(0)
 }
 
+check.meta <- function (id.col,coord.cols,meta,raster) {
+  if(is.null(coord.cols)) writeLines("coord.col not provided in list of metadata")
+  if(is.null(id.col)) writeLines("id.col not provided in list of metadata")
+  if(is.null(id.col)|is.null(coord.cols)) warning("coord.col and id.col both needed to include spatial coordinates in result object.  If you want to archive hSDM output with hSDM.ncWriteOutput, you must specify these column names.") 
+  if(raster&(is.null(id.col)|is.null(coord.cols))) {
+    stop("raster output requested, but either id.col or coord.col not provided in list of metadata")
+    stop("Please respecify and call ", calling.function(), " again.",  call.=FALSE)
+  }
+  }
+  
+
 ##=======================================================================
 ##
 ## Check and form starting parameters for Metropolis-Hastings
@@ -579,6 +590,21 @@ form.priorVrho <- function (priorVrho) {
     cat("priorVrho has been set to \"1/Gamma\" \n")
   }
   return(priorVrho)
+}
+
+
+##=======================================================================
+##
+## create raster object from pred.p
+##
+##=======================================================================
+prob2rast <- function(x) {
+  temp <- cbind(data[c("x", "y")], x)
+  probs_grid <- rasterFromXYZ(temp)
+  nm <-deparse(substitute(x))
+  names(probs_grid) <- nm
+  cat(nm, "done")
+  return(probs_grid); rm(temp, nnm)
 }
 
 #==========================

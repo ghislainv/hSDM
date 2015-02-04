@@ -196,7 +196,8 @@ hSDM.binomial.iCAR <- function (# Observations
 
   #= Output
   return (list(mcmc=MCMC,
-               rho.pred=rho.pred, theta.pred=theta.pred,
+               rho.pred=rho.pred,
+               theta.pred=theta.pred,
                theta.latent=Sample[[28]]))
 
 }

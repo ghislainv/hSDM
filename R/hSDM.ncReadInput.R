@@ -10,7 +10,9 @@ hSDM.ncReadInput<-function(ncfile){
       presences=raster(ncfile,varname="obs")
       cell=raster(ncfile,varname="cell")
       ## combine to a single data.frame
-      d=cbind.data.frame(species=species,coordinates(ed),values(ed),trials=values(trials),presences=values(presences),cell=values(cell))
+      d=cbind.data.frame(species=species,
+                         coordinates(ed),values(ed),trials=values(trials),
+                         presences=values(presences),cell=values(cell))
       ## omit rows with missing data
       d2=na.omit(d)
       if(nrow(d)!=nrow(d2)) warning(paste(nrow(d)-nrow(d2)," rows deleted due to missing data"))

@@ -40,8 +40,8 @@ hSDM.ZIB.iCAR <- function (# Observations
                                  Vrho.max=1000,
                                  # Various
                                  seed=1234, verbose=1,
-                                 save.rho=0, save.p=0)
-
+                                 save.rho=0, save.p=0,
+                                 meta=NULL,id.col=NULL,coord.cols=NULL,raster=F)
 {   
   #========
   # Basic checks
@@ -50,7 +50,8 @@ hSDM.ZIB.iCAR <- function (# Observations
   check.verbose(verbose)
   check.save.rho(save.rho)
   check.save.p(save.p)
-   
+  check.meta(id.col,coord.cols,meta,raster)
+  
   #======== 
   # Form response, covariate matrices and model parameters
   #========
@@ -213,11 +214,41 @@ hSDM.ZIB.iCAR <- function (# Observations
       prob.p.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
 
+  # add model type to metadata list
+  # This is to facilitate better metadata handling through the modeling workflow
+  meta$modeltype="hSDM.ZIB.iCAR"
+  meta$suitability=as.character(paste0(suitability,collapse=""))
+  meta$observability=as.character(paste0(observability,collapse=""))
+  
+  # create list of input and prediction data to facilitate re-creating spatial object  
+  if(is.null(coord.cols)&is.null(id.col)) modeldata=NULL
+  
+  if(!is.null(coord.cols)&!is.null(id.col)) {
+    modeldata=list(
+      data=cbind.data.frame(trials=trials,presences=presences,
+                            x=data[,coord.cols[1]],
+                            y=data[,coord.cols[2]],
+                            cell=data[,id.col]),
+      predcoords=cbind.data.frame(x=suitability.pred[,coord.cols[1]],
+                                  y=suitability.pred[,coord.cols[2]],
+                                  cell=suitability.pred[,id.col]))  
+  }
+  
+ if(raster){
+    rast="test"
+  }
+  else rast=NULL
+  
   #= Output
-  return (list(mcmc=MCMC,
+  return (list(meta=meta,
+               modeldata=modeldata,
+               mcmc=MCMC,
                rho.pred=rho.pred, prob.p.pred=prob.p.pred,
-               prob.p.latent=Sample[[34]], prob.q.latent=Sample[[35]]))
+               prob.p.latent=Sample[[34]], prob.q.latent=Sample[[35]],
+               raster=rast))
 
+  #meta=list(id.col="id_long",coord.col=c("x","y"))
+   
 }
 
 #===================================================================
