@@ -142,9 +142,20 @@ hSDM.binomial <- function (presences, trials,
       colnames(Matrix.p.pred) <- paste("p.",c(1:npred),sep="")
       theta.pred <- mcmc(Matrix.p.pred,start=nburn+1,end=ngibbs,thin=nthin)
   }
+
+  #= Model specification
+  model.spec <- list(presences=presences, trials=trials,
+                     model.frame.suit=mf.suit,
+                     suitability.pred=suitability.pred,
+                     burnin=burnin, mcmc=mcmc, thin=thin,
+                     beta.start=beta.start, mubeta=mubeta, Vbeta=Vbeta,
+                     seed=seed, verbose=verbose, save.p=save.p)
   
   #= Output
-  return (list(mcmc=MCMC, theta.pred=theta.pred, theta.latent=Sample[[16]]))
+  output <- list(mcmc=MCMC, theta.pred=theta.pred,
+                 theta.latent=Sample[[16]],family="binomial", model.spec=model.spec)
+  class(output) <- "hSDM"
+  return (output)
 
 }
 
