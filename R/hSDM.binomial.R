@@ -11,8 +11,8 @@
 ####################################################################
 ##
 ## This software is distributed under the terms of the GNU GENERAL
-## PUBLIC LICENSE Version 2, June 1991. See the package LICENSE
-## file for more information.
+## PUBLIC LICENSE Version 3. See the package LICENSE file for more
+## information.
 ##
 ## Copyright (C) 2011 Ghislain Vieilledent
 ## 
@@ -145,7 +145,8 @@ hSDM.binomial <- function (presences, trials,
 
   #= Model specification
   model.spec <- list(presences=presences, trials=trials,
-                     model.frame.suit=mf.suit,
+                     suitability=suitability,
+                     data=data,
                      suitability.pred=suitability.pred,
                      burnin=burnin, mcmc=mcmc, thin=thin,
                      beta.start=beta.start, mubeta=mubeta, Vbeta=Vbeta,
