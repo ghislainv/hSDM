@@ -2,6 +2,8 @@ useDynLib(hSDM)
 
 import(coda)
 
+S3method(predict,hSDM)
+
 export(hSDM.binomial,
        hSDM.binomial.iCAR,
        hSDM.ZIB,
@@ -17,7 +19,5 @@ export(hSDM.binomial,
        hSDM.Nmixture,
        hSDM.Nmixture.K,
        hSDM.Nmixture.iCAR,
-       predict.hSDM,
        inv.logit,
        logit)
-

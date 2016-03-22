@@ -48,6 +48,11 @@ hSDM.poisson.iCAR <- function (# Observations
   check.verbose(verbose)
   check.save.rho(save.rho)
   check.save.p(save.p)
+  
+  #========
+  # Set seed
+  #========
+  set.seed(seed) 
    
   #======== 
   # Form response, covariate matrices and model parameters

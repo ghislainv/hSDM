@@ -119,6 +119,7 @@ void hSDM_binomial (
   ////////////////////////////////////////
   // Initialize random number generator //
   srand(seed[0]);
+  GetRNGstate();
   
   ///////////////////////////
   // Redefining constants //
@@ -338,6 +339,10 @@ void hSDM_binomial (
     R_CheckUserInterrupt(); // allow user interrupt 	    
     
   } // Gibbs sampler
+  
+  ////////////////
+  // Free seed
+  PutRNGstate();
   
   ///////////////
   // Delete memory allocation (see malloc())

@@ -46,6 +46,11 @@ hSDM.Nmixture <- function (# Observations
   check.verbose(verbose)
   check.save.p(save.p)
   check.save.N(save.N)
+  
+  #========
+  # Set seed
+  #========
+  set.seed(seed) 
    
   #======== 
   # Form response, covariate matrices and model parameters
