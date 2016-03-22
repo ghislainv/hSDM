@@ -1,5 +1,5 @@
-\name{hSDM.predict}
-\alias{hSDM.predict}
+\name{predict.hSDM}
+\alias{predict.hSDM}
 
 \title{Predict method for models fitted with hSDM}
 
