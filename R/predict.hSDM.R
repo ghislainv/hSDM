@@ -1,6 +1,6 @@
 ####################################################################
 ##
-## predict.R
+## predict.hSDM.R
 ##
 ####################################################################
 ##
@@ -18,7 +18,7 @@
 ## 
 ####################################################################
 
-predict <- function(object,newdata=NULL,type="mean",probs=c(0.025,0.975),...) {
+predict.hSDM <- function(object,newdata=NULL,type="mean",probs=c(0.025,0.975),...) {
 
     ##= Check
     if (!(type %in% c("mean","quantile","posterior"))) {stop("type must be \"mean\", \"quantile\" or \"posterior\"")}

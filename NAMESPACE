@@ -17,7 +17,7 @@ export(hSDM.binomial,
        hSDM.Nmixture,
        hSDM.Nmixture.K,
        hSDM.Nmixture.iCAR,
-       predict,
+       predict.hSDM,
        inv.logit,
        logit)
 

@@ -1,12 +1,11 @@
-\name{predict}
-\alias{predict}
+\name{predict.hSDM}
 \alias{predict.hSDM}
 
 \title{Predict method for models fitted with hSDM}
 
 \description{Predicted values for models fitted with hSDM}
 
-\usage{predict(object,newdata=NULL,type="mean",probs=c(0.025,0.975),...)}
+\usage{\method{predict}{hSDM}(object,newdata=NULL,type="mean",probs=c(0.025,0.975),...)}
 
 \arguments{
   
@@ -18,7 +17,7 @@
   
   \item{probs}{Numeric vector of probabilities with values in [0,1] and used when \code{type="quantile"}.}
   
-  \item{...}{Further arguments passed to or from other methods.}
+  \item{\dots}{Further arguments passed to or from other methods.}
 }
 
 \value{Return a vector for the predictive posterior mean when \code{type="mean"}, a data-frame with the mean and quantiles when \code{type="quantile"} or an \code{mcmc} object (see \code{coda} package) with posterior distribution for each prediction when \code{type="posterior"}.} 

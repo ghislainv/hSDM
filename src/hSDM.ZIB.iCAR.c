@@ -767,7 +767,7 @@ void hSDM_ZIB_iCAR (
   } // Gibbs sampler
   
   ////////////////
-  // Release seed
+  // Free seed
   PutRNGstate();
   
   ///////////////
