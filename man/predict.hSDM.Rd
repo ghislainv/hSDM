@@ -5,7 +5,7 @@
 
 \description{Predicted values for models fitted with hSDM}
 
-\usage{hSDM.predict(object,newdata=NULL,type=c("mean","quantile","posterior"),probs=c(0.025,0.975))}
+\usage{predict.hSDM(object,newdata=NULL,type=c("mean","quantile","posterior"),probs=c(0.025,0.975))}
 
 \arguments{
   
