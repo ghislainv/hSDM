@@ -269,7 +269,7 @@ void hSDM_ZIB_iCAR (
   ////////////////////////////////////////
   // Initialize random number generator //
   srand(seed[0]);
-  GetRNGstate();
+  //GetRNGstate();
   
   ///////////////////////////
   // Redefining constants //
@@ -768,7 +768,7 @@ void hSDM_ZIB_iCAR (
   
   ////////////////
   // Free seed
-  PutRNGstate();
+  //PutRNGstate();
   
   ///////////////
   // Delete memory allocation (see malloc())

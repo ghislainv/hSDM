@@ -54,7 +54,7 @@ hSDM.ZIB.iCAR <- function (# Observations
   #========
   # Set seed
   #========
-  set.seed(seed) 
+  ## set.seed(seed) 
   
   #======== 
   # Form response, covariate matrices and model parameters

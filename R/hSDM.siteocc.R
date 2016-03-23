@@ -45,11 +45,6 @@ hSDM.siteocc <- function (# Observations
   check.mcmc.parameters(burnin, mcmc, thin)
   check.verbose(verbose)
   check.save.p(save.p)
-  
-  #========
-  # Set seed
-  #========
-  set.seed(seed) 
    
   #======== 
   # Form response, covariate matrices and model parameters

@@ -268,7 +268,7 @@ void hSDM_ZIP_iCAR (
   // Initialize random number generator //
   srand(seed[0]);
   GetRNGstate();
-  
+
   ///////////////////////////
   // Redefining constants //
   const int NGIBBS=ngibbs[0];
