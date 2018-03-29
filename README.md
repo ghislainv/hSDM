@@ -1,5 +1,4 @@
-hSDM R package
-===============
+# hSDM R package
 
 `hSDM` is an R package for estimating parameters of hierarchical
 Bayesian species distribution models. Such models allow interpreting
@@ -12,22 +11,19 @@ for accurately characterizing the environmental response of species,
 predicting their probability of occurrence, and assessing uncertainty
 in the model results.
 
-Code and manual
----------------
+## Code and manual
 
 The last stable version of the `hSDM` R package is officially
 available for several operating systems (Unix, Windows and Mac OSX) on
 the Comprehensive R Archive Network
 ([CRAN](http://cran.r-project.org/web/packages/hSDM/index.html)).
 
-Acknowledgments
---------------
+## Acknowledgments
 
 We gratefully acknowledge Shanshan Wu for the original C++ code used
 in Latimer et al. 2006.
 
-Related publications
---------------------
+## Related publications
 
 **Diez J. M. and Pulliam H. R.** 2007. Hierarchical analysis of
 species distributions and abundance across environmental
@@ -50,14 +46,13 @@ when detection probabilities are less than one. _Ecology_. **83**:
 **Royle, J. A.** 2004. N-mixture models for estimating population size
   from spatially replicated counts. _Biometrics_. **60**: 108-115.
 
-Contact
--------
+## Contact
 
 Ghislain Vieilledent    
-Cirad, UPR Forêts et Sociétés    
+CIRAD, UPR Forêts et Sociétés    
 Campus de Baillarguet    
 TA C-105/D    
-34398 Montpellier cedex 5    
+34398 Montpellier
 FRANCE
 
 Skype: ghislain.vieilledent    
