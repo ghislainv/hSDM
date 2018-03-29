@@ -31,7 +31,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 // My own functions
-#include "useful_gsl.h"
+#include "useful.h"
 
 
 /* ********************************************************************* */
