@@ -27,8 +27,11 @@
 #include <R.h> // needed to use Rprintf()
 #include <R_ext/Utils.h> // needed to allow user interrupts
 #include <Rmath.h> // for dnorm and dbinom distributions
+// GSL libraries
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 // My own functions
-#include "useful.h"
+#include "useful_gsl.h"
 
 
 /* ********************************************************************* */
@@ -125,7 +128,7 @@ static double rhodens_visited (double rho_i, void *dens_data) {
 /* ************************************************************ */
 /* rhodens_unvisited */
 
-static double rhodens_unvisited (void *dens_data) {
+static double rhodens_unvisited (const gsl_rng *r, void *dens_data) {
   // Pointer to the structure: d 
   struct dens_par *d;
   d=dens_data;
@@ -138,7 +141,7 @@ static double rhodens_unvisited (void *dens_data) {
     sumNeighbors+=d->rho_run[d->Neigh[i][m]];
   }
   double meanNeighbors=sumNeighbors/nNeighbors;
-  double sample=myrnorm(meanNeighbors,sqrt(d->Vrho_run/nNeighbors)); 
+  double sample=meanNeighbors+gsl_ran_gaussian_ziggurat(r,sqrt(d->Vrho_run/nNeighbors)); 
   return sample;
 }
 
@@ -195,7 +198,8 @@ void hSDM_binomial_iCAR (
   
   ////////////////////////////////////////
   // Initialize random number generator //
-  srand(seed[0]);
+  gsl_rng *r=gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(r,seed[0]);
   
   ///////////////////////////
   // Redefining constants //
@@ -382,13 +386,13 @@ void hSDM_binomial_iCAR (
     for (int p=0; p<NP; p++) {
       dens_data.pos_beta=p; // Specifying the rank of the parameter of interest
       double x_now=dens_data.beta_run[p];
-      double x_prop=myrnorm(x_now,sigmap_beta[p]);
+      double x_prop=x_now+gsl_ran_gaussian_ziggurat(r,sigmap_beta[p]);
       double p_now=betadens(x_now, &dens_data);
       double p_prop=betadens(x_prop, &dens_data);
-      double r=exp(p_prop-p_now); // ratio
-      double z=myrunif();
+      double ratio=exp(p_prop-p_now); // ratio
+      double z=gsl_rng_uniform(r);
       // Actualization
-      if (z < r) {
+      if (z < ratio) {
         dens_data.beta_run[p]=x_prop;
         nA_beta[p]++;
       }
@@ -403,19 +407,19 @@ void hSDM_binomial_iCAR (
       dens_data.pos_rho=i; // Specifying the rank of the parameter of interest
       if (viscell[i]>0) {
         double x_now=dens_data.rho_run[i];
-        double x_prop=myrnorm(x_now,sigmap_rho[i]);
+        double x_prop=x_now+gsl_ran_gaussian_ziggurat(r,sigmap_rho[i]);
         double p_now=rhodens_visited(x_now, &dens_data);
         double p_prop=rhodens_visited(x_prop, &dens_data);
-        double r=exp(p_prop-p_now); // ratio
-        double z=myrunif();
+        double ratio=exp(p_prop-p_now); // ratio
+        double z=gsl_rng_uniform(r);
         // Actualization
-        if (z < r) {
+        if (z < ratio) {
           dens_data.rho_run[i]=x_prop;
           nA_rho[i]++;
         }
       }
       else {
-        dens_data.rho_run[i]=rhodens_unvisited(&dens_data);
+        dens_data.rho_run[i]=rhodens_unvisited(r, &dens_data);
       }
     }
     
@@ -450,12 +454,12 @@ void hSDM_binomial_iCAR (
       if (priorVrho[0]==-1.0) { // prior = 1/Gamma(shape,rate)
         double Shape=shape[0]+0.5*(NCELL-1);
         double Rate=rate[0]+0.5*Sum;
-        dens_data.Vrho_run=Rate/myrgamma1(Shape);
+        dens_data.Vrho_run=Rate/gsl_ran_gamma(r, Shape, 1.0);
       }
       if (priorVrho[0]==-2.0) { // prior = Uniform(0,Vrho_max)
         double Shape=0.5*NCELL-1;
         double Rate=0.5*Sum;
-        dens_data.Vrho_run=1/myrtgamma_left(Shape,Rate,1/Vrho_max[0]);
+        dens_data.Vrho_run=1/my_rtgamma_left(r, Shape, Rate, 1/Vrho_max[0]);
       }
     }
     
@@ -649,6 +653,8 @@ void hSDM_binomial_iCAR (
   free(sigmap_rho);
   free(nA_rho);
   free(Ar_rho);
+  /* Random seed */
+  gsl_rng_free(r);
   
 } // end hSDM function
 
