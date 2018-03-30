@@ -10,3 +10,8 @@ if test "${GSL_CONFIG}" != ""; then
 else
     AC_MSG_ERROR([gsl-config not found, is GSL installed?])
 fi
+# Now substitute these variables in src/Makevars.in to create src/Makevars
+AC_SUBST(GSL_CFLAGS)
+AC_SUBST(GSL_LIBS)
+
+AC_OUTPUT(src/Makevars)
