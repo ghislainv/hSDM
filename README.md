@@ -18,11 +18,6 @@ available for several operating systems (Unix, Windows and Mac OSX) on
 the Comprehensive R Archive Network
 ([CRAN](http://cran.r-project.org/web/packages/hSDM/index.html)).
 
-## Acknowledgments
-
-We gratefully acknowledge Shanshan Wu for the original C++ code used
-in Latimer et al. 2006.
-
 ## Related publications
 
 **Diez J. M. and Pulliam H. R.** 2007. Hierarchical analysis of
@@ -45,16 +40,3 @@ when detection probabilities are less than one. _Ecology_. **83**:
 
 **Royle, J. A.** 2004. N-mixture models for estimating population size
   from spatially replicated counts. _Biometrics_. **60**: 108-115.
-
-## Contact
-
-Ghislain Vieilledent    
-CIRAD, UPR Forêts et Sociétés    
-Campus de Baillarguet    
-TA C-105/D    
-34398 Montpellier
-FRANCE
-
-Skype: ghislain.vieilledent    
-Email: ghislain(dot)vieilledent(at)cirad(dot)fr    
-WWW: <https://ghislainv.github.io>
