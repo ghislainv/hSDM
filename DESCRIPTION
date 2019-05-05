@@ -4,20 +4,24 @@ Title: hierarchical Bayesian species distribution models
 Version: 1.4.1
 Date: 2016-03-22
 Imports: coda
-Suggests: knitr, raster, sp
+Suggests: 
+    knitr,
+    raster,
+    sp,
+    rmarkdown
 Authors@R: c(
   person("Ghislain", "Vieilledent", role=c("aut","cre"), 
     email="ghislain.vieilledent@cirad.fr",
     comment=c(ORCID="0000-0002-1685-4997")),
-  person("Matthieu", "Autier", role="aut"),
-  person("Alan E.", "Gelfand", role="aut"),
-  person("Jérôme", "Guélat", role="aut"),
-  person("Marc", "Kéry", role="aut"),
-  person("Andrew M.", "Latimer", role="aut"),
-  person("Cory", "Merow", role="aut"), 
-  person("Frédéric", "Mortier", role="aut"),
-  person("John A.", "Silander Jr.", role="aut"),
-  person("Adam M.", "Wilson", role="aut"),
+  person("Matthieu", "Autier", role="ctb"),
+  person("Alan E.", "Gelfand", role="ctb"),
+  person("Jérôme", "Guélat", role="ctb"),
+  person("Marc", "Kéry", role="ctb"),
+  person("Andrew M.", "Latimer", role="ctb"),
+  person("Cory", "Merow", role="ctb"), 
+  person("Frédéric", "Mortier", role="ctb"),
+  person("John A.", "Silander Jr.", role="ctb"),
+  person("Adam M.", "Wilson", role="ctb"),
   person("CIRAD", role=c("cph", "fnd"))
   )
 Maintainer: Ghislain Vieilledent <ghislain.vieilledent@cirad.fr>
@@ -28,3 +32,4 @@ BugReports: https://github.com/ghislainv/hSDM/issues
 LazyLoad: yes
 Encoding: UTF-8
 RoxygenNote: 6.1.1
+VignetteBuilder: knitr

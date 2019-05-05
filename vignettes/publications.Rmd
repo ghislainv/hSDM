@@ -1,0 +1,27 @@
+---
+title: "Publications"
+output: rmarkdown::html_vignette
+bibliography: bib/biblio.bib
+biblio-style: bib/jae.bst
+link-citations: yes
+csl: bib/journal-of-applied-ecology.csl
+vignette: >
+  %\VignetteIndexEntry{Publications}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Updated list of the scientific articles using or citing the package on [Google Scholar](https://scholar.google.fr/scholar?start=0&hl=fr&as_sdt=2005&cites=13416572550730321875&scipsc=).
+
+**Articles using hSDM**: @Domisch2019b, @Domisch2019b, @Pennino2017a, @Costa2017, @Pennino2017b, @Plumptre2016, @Vilela2016, @Wilson2016, @Domisch2016
+
+**Articles citing hSDM**: @Clark2019, @MartinezMinaya2018, @Herrando2017, @GuilleraArroita2016, @Bird2014, @Lee2013, @Mazerolle2015, @Thuiller2014
+
+## References
