@@ -40,8 +40,8 @@ devtools::install_github("ghislainv/hSDM")
 
 ## Tutorials on internet
 
-- Tutorial on using opportunistic species occurrence data for occupancy modelling by [Adam M. Wilson](http://adamwilson.us/) on [GitHub](https://github.com/adammwilson/hSDM_Tutorial/blob/master/hSDM_Tutorial.md).
-- Tutorial on modelling spatial autocorrelation by [Jérôme Guélat](http://www.popecol.org/team/jerome-guelat/) on [Amazonaws](http://rstudio-pubs-static.s3.amazonaws.com/9687_cc323b60e5d542449563ff1142163f05.html).
+- Tutorial on using opportunistic species occurrence data for occupancy modelling by [Adam M. Wilson](https://github.com/adammwilson) on [GitHub](https://github.com/adammwilson/hSDM_Tutorial/blob/master/hSDM_Tutorial.md).
+- Tutorial on modelling spatial autocorrelation by [Jérôme Guélat](https://www.random-nature.net) on [Amazonaws](https://rstudio-pubs-static.s3.amazonaws.com/9687_cc323b60e5d542449563ff1142163f05.html).
 
 ## Related publications
 
