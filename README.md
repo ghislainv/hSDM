@@ -4,7 +4,8 @@
 # hSDM R Package <img src="man/figures/logo.png" align="right" alt="" width="120" />
 
 [![CRAN
-Status](http://www.r-pkg.org/badges/version/hSDM)](https://cran.r-project.org/package=hSDM)
+Status](https://www.r-pkg.org/badges/version/hSDM)](https://cran.r-project.org/package=hSDM)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.594920.svg)](https://doi.org/10.5281/zenodo.594920)
 [![Downloads](https://cranlogs.r-pkg.org/badges/hSDM)](https://cran.r-project.org/package=hSDM)
 
 `hSDM` is an R package for estimating parameters of hierarchical
@@ -27,14 +28,22 @@ install.packages("hSDM")
 devtools::install_github("ghislainv/hSDM")
 ```
 
-## Tutorials on internet
+## Vignettes and manual
+
+  - Presentation at ISEC 2014: [hSDM-ISEC2014.pdf]()
+  - Vignette with many examples: [hSDM-vignette.pdf]()
+  - Manual:
+    [hSDM.manual.pdf](https://cloud.r-project.org/web/packages/hSDM/hSDM.pdf)
+
+## In the wild
 
   - Tutorial on using opportunistic species occurrence data for
-    occupancy modelling by [Adam M. Wilson](http://adamwilson.us/) on
+    occupancy modelling by [Adam M.
+    Wilson](https://github.com/adammwilson) on
     [GitHub](https://github.com/adammwilson/hSDM_Tutorial/blob/master/hSDM_Tutorial.md).
   - Tutorial on modelling spatial autocorrelation by [Jérôme
-    Guélat](http://www.popecol.org/team/jerome-guelat/) on
-    [Amazonaws](http://rstudio-pubs-static.s3.amazonaws.com/9687_cc323b60e5d542449563ff1142163f05.html).
+    Guélat](https://www.random-nature.net) on
+    [Amazonaws](https://rstudio-pubs-static.s3.amazonaws.com/9687_cc323b60e5d542449563ff1142163f05.html).
 
 ## Related publications
 
