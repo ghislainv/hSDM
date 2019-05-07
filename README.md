@@ -30,10 +30,12 @@ devtools::install_github("ghislainv/hSDM")
 
 ## Vignettes and manual
 
-  - Presentation at ISEC 2014: [hSDM-ISEC2014.pdf]()
-  - Vignette with many examples: [hSDM-vignette.pdf]()
+  - Presentation at ISEC 2014:
+    [hSDM-ISEC2014.pdf](https://bioscenemada.cirad.fr/FileTransfer/hSDM-ISEC2014.pdf)
+  - Vignette with several examples:
+    [hSDM-vignette.pdf](https://bioscenemada.cirad.fr/FileTransfer/hSDM-vignette.pdf)
   - Manual:
-    [hSDM.manual.pdf](https://cloud.r-project.org/web/packages/hSDM/hSDM.pdf)
+    [hSDM-manual.pdf](https://cloud.r-project.org/web/packages/hSDM/hSDM.pdf)
 
 ## In the wild
 
