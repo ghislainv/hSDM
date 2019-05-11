@@ -29,3 +29,51 @@ navbar:
     github:
       icon: fa-github fa-lg
       href: https://github.com/ghislainv/hSDM
+
+reference:
+- title: Package
+  desc: Package description
+  contents:
+  - '`hSDM-package`'
+- title: Data
+  desc: Data available in `hSDM` and used in examples
+  contents:
+  - '`altitude`'
+  - '`data.Kery2010`'
+  - '`datacells.Latimer2006`'
+  - '`neighbors.Latimer2006`'
+  - '`frogs`'
+  - '`cfr.env`'
+  - '`punc10`'
+- title: Occurrence
+  desc: Functions for occurrence (presence/absence) data
+  contents:
+  - '`hSDM.binomial`'
+  - '`hSDM.binomial.iCAR`'
+  - '`hSDM.siteocc`'
+  - '`hSDM.siteocc.iCAR`'
+- title: Count
+  desc: Functions for count (abundance) data
+  contents:  
+  - '`hSDM.poisson`'
+  - '`hSDM.poisson.iCAR`'
+  - '`hSDM.Nmixture.K`'
+  - '`hSDM.Nmixture`'
+  - '`hSDM.Nmixture.iCAR`'
+- title: Zero-Inflation
+  desc: Functions for zero-inflated data
+  contents:
+  - '`hSDM.ZIB`'
+  - '`hSDM.ZIB.iCAR`'
+  - '`hSDM.ZIB.iCAR.alteration`'
+  - '`hSDM.ZIP`'
+  - '`hSDM.ZIP.iCAR`'
+  - '`hSDM.ZIP.iCAR.alteration`'
+- title: Miscellaneous
+  desc: Miscellaneous functions
+  contents:
+  - '`logit`'
+- title: Predict
+  desc: Predict functions
+  contents:
+  - '`predict.hSDM`'

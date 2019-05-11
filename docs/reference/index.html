@@ -132,8 +132,22 @@
     <tbody>
       <tr>
         <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
+          <h2 id="section-package" class="hasAnchor"><a href="#section-package" class="anchor"></a>Package</h2>
+          <p class="section-desc"><p>Package description</p></p>
+        </th>
+      </tr>
+      <tr>
+        
+        <td>
+          <p><code><a href="hSDM-package.html">hSDM-package</a></code> </p>
+        </td>
+        <td><p>hierarchical Bayesian species distribution models</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-data" class="hasAnchor"><a href="#section-data" class="anchor"></a>Data</h2>
+          <p class="section-desc"><p>Data available in <code>hSDM</code> and used in examples</p></p>
         </th>
       </tr>
       <tr>
@@ -142,12 +156,6 @@
           <p><code><a href="altitude.html">altitude</a></code> </p>
         </td>
         <td><p>Virtual altitudinal data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="cfr.env.html">cfr.env</a></code> </p>
-        </td>
-        <td><p>Environmental data for South Africa's Cap Floristic Region</p></td>
       </tr><tr>
         
         <td>
@@ -163,15 +171,80 @@
       </tr><tr>
         
         <td>
+          <p><code><a href="neighbors.Latimer2006.html">neighbors.Latimer2006</a></code> </p>
+        </td>
+        <td><p>Neighborhood data (from Latimer et al. 2006)</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="frogs.html">frogs</a></code> </p>
         </td>
         <td><p>Counts of the number of frogs in a water body</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="hSDM-package.html">hSDM-package</a></code> </p>
+          <p><code><a href="cfr.env.html">cfr.env</a></code> </p>
         </td>
-        <td><p>hierarchical Bayesian species distribution models</p></td>
+        <td><p>Environmental data for South Africa's Cap Floristic Region</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="punc10.html">punc10</a></code> </p>
+        </td>
+        <td><p>Occurrence data for <em>Protea punctata</em> Meisn. in the Cap
+Floristic Region</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-occurrence" class="hasAnchor"><a href="#section-occurrence" class="anchor"></a>Occurrence</h2>
+          <p class="section-desc"><p>Functions for occurrence (presence/absence) data</p></p>
+        </th>
+      </tr>
+      <tr>
+        
+        <td>
+          <p><code><a href="hSDM.binomial.html">hSDM.binomial()</a></code> </p>
+        </td>
+        <td><p>Binomial logistic regression model</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="hSDM.binomial.iCAR.html">hSDM.binomial.iCAR()</a></code> </p>
+        </td>
+        <td><p>Binomial logistic regression model with CAR process</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="hSDM.siteocc.html">hSDM.siteocc()</a></code> </p>
+        </td>
+        <td><p>Site occupancy model</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="hSDM.siteocc.iCAR.html">hSDM.siteocc.iCAR()</a></code> </p>
+        </td>
+        <td><p>Site-occupancy model with CAR process</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-count" class="hasAnchor"><a href="#section-count" class="anchor"></a>Count</h2>
+          <p class="section-desc"><p>Functions for count (abundance) data</p></p>
+        </th>
+      </tr>
+      <tr>
+        
+        <td>
+          <p><code><a href="hSDM.poisson.html">hSDM.poisson()</a></code> </p>
+        </td>
+        <td><p>Poisson log regression model</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="hSDM.poisson.iCAR.html">hSDM.poisson.iCAR()</a></code> </p>
+        </td>
+        <td><p>Poisson log regression model with CAR process</p></td>
       </tr><tr>
         
         <td>
@@ -190,7 +263,15 @@
           <p><code><a href="hSDM.Nmixture.iCAR.html">hSDM.Nmixture.iCAR()</a></code> </p>
         </td>
         <td><p>N-mixture model with CAR process</p></td>
-      </tr><tr>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-zero-inflation" class="hasAnchor"><a href="#section-zero-inflation" class="anchor"></a>Zero-Inflation</h2>
+          <p class="section-desc"><p>Functions for zero-inflated data</p></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
           <p><code><a href="hSDM.ZIB.html">hSDM.ZIB()</a></code> </p>
@@ -228,67 +309,34 @@ account site alteration</p></td>
         </td>
         <td><p>ZIP (Zero-Inflated Poisson) model with CAR process taking into
 account site alteration</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="hSDM.binomial.html">hSDM.binomial()</a></code> </p>
-        </td>
-        <td><p>Binomial logistic regression model</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="hSDM.binomial.iCAR.html">hSDM.binomial.iCAR()</a></code> </p>
-        </td>
-        <td><p>Binomial logistic regression model with CAR process</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="hSDM.poisson.html">hSDM.poisson()</a></code> </p>
-        </td>
-        <td><p>Poisson log regression model</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="hSDM.poisson.iCAR.html">hSDM.poisson.iCAR()</a></code> </p>
-        </td>
-        <td><p>Poisson log regression model with CAR process</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="hSDM.siteocc.html">hSDM.siteocc()</a></code> </p>
-        </td>
-        <td><p>Site occupancy model</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="hSDM.siteocc.iCAR.html">hSDM.siteocc.iCAR()</a></code> </p>
-        </td>
-        <td><p>Site-occupancy model with CAR process</p></td>
-      </tr><tr>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-miscellaneous" class="hasAnchor"><a href="#section-miscellaneous" class="anchor"></a>Miscellaneous</h2>
+          <p class="section-desc"><p>Miscellaneous functions</p></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
           <p><code><a href="logit.html">logit()</a></code> <code><a href="logit.html">inv.logit()</a></code> </p>
         </td>
         <td><p>Generalized logit and inverse logit function</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="neighbors.Latimer2006.html">neighbors.Latimer2006</a></code> </p>
-        </td>
-        <td><p>Neighborhood data (from Latimer et al. 2006)</p></td>
-      </tr><tr>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-predict" class="hasAnchor"><a href="#section-predict" class="anchor"></a>Predict</h2>
+          <p class="section-desc"><p>Predict functions</p></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
           <p><code><a href="predict.hSDM.html">predict(<i>&lt;hSDM&gt;</i>)</a></code> </p>
         </td>
         <td><p>Predict method for models fitted with hSDM</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="punc10.html">punc10</a></code> </p>
-        </td>
-        <td><p>Occurrence data for <em>Protea punctata</em> Meisn. in the Cap
-Floristic Region</p></td>
       </tr>
     </tbody>
     </table>
@@ -297,7 +345,13 @@ Floristic Region</p></td>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#section-package">Package</a></li>
+      <li><a href="#section-data">Data</a></li>
+      <li><a href="#section-occurrence">Occurrence</a></li>
+      <li><a href="#section-count">Count</a></li>
+      <li><a href="#section-zero-inflation">Zero-Inflation</a></li>
+      <li><a href="#section-miscellaneous">Miscellaneous</a></li>
+      <li><a href="#section-predict">Predict</a></li>
     </ul>
   </div>
 </div>
