@@ -5,3 +5,27 @@ authors:
     href: "https://www.cirad.fr"
     html: "<img src='https://ecology.ghislainv.fr/images/logos/logo-cirad.svg' height=24>"
     
+navbar:
+  structure:
+    left: [home, intro, reference, publications, articles, tutorials, news]
+    right: [twitter, github]
+  components:
+    articles: ~
+    home:
+      icon: fa-home fa-lg
+      href: index.html
+    intro:
+      text: Get started
+      href: articles/hSDM.html
+    reference:
+      text: Reference
+      href: reference/index.html
+    publications:
+      text: Publications
+      href: articles/publications.html
+    twitter:
+      icon: fa-twitter fa-lg
+      href: http://twitter.com/ghislainv
+    github:
+      icon: fa-github fa-lg
+      href: https://github.com/ghislainv/hSDM
