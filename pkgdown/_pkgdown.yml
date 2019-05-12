@@ -73,7 +73,3 @@ reference:
   desc: Miscellaneous functions
   contents:
   - '`logit`'
-- title: Predict
-  desc: Predict functions
-  contents:
-  - '`predict.hSDM`'

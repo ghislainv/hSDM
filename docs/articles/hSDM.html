@@ -238,16 +238,16 @@ mod.Kery2010.pois &lt;-<span class="st"> </span><span class="kw"><a href="../ref
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Running the Gibbs sampler. It may be long, please keep cool :)</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; **********:10.0%, mean accept. rates= beta:0.503</span>
-<span class="co">#&gt; **********:20.0%, mean accept. rates= beta:0.403</span>
-<span class="co">#&gt; **********:30.0%, mean accept. rates= beta:0.503</span>
-<span class="co">#&gt; **********:40.0%, mean accept. rates= beta:0.507</span>
-<span class="co">#&gt; **********:50.0%, mean accept. rates= beta:0.530</span>
-<span class="co">#&gt; **********:60.0%, mean accept. rates= beta:0.467</span>
-<span class="co">#&gt; **********:70.0%, mean accept. rates= beta:0.493</span>
-<span class="co">#&gt; **********:80.0%, mean accept. rates= beta:0.453</span>
-<span class="co">#&gt; **********:90.0%, mean accept. rates= beta:0.493</span>
-<span class="co">#&gt; **********:100.0%, mean accept. rates= beta:0.457</span></code></pre>
+<span class="co">#&gt; **********:10.0%, mean accept. rates= beta:0.473</span>
+<span class="co">#&gt; **********:20.0%, mean accept. rates= beta:0.437</span>
+<span class="co">#&gt; **********:30.0%, mean accept. rates= beta:0.460</span>
+<span class="co">#&gt; **********:40.0%, mean accept. rates= beta:0.430</span>
+<span class="co">#&gt; **********:50.0%, mean accept. rates= beta:0.430</span>
+<span class="co">#&gt; **********:60.0%, mean accept. rates= beta:0.443</span>
+<span class="co">#&gt; **********:70.0%, mean accept. rates= beta:0.470</span>
+<span class="co">#&gt; **********:80.0%, mean accept. rates= beta:0.443</span>
+<span class="co">#&gt; **********:90.0%, mean accept. rates= beta:0.413</span>
+<span class="co">#&gt; **********:100.0%, mean accept. rates= beta:0.463</span></code></pre>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Outputs</span>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(mod.Kery2010.pois<span class="op">$</span>mcmc)
 <span class="co">#&gt; </span>
@@ -260,18 +260,18 @@ mod.Kery2010.pois &lt;-<span class="st"> </span><span class="kw"><a href="../ref
 <span class="co">#&gt;    plus standard error of the mean:</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt;                           Mean      SD Naive SE Time-series SE</span>
-<span class="co">#&gt; beta.(Intercept)       0.02814 0.06428 0.002033       0.003726</span>
-<span class="co">#&gt; beta.elevation         3.08127 0.15347 0.004853       0.017159</span>
-<span class="co">#&gt; beta.I(elevation^2)   -1.79995 0.10235 0.003236       0.010673</span>
-<span class="co">#&gt; Deviance            2157.88058 2.40508 0.076055       0.116160</span>
+<span class="co">#&gt; beta.(Intercept)       0.02908 0.06369 0.002014       0.003676</span>
+<span class="co">#&gt; beta.elevation         3.07617 0.16616 0.005254       0.018741</span>
+<span class="co">#&gt; beta.I(elevation^2)   -1.79461 0.11144 0.003524       0.011860</span>
+<span class="co">#&gt; Deviance            2157.97699 2.35949 0.074614       0.137429</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; 2. Quantiles for each variable:</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt;                           2.5%        25%        50%        75%     97.5%</span>
-<span class="co">#&gt; beta.(Intercept)      -0.09261   -0.01438    0.02764    0.07104    0.1562</span>
-<span class="co">#&gt; beta.elevation         2.80721    2.97833    3.07749    3.17837    3.3823</span>
-<span class="co">#&gt; beta.I(elevation^2)   -2.00237   -1.86256   -1.79905   -1.73075   -1.6108</span>
-<span class="co">#&gt; Deviance            2155.19932 2156.14125 2157.27804 2158.97142 2164.3795</span></code></pre>
+<span class="co">#&gt;                           2.5%        25%        50%       75%     97.5%</span>
+<span class="co">#&gt; beta.(Intercept)      -0.09654   -0.01742    0.02864    0.0744    0.1528</span>
+<span class="co">#&gt; beta.elevation         2.76477    2.95534    3.07390    3.1958    3.3890</span>
+<span class="co">#&gt; beta.I(elevation^2)   -2.02038   -1.87021   -1.79278   -1.7178   -1.5802</span>
+<span class="co">#&gt; Deviance            2155.19872 2156.26439 2157.38672 2159.0371 2164.2946</span></code></pre>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Predictions</span>
 npred &lt;-<span class="st"> </span><span class="dv">100</span>
 nsamp &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/dimensions">dim</a></span>(mod.Kery2010.pois<span class="op">$</span>mcmc)[<span class="dv">1</span>]
@@ -328,16 +328,16 @@ mod.Kery2010.Nmix &lt;-<span class="st"> </span><span class="kw"><a href="../ref
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Running the Gibbs sampler. It may be long, please keep cool :)</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; **********:10.0%, mean accept. rates= beta:0.283, gamma:0.230, N:0.191</span>
-<span class="co">#&gt; **********:20.0%, mean accept. rates= beta:0.277, gamma:0.197, N:0.196</span>
-<span class="co">#&gt; **********:30.0%, mean accept. rates= beta:0.250, gamma:0.240, N:0.205</span>
-<span class="co">#&gt; **********:40.0%, mean accept. rates= beta:0.273, gamma:0.250, N:0.193</span>
-<span class="co">#&gt; **********:50.0%, mean accept. rates= beta:0.270, gamma:0.277, N:0.188</span>
-<span class="co">#&gt; **********:60.0%, mean accept. rates= beta:0.247, gamma:0.277, N:0.188</span>
-<span class="co">#&gt; **********:70.0%, mean accept. rates= beta:0.230, gamma:0.287, N:0.183</span>
-<span class="co">#&gt; **********:80.0%, mean accept. rates= beta:0.240, gamma:0.267, N:0.195</span>
-<span class="co">#&gt; **********:90.0%, mean accept. rates= beta:0.253, gamma:0.283, N:0.186</span>
-<span class="co">#&gt; **********:100.0%, mean accept. rates= beta:0.240, gamma:0.277, N:0.188</span></code></pre>
+<span class="co">#&gt; **********:10.0%, mean accept. rates= beta:0.213, gamma:0.253, N:0.172</span>
+<span class="co">#&gt; **********:20.0%, mean accept. rates= beta:0.240, gamma:0.230, N:0.205</span>
+<span class="co">#&gt; **********:30.0%, mean accept. rates= beta:0.240, gamma:0.247, N:0.183</span>
+<span class="co">#&gt; **********:40.0%, mean accept. rates= beta:0.270, gamma:0.250, N:0.193</span>
+<span class="co">#&gt; **********:50.0%, mean accept. rates= beta:0.327, gamma:0.233, N:0.189</span>
+<span class="co">#&gt; **********:60.0%, mean accept. rates= beta:0.313, gamma:0.263, N:0.197</span>
+<span class="co">#&gt; **********:70.0%, mean accept. rates= beta:0.273, gamma:0.223, N:0.211</span>
+<span class="co">#&gt; **********:80.0%, mean accept. rates= beta:0.257, gamma:0.240, N:0.218</span>
+<span class="co">#&gt; **********:90.0%, mean accept. rates= beta:0.310, gamma:0.300, N:0.168</span>
+<span class="co">#&gt; **********:100.0%, mean accept. rates= beta:0.257, gamma:0.230, N:0.206</span></code></pre>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Outputs</span>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(mod.Kery2010.Nmix<span class="op">$</span>mcmc)
 <span class="co">#&gt; </span>
@@ -350,24 +350,24 @@ mod.Kery2010.Nmix &lt;-<span class="st"> </span><span class="kw"><a href="../ref
 <span class="co">#&gt;    plus standard error of the mean:</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt;                          Mean       SD Naive SE Time-series SE</span>
-<span class="co">#&gt; beta.(Intercept)       0.6726  0.08660 0.002739       0.007342</span>
-<span class="co">#&gt; beta.elevation         2.7879  0.19608 0.006200       0.023100</span>
-<span class="co">#&gt; beta.I(elevation^2)   -1.7905  0.14436 0.004565       0.018337</span>
-<span class="co">#&gt; gamma.(Intercept)      0.2537  0.10346 0.003272       0.008333</span>
-<span class="co">#&gt; gamma.juldate         -0.2253  0.08493 0.002686       0.004897</span>
-<span class="co">#&gt; gamma.I(juldate^2)     0.2658  0.08202 0.002594       0.005667</span>
-<span class="co">#&gt; Deviance            1887.5828 27.73003 0.876900       2.195556</span>
+<span class="co">#&gt; beta.(Intercept)       0.6484  0.08698 0.002750       0.007622</span>
+<span class="co">#&gt; beta.elevation         2.9294  0.20188 0.006384       0.031113</span>
+<span class="co">#&gt; beta.I(elevation^2)   -1.8782  0.13632 0.004311       0.019594</span>
+<span class="co">#&gt; gamma.(Intercept)      0.2419  0.10853 0.003432       0.009402</span>
+<span class="co">#&gt; gamma.juldate         -0.2356  0.08556 0.002706       0.004650</span>
+<span class="co">#&gt; gamma.I(juldate^2)     0.2705  0.08694 0.002749       0.006721</span>
+<span class="co">#&gt; Deviance            1889.7198 29.49971 0.932863       2.417696</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; 2. Quantiles for each variable:</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt;                           2.5%       25%       50%       75%      97.5%</span>
-<span class="co">#&gt; beta.(Intercept)       0.50177    0.6142    0.6744    0.7296    0.83792</span>
-<span class="co">#&gt; beta.elevation         2.41646    2.6443    2.7935    2.9233    3.17012</span>
-<span class="co">#&gt; beta.I(elevation^2)   -2.07261   -1.8875   -1.7856   -1.6886   -1.51417</span>
-<span class="co">#&gt; gamma.(Intercept)      0.05384    0.1768    0.2596    0.3280    0.44389</span>
-<span class="co">#&gt; gamma.juldate         -0.38921   -0.2820   -0.2230   -0.1683   -0.05706</span>
-<span class="co">#&gt; gamma.I(juldate^2)     0.09516    0.2089    0.2669    0.3209    0.41889</span>
-<span class="co">#&gt; Deviance            1837.06989 1868.2134 1885.6799 1906.7686 1942.45453</span></code></pre>
+<span class="co">#&gt; beta.(Intercept)       0.47179    0.5895    0.6484    0.7112    0.80779</span>
+<span class="co">#&gt; beta.elevation         2.52078    2.7878    2.9250    3.0673    3.30330</span>
+<span class="co">#&gt; beta.I(elevation^2)   -2.14580   -1.9673   -1.8808   -1.7859   -1.59867</span>
+<span class="co">#&gt; gamma.(Intercept)      0.02988    0.1652    0.2435    0.3228    0.45101</span>
+<span class="co">#&gt; gamma.juldate         -0.41117   -0.2907   -0.2347   -0.1766   -0.07425</span>
+<span class="co">#&gt; gamma.I(juldate^2)     0.10274    0.2137    0.2704    0.3317    0.43780</span>
+<span class="co">#&gt; Deviance            1837.06422 1868.9839 1887.4536 1907.9318 1954.82932</span></code></pre>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Predictions</span>
 nsamp &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/dimensions">dim</a></span>(mod.Kery2010.Nmix<span class="op">$</span>mcmc)[<span class="dv">1</span>]
 <span class="co"># Abundance-elevation</span>
@@ -444,16 +444,16 @@ mod.Kery2010.Nmix.iCAR &lt;-<span class="st"> </span><span class="kw"><a href=".
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Running the Gibbs sampler. It may be long, please keep cool :)</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; **********:10.0%, mean accept. rates= beta:0.243, gamma:0.327, rho:0.272, N:0.223</span>
-<span class="co">#&gt; **********:20.0%, mean accept. rates= beta:0.227, gamma:0.277, rho:0.262, N:0.222</span>
-<span class="co">#&gt; **********:30.0%, mean accept. rates= beta:0.220, gamma:0.243, rho:0.256, N:0.206</span>
-<span class="co">#&gt; **********:40.0%, mean accept. rates= beta:0.263, gamma:0.300, rho:0.241, N:0.253</span>
-<span class="co">#&gt; **********:50.0%, mean accept. rates= beta:0.233, gamma:0.237, rho:0.221, N:0.204</span>
-<span class="co">#&gt; **********:60.0%, mean accept. rates= beta:0.273, gamma:0.230, rho:0.291, N:0.234</span>
-<span class="co">#&gt; **********:70.0%, mean accept. rates= beta:0.240, gamma:0.270, rho:0.200, N:0.253</span>
-<span class="co">#&gt; **********:80.0%, mean accept. rates= beta:0.257, gamma:0.220, rho:0.213, N:0.213</span>
-<span class="co">#&gt; **********:90.0%, mean accept. rates= beta:0.193, gamma:0.207, rho:0.211, N:0.257</span>
-<span class="co">#&gt; **********:100.0%, mean accept. rates= beta:0.227, gamma:0.290, rho:0.239, N:0.262</span></code></pre>
+<span class="co">#&gt; **********:10.0%, mean accept. rates= beta:0.263, gamma:0.257, rho:0.257, N:0.279</span>
+<span class="co">#&gt; **********:20.0%, mean accept. rates= beta:0.270, gamma:0.253, rho:0.250, N:0.232</span>
+<span class="co">#&gt; **********:30.0%, mean accept. rates= beta:0.260, gamma:0.263, rho:0.283, N:0.251</span>
+<span class="co">#&gt; **********:40.0%, mean accept. rates= beta:0.237, gamma:0.277, rho:0.253, N:0.249</span>
+<span class="co">#&gt; **********:50.0%, mean accept. rates= beta:0.270, gamma:0.290, rho:0.252, N:0.232</span>
+<span class="co">#&gt; **********:60.0%, mean accept. rates= beta:0.253, gamma:0.297, rho:0.280, N:0.234</span>
+<span class="co">#&gt; **********:70.0%, mean accept. rates= beta:0.313, gamma:0.297, rho:0.254, N:0.285</span>
+<span class="co">#&gt; **********:80.0%, mean accept. rates= beta:0.283, gamma:0.250, rho:0.281, N:0.279</span>
+<span class="co">#&gt; **********:90.0%, mean accept. rates= beta:0.323, gamma:0.250, rho:0.289, N:0.236</span>
+<span class="co">#&gt; **********:100.0%, mean accept. rates= beta:0.287, gamma:0.273, rho:0.275, N:0.248</span></code></pre>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(mod.Kery2010.Nmix.iCAR<span class="op">$</span>mcmc)
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Iterations = 20001:29991</span>
@@ -465,26 +465,26 @@ mod.Kery2010.Nmix.iCAR &lt;-<span class="st"> </span><span class="kw"><a href=".
 <span class="co">#&gt;    plus standard error of the mean:</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt;                          Mean       SD Naive SE Time-series SE</span>
-<span class="co">#&gt; beta.(Intercept)       0.4288  0.31979 0.010113       0.039211</span>
-<span class="co">#&gt; beta.elevation         1.9957  0.65184 0.020613       0.147939</span>
-<span class="co">#&gt; beta.I(elevation^2)   -2.2868  0.39053 0.012350       0.078914</span>
-<span class="co">#&gt; gamma.(Intercept)     -0.8422  0.16416 0.005191       0.041410</span>
-<span class="co">#&gt; gamma.juldate         -0.1578  0.07179 0.002270       0.004853</span>
-<span class="co">#&gt; gamma.I(juldate^2)     0.1575  0.05641 0.001784       0.003775</span>
-<span class="co">#&gt; Vrho                  18.4588  5.14479 0.162693       0.675851</span>
-<span class="co">#&gt; Deviance            1327.1092 40.09242 1.267834       4.079962</span>
+<span class="co">#&gt; beta.(Intercept)       0.3749  0.32613 0.010313       0.040265</span>
+<span class="co">#&gt; beta.elevation         1.9973  0.84697 0.026784       0.279847</span>
+<span class="co">#&gt; beta.I(elevation^2)   -2.1986  0.48710 0.015403       0.142238</span>
+<span class="co">#&gt; gamma.(Intercept)     -0.8790  0.20105 0.006358       0.062329</span>
+<span class="co">#&gt; gamma.juldate         -0.1735  0.06543 0.002069       0.003898</span>
+<span class="co">#&gt; gamma.I(juldate^2)     0.1589  0.05885 0.001861       0.004153</span>
+<span class="co">#&gt; Vrho                  18.1555  4.97802 0.157419       0.547617</span>
+<span class="co">#&gt; Deviance            1336.0869 48.14174 1.522376       9.021355</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; 2. Quantiles for each variable:</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt;                           2.5%       25%       50%       75%      97.5%</span>
-<span class="co">#&gt; beta.(Intercept)      -0.25361    0.2358    0.4423    0.6425    0.98131</span>
-<span class="co">#&gt; beta.elevation         0.75421    1.5888    2.0115    2.4041    3.13353</span>
-<span class="co">#&gt; beta.I(elevation^2)   -3.21351   -2.4867   -2.2852   -2.0386   -1.55084</span>
-<span class="co">#&gt; gamma.(Intercept)     -1.08828   -0.9568   -0.8752   -0.7591   -0.46532</span>
-<span class="co">#&gt; gamma.juldate         -0.29489   -0.2095   -0.1556   -0.1064   -0.02045</span>
-<span class="co">#&gt; gamma.I(juldate^2)     0.04806    0.1194    0.1576    0.1934    0.26502</span>
-<span class="co">#&gt; Vrho                  11.49342   14.7069   17.5637   20.9942   30.48795</span>
-<span class="co">#&gt; Deviance            1254.03888 1299.5941 1325.2026 1352.6322 1409.44477</span></code></pre>
+<span class="co">#&gt; beta.(Intercept)      -0.20728    0.1364    0.3661    0.6001    1.02133</span>
+<span class="co">#&gt; beta.elevation         0.62581    1.2987    1.8709    2.6526    3.65104</span>
+<span class="co">#&gt; beta.I(elevation^2)   -3.32975   -2.5131   -2.1079   -1.8235   -1.45366</span>
+<span class="co">#&gt; gamma.(Intercept)     -1.29729   -1.0030   -0.8879   -0.7457   -0.48283</span>
+<span class="co">#&gt; gamma.juldate         -0.29657   -0.2167   -0.1739   -0.1309   -0.04227</span>
+<span class="co">#&gt; gamma.I(juldate^2)     0.04234    0.1187    0.1607    0.1958    0.27203</span>
+<span class="co">#&gt; Vrho                  10.78215   14.6705   17.4504   20.7555   30.86624</span>
+<span class="co">#&gt; Deviance            1248.61524 1302.4338 1334.8412 1368.8538 1430.86366</span></code></pre>
 
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Spatial random effects</span>
 rho.pred &lt;-<span class="st"> </span>mod.Kery2010.Nmix.iCAR<span class="op">$</span>rho.pred
