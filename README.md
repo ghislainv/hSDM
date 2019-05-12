@@ -35,7 +35,7 @@ devtools::install_github("ghislainv/hSDM")
   - Long vignette with several examples:
     [hSDM-vignette.pdf](https://bioscenemada.cirad.fr/FileTransfer/hSDM-vignette.pdf)
   - Manual:
-    [hSDM-manual.pdf](https://cloud.r-project.org/web/packages/hSDM/hSDM.pdf)
+    [hSDM-manual.pdf](https://CRAN.R-project.org/package=hSDM/hSDM.pdf)
 
 ## In the wild
 
