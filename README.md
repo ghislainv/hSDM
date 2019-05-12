@@ -32,7 +32,7 @@ devtools::install_github("ghislainv/hSDM")
 
   - Presentation at ISEC 2014:
     [hSDM-ISEC2014.pdf](https://bioscenemada.cirad.fr/FileTransfer/hSDM-ISEC2014.pdf)
-  - Vignette with several examples:
+  - Long vignette with several examples:
     [hSDM-vignette.pdf](https://bioscenemada.cirad.fr/FileTransfer/hSDM-vignette.pdf)
   - Manual:
     [hSDM-manual.pdf](https://cloud.r-project.org/web/packages/hSDM/hSDM.pdf)
@@ -43,6 +43,9 @@ devtools::install_github("ghislainv/hSDM")
     occupancy modelling by [Adam M.
     Wilson](https://github.com/adammwilson) on
     [GitHub](https://github.com/adammwilson/hSDM_Tutorial/blob/master/hSDM_Tutorial.md).
+  - Tutorial by Adam M. Wilson adapted by [Marta A.
+    Jarzyna](https://www.majarzyna.com/) on
+    [spatial-ecology.net](http://spatial-ecology.net/dokuwiki/doku.php?id=wiki:spdistr2)
   - Tutorial on modelling spatial autocorrelation by [Jérôme
     Guélat](https://www.random-nature.net) on
     [Amazonaws](https://rstudio-pubs-static.s3.amazonaws.com/9687_cc323b60e5d542449563ff1142163f05.html).

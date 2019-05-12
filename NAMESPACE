@@ -1,4 +1,4 @@
-useDynLib(hSDM)
+useDynLib(hSDM, .registration=TRUE)
 
 import(coda)
 importFrom("stats", "model.frame", "model.matrix", "quantile")
