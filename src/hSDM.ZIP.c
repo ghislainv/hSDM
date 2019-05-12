@@ -27,6 +27,9 @@
 #include <R.h> // needed to use Rprintf()
 #include <R_ext/Utils.h> // needed to allow user interrupts
 #include <Rmath.h> // for dnorm and dbinom distributions
+// GSL libraries
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 // My own functions
 #include "useful.h"
 
@@ -178,7 +181,8 @@ void hSDM_ZIP (
   
   ////////////////////////////////////////
   // Initialize random number generator //
-  srand(seed[0]);
+  gsl_rng *r=gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(r,seed[0]);
   
   ///////////////////////////
   // Redefining constants //
@@ -312,13 +316,13 @@ void hSDM_ZIP (
     for (int p=0; p<NP; p++) {
       dens_data.pos_beta=p; // Specifying the rank of the parameter of interest
       double x_now=dens_data.beta_run[p];
-      double x_prop=myrnorm(x_now,sigmap_beta[p]);
+      double x_prop=x_now+gsl_ran_gaussian_ziggurat(r, sigmap_beta[p]);
       double p_now=betadens(x_now, &dens_data);
       double p_prop=betadens(x_prop, &dens_data);
-      double r=exp(p_prop-p_now); // ratio
-      double z=myrunif();
+      double ratio=exp(p_prop-p_now); // ratio
+      double z=gsl_rng_uniform(r);
       // Actualization
-      if (z < r) {
+      if (z < ratio) {
         dens_data.beta_run[p]=x_prop;
         nA_beta[p]++;
       }
@@ -331,13 +335,13 @@ void hSDM_ZIP (
     for (int q=0; q<NQ; q++) {
       dens_data.pos_gamma=q; // Specifying the rank of the parameter of interest
       double x_now=dens_data.gamma_run[q];
-      double x_prop=myrnorm(x_now,sigmap_gamma[q]);
+      double x_prop=x_now+gsl_ran_gaussian_ziggurat(r, sigmap_gamma[q]);
       double p_now=gammadens(x_now, &dens_data);
       double p_prop=gammadens(x_prop, &dens_data);
-      double r=exp(p_prop-p_now); // ratio
-      double z=myrunif();
+      double ratio=exp(p_prop-p_now); // ratio
+      double z=gsl_rng_uniform(r);
       // Actualization
-      if (z < r) {
+      if (z < ratio) {
         dens_data.gamma_run[q]=x_prop;
         nA_gamma[q]++;
       }
@@ -521,6 +525,8 @@ void hSDM_ZIP (
   free(sigmap_gamma);
   free(nA_gamma);
   free(Ar_gamma);
+  /* Random seed */
+  gsl_rng_free(r);
   
 } // end hSDM function
 

@@ -141,7 +141,7 @@ static double rhodens_unvisited (const gsl_rng *r, void *dens_data) {
     sumNeighbors+=d->rho_run[d->Neigh[i][m]];
   }
   double meanNeighbors=sumNeighbors/nNeighbors;
-  double sample=meanNeighbors+gsl_ran_gaussian_ziggurat(r,sqrt(d->Vrho_run/nNeighbors)); 
+  double sample=meanNeighbors+gsl_ran_gaussian_ziggurat(r,sqrt(d->Vrho_run/nNeighbors));
   return sample;
 }
 
@@ -407,7 +407,7 @@ void hSDM_binomial_iCAR (
       dens_data.pos_rho=i; // Specifying the rank of the parameter of interest
       if (viscell[i]>0) {
         double x_now=dens_data.rho_run[i];
-        double x_prop=x_now+gsl_ran_gaussian_ziggurat(r,sigmap_rho[i]);
+        double x_prop=x_now+gsl_ran_gaussian_ziggurat(r, sigmap_rho[i]);
         double p_now=rhodens_visited(x_now, &dens_data);
         double p_prop=rhodens_visited(x_prop, &dens_data);
         double ratio=exp(p_prop-p_now); // ratio
@@ -459,7 +459,7 @@ void hSDM_binomial_iCAR (
       if (priorVrho[0]==-2.0) { // prior = Uniform(0,Vrho_max)
         double Shape=0.5*NCELL-1;
         double Rate=0.5*Sum;
-        dens_data.Vrho_run=1/my_rtgamma_left(r, Shape, Rate, 1/Vrho_max[0]);
+        dens_data.Vrho_run=1/myrtgamma_left_gsl(r, Shape, Rate, 1/Vrho_max[0]);
       }
     }
     

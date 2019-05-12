@@ -8,4 +8,4 @@ double myrgamma1(double alpha);
 double myrnorm(double mean, double sd);
 double myrtgamma_left(double a, double b, double t);
 // New with GSL
-double my_rtgamma_left(const gsl_rng *r, double a, double b, double t);
+double myrtgamma_left_gsl(const gsl_rng *r, double a, double b, double t);
