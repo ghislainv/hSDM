@@ -81,7 +81,7 @@ double integer_gsl(const gsl_rng *r, double a, double b)
 /* a=shape parameter, b=rate parameter                                        */ 
 double inter_le_gsl(const gsl_rng *r, double a, double b)
 {
-  double test=0,u,x,y,M;
+  double test=0,x,y,M;
   if (a<1.0)
   {
     M=1.0;

@@ -542,7 +542,6 @@ void hSDM_Nmixture_K (
       if (((g+1)%(NGIBBS/10))==0) {
         double mAr_beta=0; // Mean acceptance rate
         double mAr_gamma=0;
-        double mAr_N=0;
         // beta
         for (int p=0; p<NP; p++) {
           mAr_beta+=Ar_beta[p]/NP;
