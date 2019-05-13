@@ -23,6 +23,9 @@ navbar:
     publications:
       text: Publications
       href: articles/publications.html
+    news:
+      text: Change log
+      href: news/index.html
     twitter:
       icon: fa-twitter fa-lg
       href: http://twitter.com/ghislainv
@@ -73,3 +76,7 @@ reference:
   desc: Miscellaneous functions
   contents:
   - '`logit`'
+- title: Predict
+  desc: S3 method to predict from an hSDM model
+  contents:
+  - '`predict.hSDM`'

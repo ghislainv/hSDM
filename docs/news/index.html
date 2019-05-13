@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Count data for the Willow tit (from Kéry and Royle 2010) — data.Kery2010 • hSDM</title>
+<title>Changelog • hSDM</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -37,12 +37,7 @@
 
 
 
-<meta property="og:title" content="Count data for the Willow tit (from Kéry and Royle 2010) — data.Kery2010" />
-
-<meta property="og:description" content="Repeated count data for the Willow tit (Poecile
-  montanus, a pesserine bird) in Switzerland on the period
-  1999-2003. Data come from the Swiss national breeding bird survey MHB
-  (Monitoring Haüfige Brutvögel)." />
+<meta property="og:title" content="Changelog" />
 
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -62,7 +57,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-topic">
+    <div class="container template-news">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -126,64 +121,54 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Count data for the Willow tit (from Kéry and Royle 2010)</h1>
-    
-    <div class="hidden name"><code>data.Kery2010.Rd</code></div>
+      <h1>Changelog <small></small></h1>
+      <small>Source: <a href='https://github.com/ghislainv/hSDM/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div class="ref-description">
-    
-    <p>Repeated count data for the Willow tit (<em>Poecile
-  montanus</em>, a pesserine bird) in Switzerland on the period
-  1999-2003. Data come from the Swiss national breeding bird survey MHB
-  (Monitoring Haüfige Brutvögel).</p>
-    
-    </div>
-
-    <pre class="usage"><span class='no'>data.Kery2010</span></pre>
-        
-    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
-
-    
-    <p><code>data.Kery2010</code> is a data frame with 264 observations (1 km^2 quadrats) and the
-  following 10 variables.</p><dl class='dl-horizontal'>
-    <dt><code>coordx</code></dt><dd><p>quadrat x coordinate</p></dd>
-    <dt><code>coordy</code></dt><dd><p>quadrat y coordinate</p></dd>
-    <dt><code>elevation</code></dt><dd><p>mean quadrat elevation (m)</p></dd>
-    <dt><code>forest</code></dt><dd><p>quadrat forest cover (in %)</p></dd>
-    <dt><code>count1</code></dt><dd><p>count for survey 1</p></dd>
-    <dt><code>count2</code></dt><dd><p>count for survey 2</p></dd>
-    <dt><code>count3</code></dt><dd><p>count for survey 3</p></dd>
-    <dt><code>juldate1</code></dt><dd><p>Julian date of survey 1</p></dd>
-    <dt><code>juldate2</code></dt><dd><p>Julian date of survey 2</p></dd>
-    <dt><code>juldate3</code></dt><dd><p>Julian date of survey 3</p></dd>
-  </dl>
-    
-    <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
-
-    <p>Kéry and Royle, 2010, <em>Journal of Animal Ecology</em>, 79, 453-461.</p>
-    
-    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
-
-    
-    <p>Kéry, M. and Andrew Royle, J. 2010. Hierarchical modelling and estimation of
-  abundance and population trends in metapopulation designs. <em>Journal of
-  Animal Ecology</em>, 79, 453-461.</p>
-    
-
+    <div id="hsdm-1-4-1" class="section level1">
+<h1 class="page-header">
+<a href="#hsdm-1-4-1" class="anchor"></a>hSDM 1.4.1<small> 2019-05-12 </small>
+</h1>
+<ul>
+<li>The GSL library is now used for random draws (<a href='https://github.com/ghislainv/hSDM/issues/4'>#4</a>).</li>
+<li>The package uses registration for C routines (<a href='https://github.com/ghislainv/hSDM/issues/9'>#9</a>).</li>
+<li>Two new vignettes (“Introduction to hSDM” and “Publications”) are available.</li>
+<li>We use <code>pkgdown</code> to build package website.</li>
+<li>New package website available on GitHub: <a href="https://ecology.ghislainv.fr/hSDM" class="uri">https://ecology.ghislainv.fr/hSDM</a>.</li>
+</ul>
+</div>
+    <div id="hsdm-1-4" class="section level1">
+<h1 class="page-header">
+<a href="#hsdm-1-4" class="anchor"></a>hSDM 1.4<small> 2014-07-02 </small>
+</h1>
+<ul>
+<li>New functions to fit site-occupancy, N-mixture and Zero-Inflated models.</li>
+<li>This version has been released in 2014 (which explains version number) for the ISEC2014 conference.</li>
+<li>Package website is hosted on SourceForge.</li>
+</ul>
+</div>
+    <div id="hsdm-1-0" class="section level1">
+<h1 class="page-header">
+<a href="#hsdm-1-0" class="anchor"></a>hSDM 1.0<small> 2012-12-04 </small>
+</h1>
+<ul>
+<li>This is the first release of hSDM.</li>
+<li>This first release includes functions to fit models 1, 2 and 4 from Latimer et al. 2006, <em>Ecological Applications</em> <a href="doi:10.1890/04-0609" class="uri">doi:10.1890/04-0609</a>.</li>
+</ul>
+</div>
   </div>
+
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      
-      <li><a href="#format">Format</a></li>
-
-      <li><a href="#source">Source</a></li>
-
-      <li><a href="#references">References</a></li>
-          </ul>
-
+    <div id="tocnav">
+      <h2>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+        <li><a href="#hsdm-1-4-1">1.4.1</a></li>
+        <li><a href="#hsdm-1-4">1.4</a></li>
+        <li><a href="#hsdm-1-0">1.0</a></li>
+      </ul>
+    </div>
   </div>
+
 </div>
 
       <footer>
