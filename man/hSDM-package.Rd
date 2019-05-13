@@ -19,8 +19,8 @@
   \tabular{ll}{
     Package: \tab hSDM\cr
     Type: \tab Package\cr
-    Version: \tab 1.3\cr
-    Date: \tab 2013-10-15\cr
+    Version: \tab 1.4.2\cr
+    Date: \tab 2019-05-13\cr
     License: \tab GPL-3 \cr
     LazyLoad: \tab yes\cr
   }
@@ -29,14 +29,16 @@
 \author{
   \tabular{l}{
     Ghislain Vieilledent <ghislain.vieilledent@cirad.fr>\cr
-    Cory Merow <cory.merow@gmail.com>\cr
-    Jérôme Guélat <jerome.guelat@vogelwarte.ch>\cr
-    Andrew M. Latimer <amlatimer@ucdavis.edu>\cr
-    Marc Kéry <marc.kery@vogelwarte.ch>\cr
+    Matthieu Autier <>\cr
     Alan E. Gelfand <alan@stat.duke.edu>\cr
-    Adam M. Wilson <adam.wilson@yale.edu>\cr
+    Jérôme Guélat <jerome.guelat@vogelwarte.ch>\cr
+    Marc Kéry <marc.kery@vogelwarte.ch>\cr
+    Andrew M. Latimer <amlatimer@ucdavis.edu>\cr
+    Cory Merow <cory.merow@gmail.com>\cr
     Frédéric Mortier <frederic.mortier@cirad.fr>\cr
     John A. Silander Jr. <john.silander@uconn.edu>\cr
+    Adam M. Wilson <adam.wilson@yale.edu>\cr
+    Shanshan Wu <wu_shanshan@hotmail.com>\cr
   }
 }
 
@@ -49,4 +51,3 @@
 \keyword{MCMC}
 \keyword{Markov Chains Monte Carlo}
 \keyword{Metropolis algorithm}
-
