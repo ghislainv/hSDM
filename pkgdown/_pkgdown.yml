@@ -76,3 +76,7 @@ reference:
   desc: Miscellaneous functions
   contents:
   - '`logit`'
+- title: Predict
+  desc: S3 method to predict from an hSDM model
+  contents:
+- '`predict.hSDM`'

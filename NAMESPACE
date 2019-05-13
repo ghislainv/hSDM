@@ -3,6 +3,8 @@ useDynLib(hSDM, .registration=TRUE)
 import(coda)
 importFrom("stats", "model.frame", "model.matrix", "quantile")
 
+S3method(predict,hSDM)
+
 export(hSDM.binomial,
        hSDM.binomial.iCAR,
        hSDM.ZIB,
