@@ -3,6 +3,8 @@
 
 # hSDM R Package <img src="man/figures/logo.png" align="right" alt="" width="120" />
 
+[![Travis
+CI](https://api.travis-ci.org/ghislainv/hSDM.svg?branch=master)](https://travis-ci.org/ghislainv/hSDM)
 [![CRAN
 Status](https://www.r-pkg.org/badges/version/hSDM)](https://cran.r-project.org/package=hSDM)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.594920.svg)](https://doi.org/10.5281/zenodo.594920)

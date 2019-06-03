@@ -31,7 +31,6 @@
 }
 
 \details{
-  
   The amphibian monitoring program started in 1999 and is mainly aimed
   at surveying population trends of endangered amphibian species. Every
   year, about 30 water bodies in two or three randomly selected priority
@@ -41,22 +40,18 @@
   but that do not belong to the priority areas were surveyed. Each water
   body is surveyed by single trained volunteer during two nocturnal
   visits per year. Volunteers recorded anurans by walking along the
-  water’s edge with precise rules for the duration of a survey taking
+  water's edge with precise rules for the duration of a survey taking
   account of the size of the surveyed water body and noting visual
   encounters and calls. As fare as possible, encountered individuals of
   the Pelophylax-complex were identified as Marsh Frog (Pelophylax
   ridibundus), Pool Frog (P. lessonaea) or hybrids (P. esculentus) based
   on morphological characteristics or based on their calls. In the given
   data set, however, these three taxa are lumped together.
-
 }
 
-\source{
-  The data is provided by Isabelle Floess, Landschaft und Gewaesser, Kanton Aargau.
-}
+\source{The data is provided by Isabelle Floess, Landschaft und Gewaesser, Kanton Aargau.}
 
 \references{
-
 Schmidt, B. R., 2005: Monitoring the distribution of pond-breeding
 amphibians, when species are detected imperfectly. - Aquatic
 conservation: marine and freshwater ecosystems 15: 681-692.
@@ -64,7 +59,6 @@ conservation: marine and freshwater ecosystems 15: 681-692.
 Tanadini, L. G.; Schmidt, B. R., 2011: Population size influences
 amphibian detection probability: implications for biodiversity
 monitoring programs. - Plos One 6: e28244.
-
 }
 
 \examples{
