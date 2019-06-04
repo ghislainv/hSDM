@@ -32,11 +32,15 @@ in the model results.
 
 ## Installation
 
-```{r, eval = FALSE}
-# Install release version from CRAN
-install.packages("hSDM")
+Install the latest stable version of `hSDM` from [CRAN](https://cran.r-project.org/) with:
 
-# Install development version from GitHub
+```{r cran, eval=FALSE}
+install.packages("hSDM")
+```
+
+Or install the development version of `hSDM` from [GitHub](https://github.com/ghislainv/hSDM) with:
+
+```{r github, eval=FALSE}
 devtools::install_github("ghislainv/hSDM")
 ```
 

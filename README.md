@@ -22,11 +22,17 @@ occurrence, and assessing uncertainty in the model results.
 
 ## Installation
 
-``` r
-# Install release version from CRAN
-install.packages("hSDM")
+Install the latest stable version of `hSDM` from
+[CRAN](https://cran.r-project.org/) with:
 
-# Install development version from GitHub
+``` r
+install.packages("hSDM")
+```
+
+Or install the development version of `hSDM` from
+[GitHub](https://github.com/ghislainv/hSDM) with:
+
+``` r
 devtools::install_github("ghislainv/hSDM")
 ```
 
