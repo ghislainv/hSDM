@@ -13,3 +13,6 @@ logos
 pkgdown
 README.Rmd
 vignettes/location.Rmd
+
+# travis
+^\.travis\.yml$

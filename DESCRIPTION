@@ -11,8 +11,7 @@ Suggests:
     raster,
     sp,
     rmarkdown,
-    bookdown,
-    pkgdown
+    bookdown
 Authors@R: c(
   person("Ghislain", "Vieilledent", role=c("aut","cre"), 
     email="ghislain.vieilledent@cirad.fr",

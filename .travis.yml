@@ -6,8 +6,14 @@ cache: packages
 apt_packages:
   - libgsl-dev
 
+r_packages:
+  - pkgdown
+  - covr
+  
 after_success:
+  - R CMD INSTALL .
   - Rscript -e 'pkgdown::build_site()'
+  - Rscript -e 'library(covr); codecov()'
 
 r:
   - oldrel
