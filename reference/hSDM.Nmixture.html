@@ -420,7 +420,7 @@
 <span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/cbind'>cbind</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/rep'>rep</a></span>(<span class='fl'>1</span>,<span class='no'>nobs</span>),<span class='no'>w1</span>,<span class='no'>w2</span>)
 <span class='no'>gamma.target</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>,<span class='fl'>1</span>,-<span class='fl'>1</span>) <span class='co'># Target parameters</span>
 <span class='no'>logit.delta</span> <span class='kw'>&lt;-</span> <span class='no'>W</span> <span class='kw'>%*%</span> <span class='no'>gamma.target</span>
-<span class='no'>delta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/logit'>inv.logit</a></span>(<span class='no'>logit.delta</span>)
+<span class='no'>delta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='logit.html'>inv.logit</a></span>(<span class='no'>logit.delta</span>)
 <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
 <span class='no'>Y</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Binomial'>rbinom</a></span>(<span class='no'>nobs</span>,<span class='no'>N</span>[<span class='no'>sites</span>],<span class='no'>delta</span>)
 
@@ -432,7 +432,7 @@
 <span class='co'>#== Parameter inference with hSDM</span>
 
 <span class='no'>Start</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Sys.time'>Sys.time</a></span>() <span class='co'># Start the clock</span>
-<span class='no'>mod.hSDM.Nmixture</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/hSDM.Nmixture'>hSDM.Nmixture</a></span>(<span class='co'># Observations</span>
+<span class='no'>mod.hSDM.Nmixture</span> <span class='kw'>&lt;-</span> <span class='fu'>hSDM.Nmixture</span>(<span class='co'># Observations</span>
                            <span class='kw'>counts</span><span class='kw'>=</span><span class='no'>data.obs</span>$<span class='no'>Y</span>,
                            <span class='kw'>observability</span><span class='kw'>=</span>~<span class='no'>w1</span>+<span class='no'>w2</span>,
                            <span class='kw'>site</span><span class='kw'>=</span><span class='no'>data.obs</span>$<span class='no'>site</span>,

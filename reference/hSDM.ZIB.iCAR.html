@@ -523,7 +523,7 @@
 <span class='kw'>for</span> (<span class='no'>n</span> <span class='kw'>in</span> <span class='fl'>1</span>:<span class='no'>nobs</span>) {
   <span class='no'>logit.theta.1</span>[<span class='no'>n</span>] <span class='kw'>&lt;-</span> <span class='no'>X</span>[<span class='no'>n</span>,]<span class='kw'>%*%</span><span class='no'>beta.target</span>+<span class='no'>rho</span>[<span class='no'>cells</span>[<span class='no'>n</span>]]
 }
-<span class='no'>theta.1</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/logit'>inv.logit</a></span>(<span class='no'>logit.theta.1</span>)
+<span class='no'>theta.1</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='logit.html'>inv.logit</a></span>(<span class='no'>logit.theta.1</span>)
 <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
 <span class='no'>y.1</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Binomial'>rbinom</a></span>(<span class='no'>nobs</span>,<span class='fl'>1</span>,<span class='no'>theta.1</span>)
 
@@ -532,7 +532,7 @@
 <span class='no'>trials</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Poisson'>rpois</a></span>(<span class='no'>nobs</span>,<span class='fl'>5</span>) <span class='co'># Number of trial associated to each observation</span>
 <span class='no'>trials</span>[<span class='no'>trials</span><span class='kw'>==</span><span class='fl'>0</span>] <span class='kw'>&lt;-</span> <span class='fl'>1</span>
 <span class='no'>logit.theta.2</span> <span class='kw'>&lt;-</span> <span class='no'>W</span><span class='kw'>%*%</span><span class='no'>gamma.target</span>
-<span class='no'>theta.2</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/logit'>inv.logit</a></span>(<span class='no'>logit.theta.2</span>)
+<span class='no'>theta.2</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='logit.html'>inv.logit</a></span>(<span class='no'>logit.theta.2</span>)
 <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
 <span class='no'>y.2</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Binomial'>rbinom</a></span>(<span class='no'>nobs</span>,<span class='no'>trials</span>,<span class='no'>theta.2</span>)
 
@@ -552,7 +552,7 @@
 <span class='co'>#==================================</span>
 <span class='co'>#== Site-occupancy model</span>
 
-<span class='no'>mod.hSDM.ZIB.iCAR</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/hSDM.ZIB.iCAR'>hSDM.ZIB.iCAR</a></span>(<span class='kw'>presences</span><span class='kw'>=</span><span class='no'>Data</span>$<span class='no'>Y</span>,
+<span class='no'>mod.hSDM.ZIB.iCAR</span> <span class='kw'>&lt;-</span> <span class='fu'>hSDM.ZIB.iCAR</span>(<span class='kw'>presences</span><span class='kw'>=</span><span class='no'>Data</span>$<span class='no'>Y</span>,
                                    <span class='kw'>trials</span><span class='kw'>=</span><span class='no'>Data</span>$<span class='no'>trials</span>,
                                    <span class='kw'>suitability</span><span class='kw'>=</span>~<span class='no'>X1</span>+<span class='no'>X2</span>,
                                    <span class='kw'>observability</span><span class='kw'>=</span>~<span class='fl'>1</span>,

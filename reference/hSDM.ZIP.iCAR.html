@@ -514,7 +514,7 @@
 <span class='kw'>for</span> (<span class='no'>n</span> <span class='kw'>in</span> <span class='fl'>1</span>:<span class='no'>nobs</span>) {
   <span class='no'>logit.theta</span>[<span class='no'>n</span>] <span class='kw'>&lt;-</span> <span class='no'>X</span>[<span class='no'>n</span>,]<span class='kw'>%*%</span><span class='no'>beta.target</span>+<span class='no'>rho</span>[<span class='no'>cells</span>[<span class='no'>n</span>]]
 }
-<span class='no'>theta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/logit'>inv.logit</a></span>(<span class='no'>logit.theta</span>)
+<span class='no'>theta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='logit.html'>inv.logit</a></span>(<span class='no'>logit.theta</span>)
 <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
 <span class='no'>y.1</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Binomial'>rbinom</a></span>(<span class='no'>nobs</span>,<span class='fl'>1</span>,<span class='no'>theta</span>)
 
@@ -541,7 +541,7 @@
 <span class='co'>#==================================</span>
 <span class='co'>#== ZIP model with CAR</span>
 
-<span class='no'>mod.hSDM.ZIP.iCAR</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/hSDM.ZIP.iCAR'>hSDM.ZIP.iCAR</a></span>(<span class='kw'>counts</span><span class='kw'>=</span><span class='no'>Data</span>$<span class='no'>Y</span>,
+<span class='no'>mod.hSDM.ZIP.iCAR</span> <span class='kw'>&lt;-</span> <span class='fu'>hSDM.ZIP.iCAR</span>(<span class='kw'>counts</span><span class='kw'>=</span><span class='no'>Data</span>$<span class='no'>Y</span>,
                                    <span class='kw'>suitability</span><span class='kw'>=</span>~<span class='no'>X1</span>+<span class='no'>X2</span>,
                                    <span class='kw'>abundance</span><span class='kw'>=</span>~<span class='fl'>1</span>,
                                    <span class='kw'>spatial.entity</span><span class='kw'>=</span><span class='no'>Data</span>$<span class='no'>cells</span>,

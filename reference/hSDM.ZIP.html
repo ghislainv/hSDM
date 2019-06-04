@@ -375,7 +375,7 @@
 
 <span class='co'># Suitability</span>
 <span class='no'>logit.theta</span> <span class='kw'>&lt;-</span> <span class='no'>X</span> <span class='kw'>%*%</span> <span class='no'>beta.target</span>
-<span class='no'>theta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/logit'>inv.logit</a></span>(<span class='no'>logit.theta</span>)
+<span class='no'>theta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='logit.html'>inv.logit</a></span>(<span class='no'>logit.theta</span>)
 <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
 <span class='no'>y.1</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Binomial'>rbinom</a></span>(<span class='no'>nobs</span>,<span class='fl'>1</span>,<span class='no'>theta</span>)
 
@@ -397,7 +397,7 @@
 <span class='co'>#==================================</span>
 <span class='co'>#== ZIP model</span>
 
-<span class='no'>mod.hSDM.ZIP</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/hSDM.ZIP'>hSDM.ZIP</a></span>(<span class='kw'>counts</span><span class='kw'>=</span><span class='no'>Data</span>$<span class='no'>Y</span>,
+<span class='no'>mod.hSDM.ZIP</span> <span class='kw'>&lt;-</span> <span class='fu'>hSDM.ZIP</span>(<span class='kw'>counts</span><span class='kw'>=</span><span class='no'>Data</span>$<span class='no'>Y</span>,
                          <span class='kw'>suitability</span><span class='kw'>=</span>~<span class='no'>X1</span>+<span class='no'>X2</span>,
                          <span class='kw'>abundance</span><span class='kw'>=</span>~<span class='fl'>1</span>, <span class='co'>#=~1+W1+W2 if covariates</span>
                          <span class='kw'>data</span><span class='kw'>=</span><span class='no'>Data</span>,

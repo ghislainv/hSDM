@@ -317,7 +317,7 @@
 <span class='co'>#==================================</span>
 <span class='co'>#== Site-occupancy model</span>
 
-<span class='no'>mod.hSDM.poisson</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/hSDM/topics/hSDM.poisson'>hSDM.poisson</a></span>(<span class='kw'>counts</span><span class='kw'>=</span><span class='no'>data.obs</span>$<span class='no'>Y</span>,
+<span class='no'>mod.hSDM.poisson</span> <span class='kw'>&lt;-</span> <span class='fu'>hSDM.poisson</span>(<span class='kw'>counts</span><span class='kw'>=</span><span class='no'>data.obs</span>$<span class='no'>Y</span>,
                                  <span class='kw'>suitability</span><span class='kw'>=</span>~<span class='no'>x1</span>+<span class='no'>x2</span>,
                                  <span class='kw'>data</span><span class='kw'>=</span><span class='no'>data.obs</span>,
                                  <span class='kw'>suitability.pred</span><span class='kw'>=</span><span class='kw'>NULL</span>,
