@@ -96,7 +96,7 @@ verbose = 1, save.rho = 0, save.p = 0)}
   [0,\code{Vrho.max}]. Default set to "1/Gamma".}
 
   \item{shape}{The shape parameter for the Gamma prior on the precision
-  of the spatial random effects. Default value is \code{shape=0.05} for
+  of the spatial random effects. Default value is \code{shape=0.5} for
   uninformative prior.}
 
   \item{rate}{The rate (1/scale) parameter for the Gamma prior on the
