@@ -2,3 +2,4 @@
 *.R
 *_cache
 *.bib.sav
+*.bib.bak
