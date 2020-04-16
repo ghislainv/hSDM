@@ -16,21 +16,29 @@ account site alteration — hSDM.ZIP.iCAR.alteration • hSDM</title>
 <link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png" />
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png" />
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png" />
+
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
-<!-- sticky kit -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+<!-- headroom.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -38,9 +46,9 @@ account site alteration — hSDM.ZIP.iCAR.alteration • hSDM</title>
 
 
 
+
 <meta property="og:title" content="ZIP (Zero-Inflated Poisson) model with CAR process taking into
 account site alteration — hSDM.ZIP.iCAR.alteration" />
-
 <meta property="og:description" content="The hSDM.ZIP.iCAR.alteration function can be used to
   model species distribution including different processes in a
   hierarchical Bayesian framework: (i) a
@@ -55,9 +63,8 @@ account site alteration — hSDM.ZIP.iCAR.alteration" />
   in C code which uses an adaptive Metropolis algorithm to estimate the
   conditional posterior distribution of hierarchical model's
   parameters." />
-
 <meta property="og:image" content="/logo.png" />
-<meta name="twitter:card" content="summary" />
+
 
 
 
@@ -71,9 +78,10 @@ account site alteration — hSDM.ZIP.iCAR.alteration" />
 <![endif]-->
 
 
+
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -112,7 +120,6 @@ account site alteration — hSDM.ZIP.iCAR.alteration" />
   <a href="../news/index.html">Change log</a>
 </li>
       </ul>
-      
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="http://twitter.com/ghislainv">
@@ -133,6 +140,7 @@ account site alteration — hSDM.ZIP.iCAR.alteration" />
 </div><!--/.navbar -->
 
       
+
       </header>
 
 <div class="row">
@@ -145,7 +153,6 @@ account site alteration</h1>
     </div>
 
     <div class="ref-description">
-    
     <p>The <code>hSDM.ZIP.iCAR.alteration</code> function can be used to
   model species distribution including different processes in a
   hierarchical Bayesian framework: (i) a
@@ -160,7 +167,6 @@ account site alteration</h1>
   in C code which uses an adaptive Metropolis algorithm to estimate the
   conditional posterior distribution of hierarchical model's
   parameters.</p>
-    
     </div>
 
     <pre class="usage"><span class='fu'>hSDM.ZIP.iCAR.alteration</span>(<span class='no'>counts</span>, <span class='no'>suitability</span>, <span class='no'>abundance</span>,
@@ -170,7 +176,7 @@ account site alteration</h1>
 <span class='kw'>=</span> <span class='fl'>1e+06</span>, <span class='kw'>mugamma</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>Vgamma</span> <span class='kw'>=</span> <span class='fl'>1e+06</span>, <span class='kw'>priorVrho</span> <span class='kw'>=</span> <span class='st'>"1/Gamma"</span>, <span class='kw'>shape</span> <span class='kw'>=</span>
 <span class='fl'>0.5</span>, <span class='kw'>rate</span> <span class='kw'>=</span> <span class='fl'>0.0005</span>, <span class='kw'>Vrho.max</span><span class='kw'>=</span><span class='fl'>1000</span>, <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>1234</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>save.rho</span> <span class='kw'>=</span>
 <span class='fl'>0</span>, <span class='kw'>save.p</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
-    
+
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
@@ -211,7 +217,7 @@ account site alteration</h1>
       <th>n.neighbors</th>
       <td><p>A vector of integers that indicates the number of
     neighbors (adjacent entities) of each spatial
-    entity. <code><a href='https://www.rdocumentation.org/packages/base/topics/length'>length(n.neighbors)</a></code> indicates the total number of
+    entity. <code><a href='https://rdrr.io/r/base/length.html'>length(n.neighbors)</a></code> indicates the total number of
     spatial entities.</p></td>
     </tr>
     <tr>
@@ -220,7 +226,7 @@ account site alteration</h1>
     (adjacent entities) of each spatial entity. Must be of the form
     c(neighbors of entity 1, neighbors of entity 2, ... , neighbors of
     the last entity). Length of the <code>neighbors</code> vector should be
-    equal to <code><a href='https://www.rdocumentation.org/packages/base/topics/sum'>sum(n.neighbors)</a></code>.</p></td>
+    equal to <code><a href='https://rdrr.io/r/base/sum.html'>sum(n.neighbors)</a></code>.</p></td>
     </tr>
     <tr>
       <th>suitability.pred</th>
@@ -356,7 +362,7 @@ account site alteration</h1>
     amount of memory.</p></td>
     </tr>
     </table>
-    
+
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     
@@ -389,11 +395,11 @@ account site alteration</h1>
   associated to the observability process for each observation.</p></dd>
   
 
-    
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     
-    <p>The model integrates two processes, an ecological process associated
+
+<p>The model integrates two processes, an ecological process associated
   to the presence or absence of the species due to habitat suitability
   and an observation process that takes into account the fact that the
   probability of detection of the species is inferior to one. The
@@ -417,11 +423,11 @@ account site alteration</h1>
 <p><b>Observation process:</b>
   $$y_i \sim \mathcal{B}inomial(z_i * \delta_i, t_i)$$
   $$logit(\delta_i) = W_i \gamma$$</p>
-    
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
     
-    <p>Flores, O.; Rossi, V. and Mortier, F. (2009) Autocorrelation offsets
+
+<p>Flores, O.; Rossi, V. and Mortier, F. (2009) Autocorrelation offsets
   zero-inflation in models of tropical saplings density. <em>Ecological
   Modelling</em>, 220, 1797-1809.</p>  
 <p>Gelfand, A. E.; Schmidt, A. M.; Wu, S.; Silander, J. A.; Latimer, A. and
@@ -430,15 +436,14 @@ account site alteration</h1>
 <p>Latimer, A. M.; Wu, S. S.; Gelfand, A. E. and Silander, J. A. (2006) Building
   statistical models to analyze species distributions. <em>Ecological
     Applications</em>, 16, 33-50.</p>
-    
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='https://www.rdocumentation.org/packages/coda/topics/plot.mcmc'>plot.mcmc</a></code>, <code><a href='https://www.rdocumentation.org/packages/coda/topics/summary.mcmc'>summary.mcmc</a></code></p></div>
-    
+    <div class='dont-index'><p><code><a href='https://rdrr.io/pkg/coda/man/plot.mcmc.html'>plot.mcmc</a></code>, <code><a href='https://rdrr.io/pkg/coda/man/summary.mcmc.html'>summary.mcmc</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'>
-</div><span class='co'># NOT RUN {</span>
+<span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
+
 <span class='co'>#==============================================</span>
 <span class='co'># hSDM.ZIP.iCAR.alteration()</span>
 <span class='co'># Example with simulated data</span>
@@ -446,10 +451,10 @@ account site alteration</h1>
 
 <span class='co'>#============</span>
 <span class='co'>#== Preambule</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/library'>library</a></span>(<span class='no'>hSDM</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/library'>library</a></span>(<span class='no'>raster</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/library'>library</a></span>(<span class='no'>sp</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/library'>library</a></span>(<span class='no'>mvtnorm</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/library.html'>library</a></span>(<span class='no'>hSDM</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/library.html'>library</a></span>(<span class='no'>raster</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/library.html'>library</a></span>(<span class='no'>sp</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/library.html'>library</a></span>(<span class='no'>mvtnorm</span>)
 
 <span class='co'>#==================</span>
 <span class='co'>#== Data simulation</span>
@@ -458,66 +463,66 @@ account site alteration</h1>
 <span class='no'>seed</span> <span class='kw'>&lt;-</span> <span class='fl'>1234</span>
 
 <span class='co'># Target parameters</span>
-<span class='no'>beta.target</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/matrix'>matrix</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.2</span>,<span class='fl'>0.5</span>,<span class='fl'>0.5</span>),<span class='kw'>ncol</span><span class='kw'>=</span><span class='fl'>1</span>)
-<span class='no'>gamma.target</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/matrix'>matrix</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>1</span>),<span class='kw'>ncol</span><span class='kw'>=</span><span class='fl'>1</span>)
+<span class='no'>beta.target</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.2</span>,<span class='fl'>0.5</span>,<span class='fl'>0.5</span>),<span class='kw'>ncol</span><span class='kw'>=</span><span class='fl'>1</span>)
+<span class='no'>gamma.target</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>),<span class='kw'>ncol</span><span class='kw'>=</span><span class='fl'>1</span>)
 <span class='co'>## Uncomment if you want covariates on the observability process</span>
 <span class='co'>## gamma.target &lt;- matrix(c(0.2,0.5,0.5),ncol=1)</span>
 <span class='no'>Vrho.target</span> <span class='kw'>&lt;-</span> <span class='fl'>1</span> <span class='co'># Spatial Variance</span>
 
 <span class='co'># Landscape</span>
-<span class='no'>Landscape</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/raster'>raster</a></span>(<span class='kw'>ncol</span><span class='kw'>=</span><span class='fl'>20</span>,<span class='kw'>nrow</span><span class='kw'>=</span><span class='fl'>20</span>,<span class='kw'>crs</span><span class='kw'>=</span><span class='st'>'+proj=utm +zone=1'</span>)
-<span class='no'>ncell</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/ncell'>ncell</a></span>(<span class='no'>Landscape</span>)
+<span class='no'>Landscape</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/raster/man/raster.html'>raster</a></span>(<span class='kw'>ncol</span><span class='kw'>=</span><span class='fl'>20</span>,<span class='kw'>nrow</span><span class='kw'>=</span><span class='fl'>20</span>,<span class='kw'>crs</span><span class='kw'>=</span><span class='st'>'+proj=utm +zone=1'</span>)
+<span class='no'>ncell</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/raster/man/ncell.html'>ncell</a></span>(<span class='no'>Landscape</span>)
 
 <span class='co'># Neighbors</span>
-<span class='no'>neighbors.mat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/adjacent'>adjacent</a></span>(<span class='no'>Landscape</span>, <span class='kw'>cells</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>1</span>:<span class='no'>ncell</span>), <span class='kw'>directions</span><span class='kw'>=</span><span class='fl'>8</span>, <span class='kw'>pairs</span><span class='kw'>=</span><span class='fl'>TRUE</span>, <span class='kw'>sorted</span><span class='kw'>=</span><span class='fl'>TRUE</span>)
-<span class='no'>n.neighbors</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/as.data.frame'>as.data.frame</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/table'>table</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/factor'>as.factor</a></span>(<span class='no'>neighbors.mat</span>[,<span class='fl'>1</span>])))[,<span class='fl'>2</span>]
+<span class='no'>neighbors.mat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/raster/man/adjacent.html'>adjacent</a></span>(<span class='no'>Landscape</span>, <span class='kw'>cells</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>:<span class='no'>ncell</span>), <span class='kw'>directions</span><span class='kw'>=</span><span class='fl'>8</span>, <span class='kw'>pairs</span><span class='kw'>=</span><span class='fl'>TRUE</span>, <span class='kw'>sorted</span><span class='kw'>=</span><span class='fl'>TRUE</span>)
+<span class='no'>n.neighbors</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/raster/man/as.data.frame.html'>as.data.frame</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/table.html'>table</a></span>(<span class='fu'><a href='https://rdrr.io/pkg/raster/man/factor.html'>as.factor</a></span>(<span class='no'>neighbors.mat</span>[,<span class='fl'>1</span>])))[,<span class='fl'>2</span>]
 <span class='no'>adj</span> <span class='kw'>&lt;-</span> <span class='no'>neighbors.mat</span>[,<span class='fl'>2</span>]
 
 <span class='co'># Generate symmetric adjacency matrix, A</span>
-<span class='no'>A</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/matrix'>matrix</a></span>(<span class='fl'>0</span>,<span class='no'>ncell</span>,<span class='no'>ncell</span>)
+<span class='no'>A</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fl'>0</span>,<span class='no'>ncell</span>,<span class='no'>ncell</span>)
 <span class='no'>index.start</span> <span class='kw'>&lt;-</span> <span class='fl'>1</span>
 <span class='kw'>for</span> (<span class='no'>i</span> <span class='kw'>in</span> <span class='fl'>1</span>:<span class='no'>ncell</span>) {
     <span class='no'>index.end</span> <span class='kw'>&lt;-</span> <span class='no'>index.start</span>+<span class='no'>n.neighbors</span>[<span class='no'>i</span>]-<span class='fl'>1</span>
-    <span class='no'>A</span>[<span class='no'>i</span>,<span class='no'>adj</span>[<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='no'>index.start</span>:<span class='no'>index.end</span>)]] <span class='kw'>&lt;-</span> <span class='fl'>1</span>
+    <span class='no'>A</span>[<span class='no'>i</span>,<span class='no'>adj</span>[<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='no'>index.start</span>:<span class='no'>index.end</span>)]] <span class='kw'>&lt;-</span> <span class='fl'>1</span>
     <span class='no'>index.start</span> <span class='kw'>&lt;-</span> <span class='no'>index.end</span>+<span class='fl'>1</span>
 }
 
 <span class='co'># Spatial effects</span>
 <span class='no'>d</span> <span class='kw'>&lt;-</span> <span class='fl'>1</span>  <span class='co'># Spatial dependence parameter = 1 for intrinsic CAR</span>
-<span class='no'>Q</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/diag'>diag</a></span>(<span class='no'>n.neighbors</span>)-<span class='no'>d</span>*<span class='no'>A</span> + <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/diag'>diag</a></span>(<span class='fl'>.0001</span>,<span class='no'>ncell</span>) <span class='co'># Add small constant to make Q non-singular</span>
-<span class='no'>covrho</span> <span class='kw'>&lt;-</span> <span class='no'>Vrho.target</span>*<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/solve'>solve</a></span>(<span class='no'>Q</span>) <span class='co'># Covariance of rhos</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
-<span class='no'>rho</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fu'>rmvnorm</span>(<span class='fl'>1</span>,<span class='kw'>sigma</span><span class='kw'>=</span><span class='no'>covrho</span>)) <span class='co'># Spatial Random Effects</span>
-<span class='no'>rho</span> <span class='kw'>&lt;-</span> <span class='no'>rho</span>-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/mean'>mean</a></span>(<span class='no'>rho</span>) <span class='co'># Centering rhos on zero</span>
+<span class='no'>Q</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/diag.html'>diag</a></span>(<span class='no'>n.neighbors</span>)-<span class='no'>d</span>*<span class='no'>A</span> + <span class='fu'><a href='https://rdrr.io/r/base/diag.html'>diag</a></span>(<span class='fl'>.0001</span>,<span class='no'>ncell</span>) <span class='co'># Add small constant to make Q non-singular</span>
+<span class='no'>covrho</span> <span class='kw'>&lt;-</span> <span class='no'>Vrho.target</span>*<span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span>(<span class='no'>Q</span>) <span class='co'># Covariance of rhos</span>
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='no'>seed</span>)
+<span class='no'>rho</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fu'>rmvnorm</span>(<span class='fl'>1</span>,<span class='kw'>sigma</span><span class='kw'>=</span><span class='no'>covrho</span>)) <span class='co'># Spatial Random Effects</span>
+<span class='no'>rho</span> <span class='kw'>&lt;-</span> <span class='no'>rho</span>-<span class='fu'><a href='https://rdrr.io/r/base/mean.html'>mean</a></span>(<span class='no'>rho</span>) <span class='co'># Centering rhos on zero</span>
 
 <span class='co'># Visited cells</span>
 <span class='no'>n.visited</span> <span class='kw'>&lt;-</span> <span class='fl'>150</span> <span class='co'># Compare with 400, 350 and 100 for example</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
-<span class='no'>visited.cells</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/sort'>sort</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/sample'>sample</a></span>(<span class='fl'>1</span>:<span class='no'>ncell</span>,<span class='no'>n.visited</span>,<span class='kw'>replace</span><span class='kw'>=</span><span class='fl'>FALSE</span>)) <span class='co'># Draw visited cells at random</span>
-<span class='no'>notvisited.cells</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>1</span>:<span class='no'>ncell</span>)[-<span class='no'>visited.cells</span>]
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='no'>seed</span>)
+<span class='no'>visited.cells</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/sort.html'>sort</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/sample.html'>sample</a></span>(<span class='fl'>1</span>:<span class='no'>ncell</span>,<span class='no'>n.visited</span>,<span class='kw'>replace</span><span class='kw'>=</span><span class='fl'>FALSE</span>)) <span class='co'># Draw visited cells at random</span>
+<span class='no'>notvisited.cells</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>:<span class='no'>ncell</span>)[-<span class='no'>visited.cells</span>]
 
 <span class='co'># Number of observations</span>
 <span class='no'>nobs</span> <span class='kw'>&lt;-</span> <span class='fl'>300</span>
 
 <span class='co'># Cell vector</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
-<span class='no'>cells</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='no'>visited.cells</span>,<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/sample'>sample</a></span>(<span class='no'>visited.cells</span>,<span class='no'>nobs</span>-<span class='no'>n.visited</span>,<span class='kw'>replace</span><span class='kw'>=</span><span class='fl'>TRUE</span>))
-<span class='no'>coords</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/xyFromCell'>xyFromCell</a></span>(<span class='no'>Landscape</span>,<span class='no'>cells</span>) <span class='co'># Get coordinates</span>
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='no'>seed</span>)
+<span class='no'>cells</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='no'>visited.cells</span>,<span class='fu'><a href='https://rdrr.io/r/base/sample.html'>sample</a></span>(<span class='no'>visited.cells</span>,<span class='no'>nobs</span>-<span class='no'>n.visited</span>,<span class='kw'>replace</span><span class='kw'>=</span><span class='fl'>TRUE</span>))
+<span class='no'>coords</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/raster/man/xyFromCell.html'>xyFromCell</a></span>(<span class='no'>Landscape</span>,<span class='no'>cells</span>) <span class='co'># Get coordinates</span>
 
 <span class='co'># Covariates for "suitability" process</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
-<span class='no'>X1.cell</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Normal'>rnorm</a></span>(<span class='kw'>n</span><span class='kw'>=</span><span class='no'>ncell</span>,<span class='fl'>0</span>,<span class='fl'>1</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='fl'>2</span>*<span class='no'>seed</span>)
-<span class='no'>X2.cell</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Normal'>rnorm</a></span>(<span class='kw'>n</span><span class='kw'>=</span><span class='no'>ncell</span>,<span class='fl'>0</span>,<span class='fl'>1</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='no'>seed</span>)
+<span class='no'>X1.cell</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='kw'>n</span><span class='kw'>=</span><span class='no'>ncell</span>,<span class='fl'>0</span>,<span class='fl'>1</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='fl'>2</span>*<span class='no'>seed</span>)
+<span class='no'>X2.cell</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='kw'>n</span><span class='kw'>=</span><span class='no'>ncell</span>,<span class='fl'>0</span>,<span class='fl'>1</span>)
 <span class='no'>X1</span> <span class='kw'>&lt;-</span> <span class='no'>X1.cell</span>[<span class='no'>cells</span>]
 <span class='no'>X2</span> <span class='kw'>&lt;-</span> <span class='no'>X2.cell</span>[<span class='no'>cells</span>]
-<span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/cbind'>cbind</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/rep'>rep</a></span>(<span class='fl'>1</span>,<span class='no'>nobs</span>),<span class='no'>X1</span>,<span class='no'>X2</span>)
+<span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/cbind.html'>cbind</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span>(<span class='fl'>1</span>,<span class='no'>nobs</span>),<span class='no'>X1</span>,<span class='no'>X2</span>)
 
 <span class='co'># Alteration</span>
-<span class='no'>U</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Uniform'>runif</a></span>(<span class='kw'>n</span><span class='kw'>=</span><span class='no'>nobs</span>,<span class='kw'>min</span><span class='kw'>=</span><span class='fl'>0</span>,<span class='kw'>max</span><span class='kw'>=</span><span class='fl'>1</span>)
+<span class='no'>U</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Uniform.html'>runif</a></span>(<span class='kw'>n</span><span class='kw'>=</span><span class='no'>nobs</span>,<span class='kw'>min</span><span class='kw'>=</span><span class='fl'>0</span>,<span class='kw'>max</span><span class='kw'>=</span><span class='fl'>1</span>)
 
 <span class='co'># Covariates for "abundance" process</span>
-<span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/cbind'>cbind</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/rep'>rep</a></span>(<span class='fl'>1</span>,<span class='no'>nobs</span>))
+<span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/cbind.html'>cbind</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span>(<span class='fl'>1</span>,<span class='no'>nobs</span>))
 <span class='co'>## Uncomment if you want covariates on the observability process </span>
 <span class='co'>## set.seed(3*seed)</span>
 <span class='co'>## W1 &lt;- rnorm(n=nobs,0,1)</span>
@@ -528,36 +533,36 @@ account site alteration</h1>
 <span class='co'>#== Simulating latent variables</span>
 
 <span class='co'># Suitability</span>
-<span class='no'>logit.theta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/vector'>vector</a></span>()
+<span class='no'>logit.theta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/vector.html'>vector</a></span>()
 <span class='kw'>for</span> (<span class='no'>n</span> <span class='kw'>in</span> <span class='fl'>1</span>:<span class='no'>nobs</span>) {
   <span class='no'>logit.theta</span>[<span class='no'>n</span>] <span class='kw'>&lt;-</span> <span class='no'>X</span>[<span class='no'>n</span>,]<span class='kw'>%*%</span><span class='no'>beta.target</span>+<span class='no'>rho</span>[<span class='no'>cells</span>[<span class='no'>n</span>]]
 }
 <span class='no'>theta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='logit.html'>inv.logit</a></span>(<span class='no'>logit.theta</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
-<span class='no'>y.1</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Binomial'>rbinom</a></span>(<span class='no'>nobs</span>,<span class='fl'>1</span>,<span class='no'>theta</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='no'>seed</span>)
+<span class='no'>y.1</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Binomial.html'>rbinom</a></span>(<span class='no'>nobs</span>,<span class='fl'>1</span>,<span class='no'>theta</span>)
 
 <span class='co'># Alteration</span>
-<span class='no'>u</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Binomial'>rbinom</a></span>(<span class='no'>nobs</span>,<span class='fl'>1</span>,<span class='no'>U</span>)
+<span class='no'>u</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Binomial.html'>rbinom</a></span>(<span class='no'>nobs</span>,<span class='fl'>1</span>,<span class='no'>U</span>)
 
 <span class='co'># Abundance</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='no'>seed</span>)
 <span class='no'>log.lambda</span> <span class='kw'>&lt;-</span> <span class='no'>W</span> <span class='kw'>%*%</span> <span class='no'>gamma.target</span>
-<span class='no'>lambda</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Log'>exp</a></span>(<span class='no'>log.lambda</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='no'>seed</span>)
-<span class='no'>y.2</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Poisson'>rpois</a></span>(<span class='no'>nobs</span>,<span class='no'>lambda</span>)
+<span class='no'>lambda</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/Log.html'>exp</a></span>(<span class='no'>log.lambda</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='no'>seed</span>)
+<span class='no'>y.2</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Poisson.html'>rpois</a></span>(<span class='no'>nobs</span>,<span class='no'>lambda</span>)
 
 <span class='co'>#== Simulating response variable</span>
 <span class='no'>Y</span> <span class='kw'>&lt;-</span> <span class='no'>y.2</span>*(<span class='fl'>1</span>-<span class='no'>u</span>)*<span class='no'>y.1</span>
 
 <span class='co'>#== Data-set</span>
-<span class='no'>Data</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/data.frame'>data.frame</a></span>(<span class='no'>Y</span>,<span class='no'>cells</span>,<span class='no'>X1</span>,<span class='no'>X2</span>,<span class='no'>U</span>)
+<span class='no'>Data</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span>(<span class='no'>Y</span>,<span class='no'>cells</span>,<span class='no'>X1</span>,<span class='no'>X2</span>,<span class='no'>U</span>)
 <span class='co'>## Uncomment if you want covariates on the observability process </span>
 <span class='co'>## Data &lt;- data.frame(Y,cells,X1,X2,W1,W2,U)</span>
-<span class='no'>Data</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/sp/topics/SpatialPoints'>SpatialPointsDataFrame</a></span>(<span class='kw'>coords</span><span class='kw'>=</span><span class='no'>coords</span>,<span class='kw'>data</span><span class='kw'>=</span><span class='no'>Data</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>Data</span>)
+<span class='no'>Data</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/sp/man/SpatialPoints.html'>SpatialPointsDataFrame</a></span>(<span class='kw'>coords</span><span class='kw'>=</span><span class='no'>coords</span>,<span class='kw'>data</span><span class='kw'>=</span><span class='no'>Data</span>)
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>Data</span>)
 
 <span class='co'>#== Data-set for predictions (suitability on each spatial cell)</span>
-<span class='no'>Data.pred</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/data.frame'>data.frame</a></span>(<span class='kw'>X1</span><span class='kw'>=</span><span class='no'>X1.cell</span>,<span class='kw'>X2</span><span class='kw'>=</span><span class='no'>X2.cell</span>,<span class='kw'>cells</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>1</span>:<span class='no'>ncell</span>))
+<span class='no'>Data.pred</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span>(<span class='kw'>X1</span><span class='kw'>=</span><span class='no'>X1.cell</span>,<span class='kw'>X2</span><span class='kw'>=</span><span class='no'>X2.cell</span>,<span class='kw'>cells</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>:<span class='no'>ncell</span>))
 
 <span class='co'>#==================================</span>
 <span class='co'>#== Site-occupancy model</span>
@@ -592,69 +597,55 @@ account site alteration</h1>
 <span class='co'>#== Outputs</span>
 
 <span class='co'>#= Parameter estimates</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>mod.hSDM.ZIP.iCAR.alteration</span>$<span class='no'>mcmc</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>mod.hSDM.ZIP.iCAR.alteration</span>$<span class='no'>mcmc</span>)
 
 <span class='co'>#= MCMC and posteriors</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/grDevices/topics/pdf'>pdf</a></span>(<span class='kw'>file</span><span class='kw'>=</span><span class='st'>"Posteriors_hSDM.ZIP.iCAR.alteration.pdf"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>mod.hSDM.ZIP.iCAR.alteration</span>$<span class='no'>mcmc</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/grDevices/topics/dev'>dev.off</a></span>()
+<span class='fu'><a href='https://rdrr.io/r/grDevices/pdf.html'>pdf</a></span>(<span class='kw'>file</span><span class='kw'>=</span><span class='st'>"Posteriors_hSDM.ZIP.iCAR.alteration.pdf"</span>)
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>mod.hSDM.ZIP.iCAR.alteration</span>$<span class='no'>mcmc</span>)
+<span class='fu'><a href='https://rdrr.io/r/grDevices/dev.html'>dev.off</a></span>()
 
-<span class='fu'><a href='https://www.rdocumentation.org/packages/grDevices/topics/pdf'>pdf</a></span>(<span class='kw'>file</span><span class='kw'>=</span><span class='st'>"Posteriors.rho_hSDM.ZIP.iCAR.alteration.pdf"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>mod.hSDM.ZIP.iCAR.alteration</span>$<span class='no'>rho.pred</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/grDevices/topics/dev'>dev.off</a></span>()
+<span class='fu'><a href='https://rdrr.io/r/grDevices/pdf.html'>pdf</a></span>(<span class='kw'>file</span><span class='kw'>=</span><span class='st'>"Posteriors.rho_hSDM.ZIP.iCAR.alteration.pdf"</span>)
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>mod.hSDM.ZIP.iCAR.alteration</span>$<span class='no'>rho.pred</span>)
+<span class='fu'><a href='https://rdrr.io/r/grDevices/dev.html'>dev.off</a></span>()
 
 <span class='co'>#= Summary plots</span>
 
 <span class='co'># rho</span>
 <span class='no'>r.rho</span> <span class='kw'>&lt;-</span> <span class='no'>r.rho.pred</span> <span class='kw'>&lt;-</span> <span class='no'>r.visited</span> <span class='kw'>&lt;-</span> <span class='no'>Landscape</span>
 <span class='no'>r.rho</span>[] <span class='kw'>&lt;-</span> <span class='no'>rho</span>
-<span class='no'>rho.pred</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/apply'>apply</a></span>(<span class='no'>mod.hSDM.ZIP.iCAR.alteration</span>$<span class='no'>rho.pred</span>,<span class='fl'>2</span>,<span class='no'>mean</span>)
+<span class='no'>rho.pred</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/apply.html'>apply</a></span>(<span class='no'>mod.hSDM.ZIP.iCAR.alteration</span>$<span class='no'>rho.pred</span>,<span class='fl'>2</span>,<span class='no'>mean</span>)
 <span class='no'>r.rho.pred</span>[] <span class='kw'>&lt;-</span> <span class='no'>rho.pred</span>
 <span class='no'>r.visited</span>[] <span class='kw'>&lt;-</span> <span class='fl'>0</span>
-<span class='no'>r.visited</span>[<span class='no'>visited.cells</span>] <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/tapply'>tapply</a></span>(<span class='no'>Data</span>$<span class='no'>Y</span>,<span class='no'>Data</span>$<span class='no'>cells</span>,<span class='no'>mean</span>)
+<span class='no'>r.visited</span>[<span class='no'>visited.cells</span>] <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/tapply.html'>tapply</a></span>(<span class='no'>Data</span>$<span class='no'>Y</span>,<span class='no'>Data</span>$<span class='no'>cells</span>,<span class='no'>mean</span>)
 <span class='co'># prob.p</span>
 <span class='no'>r.prob.p</span> <span class='kw'>&lt;-</span> <span class='no'>Landscape</span>
 <span class='no'>r.prob.p</span>[] <span class='kw'>&lt;-</span> <span class='no'>mod.hSDM.ZIP.iCAR.alteration</span>$<span class='no'>prob.p.pred</span>
 
-<span class='fu'><a href='https://www.rdocumentation.org/packages/grDevices/topics/pdf'>pdf</a></span>(<span class='kw'>file</span><span class='kw'>=</span><span class='st'>"Summary_hSDM.ZIP.iCAR.alteration.pdf"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/par'>par</a></span>(<span class='kw'>mfrow</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>3</span>,<span class='fl'>2</span>))
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>r.rho</span>, <span class='kw'>main</span><span class='kw'>=</span><span class='st'>"rho target"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>r.visited</span>,<span class='kw'>main</span><span class='kw'>=</span><span class='st'>"Visited cells and counts"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>Data</span>,<span class='kw'>add</span><span class='kw'>=</span><span class='fl'>TRUE</span>,<span class='kw'>pch</span><span class='kw'>=</span><span class='fl'>16</span>,<span class='kw'>cex</span><span class='kw'>=</span><span class='fl'>0.5</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>r.rho.pred</span>, <span class='kw'>main</span><span class='kw'>=</span><span class='st'>"rho estimated"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>rho</span>[<span class='no'>visited.cells</span>],<span class='no'>rho.pred</span>[<span class='no'>visited.cells</span>],
+<span class='fu'><a href='https://rdrr.io/r/grDevices/pdf.html'>pdf</a></span>(<span class='kw'>file</span><span class='kw'>=</span><span class='st'>"Summary_hSDM.ZIP.iCAR.alteration.pdf"</span>)
+<span class='fu'><a href='https://rdrr.io/r/graphics/par.html'>par</a></span>(<span class='kw'>mfrow</span><span class='kw'>=</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>3</span>,<span class='fl'>2</span>))
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>r.rho</span>, <span class='kw'>main</span><span class='kw'>=</span><span class='st'>"rho target"</span>)
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>r.visited</span>,<span class='kw'>main</span><span class='kw'>=</span><span class='st'>"Visited cells and counts"</span>)
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>Data</span>,<span class='kw'>add</span><span class='kw'>=</span><span class='fl'>TRUE</span>,<span class='kw'>pch</span><span class='kw'>=</span><span class='fl'>16</span>,<span class='kw'>cex</span><span class='kw'>=</span><span class='fl'>0.5</span>)
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>r.rho.pred</span>, <span class='kw'>main</span><span class='kw'>=</span><span class='st'>"rho estimated"</span>)
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>rho</span>[<span class='no'>visited.cells</span>],<span class='no'>rho.pred</span>[<span class='no'>visited.cells</span>],
      <span class='kw'>xlab</span><span class='kw'>=</span><span class='st'>"rho target"</span>,
      <span class='kw'>ylab</span><span class='kw'>=</span><span class='st'>"rho estimated"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/points'>points</a></span>(<span class='no'>rho</span>[<span class='no'>notvisited.cells</span>],<span class='no'>rho.pred</span>[<span class='no'>notvisited.cells</span>],<span class='kw'>pch</span><span class='kw'>=</span><span class='fl'>16</span>,<span class='kw'>col</span><span class='kw'>=</span><span class='st'>"blue"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/legend'>legend</a></span>(<span class='kw'>x</span><span class='kw'>=</span>-<span class='fl'>4</span>,<span class='kw'>y</span><span class='kw'>=</span><span class='fl'>3.5</span>,<span class='kw'>legend</span><span class='kw'>=</span><span class='st'>"Unvisited cells"</span>,<span class='kw'>col</span><span class='kw'>=</span><span class='st'>"blue"</span>,<span class='kw'>pch</span><span class='kw'>=</span><span class='fl'>16</span>,<span class='kw'>bty</span><span class='kw'>=</span><span class='st'>"n"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/abline'>abline</a></span>(<span class='kw'>a</span><span class='kw'>=</span><span class='fl'>0</span>,<span class='kw'>b</span><span class='kw'>=</span><span class='fl'>1</span>,<span class='kw'>col</span><span class='kw'>=</span><span class='st'>"red"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>r.prob.p</span>,<span class='kw'>main</span><span class='kw'>=</span><span class='st'>"Predicted counts"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/raster/topics/plot'>plot</a></span>(<span class='no'>Data</span>,<span class='kw'>add</span><span class='kw'>=</span><span class='fl'>TRUE</span>,<span class='kw'>pch</span><span class='kw'>=</span><span class='fl'>16</span>,<span class='kw'>cex</span><span class='kw'>=</span><span class='fl'>0.5</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/grDevices/topics/dev'>dev.off</a></span>()
+<span class='fu'><a href='https://rdrr.io/r/graphics/points.html'>points</a></span>(<span class='no'>rho</span>[<span class='no'>notvisited.cells</span>],<span class='no'>rho.pred</span>[<span class='no'>notvisited.cells</span>],<span class='kw'>pch</span><span class='kw'>=</span><span class='fl'>16</span>,<span class='kw'>col</span><span class='kw'>=</span><span class='st'>"blue"</span>)
+<span class='fu'><a href='https://rdrr.io/r/graphics/legend.html'>legend</a></span>(<span class='kw'>x</span><span class='kw'>=</span>-<span class='fl'>4</span>,<span class='kw'>y</span><span class='kw'>=</span><span class='fl'>3.5</span>,<span class='kw'>legend</span><span class='kw'>=</span><span class='st'>"Unvisited cells"</span>,<span class='kw'>col</span><span class='kw'>=</span><span class='st'>"blue"</span>,<span class='kw'>pch</span><span class='kw'>=</span><span class='fl'>16</span>,<span class='kw'>bty</span><span class='kw'>=</span><span class='st'>"n"</span>)
+<span class='fu'><a href='https://rdrr.io/r/graphics/abline.html'>abline</a></span>(<span class='kw'>a</span><span class='kw'>=</span><span class='fl'>0</span>,<span class='kw'>b</span><span class='kw'>=</span><span class='fl'>1</span>,<span class='kw'>col</span><span class='kw'>=</span><span class='st'>"red"</span>)
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>r.prob.p</span>,<span class='kw'>main</span><span class='kw'>=</span><span class='st'>"Predicted counts"</span>)
+<span class='fu'><a href='https://rdrr.io/pkg/raster/man/plot.html'>plot</a></span>(<span class='no'>Data</span>,<span class='kw'>add</span><span class='kw'>=</span><span class='fl'>TRUE</span>,<span class='kw'>pch</span><span class='kw'>=</span><span class='fl'>16</span>,<span class='kw'>cex</span><span class='kw'>=</span><span class='fl'>0.5</span>)
+<span class='fu'><a href='https://rdrr.io/r/grDevices/dev.html'>dev.off</a></span>()
 
-<span class='co'># }</span><div class='input'>
-</div></pre>
+}</div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
-
-      <li><a href="#references">References</a></li>
-
-      <li><a href="#see-also">See also</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
-    <h2>Author</h2>
-    <p>Ghislain Vieilledent <a href='mailto:ghislain.vieilledent@cirad.fr'>ghislain.vieilledent@cirad.fr</a></p>
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
+
 
       <footer>
       <div class="copyright">
@@ -662,13 +653,16 @@ account site alteration</h1>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.3.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
+
       </footer>
    </div>
 
   
 
+
   </body>
 </html>
+
 
