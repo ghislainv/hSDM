@@ -22,6 +22,6 @@ Updated list of scientific articles using or citing `hSDM` is available on [Goog
 
 **Articles using hSDM**: @Mertes2020, @Lambert2020, @Lopes2019, @Humphreys2019, @Garriga2019, @Domisch2019b, @Domisch2019b, @DellApa2018, @Specht2018, @Humphreys2018, @Yesuf2018, @Pennino2017a, @Costa2017, @Pennino2017b, @Plumptre2016, @Vilela2016, @Wilson2016, @Domisch2016.
 
-**Articles/books citing hSDM**: @Croft2019, @Clark2019, @Botella2019, @Fletcher2018, @MacKenzie2018, @MartinezMinaya2018, @Lawson2017, @Herrando2017, @Farley2017, @GuilleraArroita2016, @Bird2014, @Mazerolle2015, @Thuiller2014, @Lee2013.
+**Articles/books citing hSDM**: @Croft2019, @Clark2019, @Botella2019, @Fletcher2018, @MacKenzie2018, @MartinezMinaya2018, @Rao2017, @Lawson2017, @Herrando2017, @Farley2017, @GuilleraArroita2016, @Bird2014, @Mazerolle2015, @Thuiller2014, @Lee2013.
 
 ## References
