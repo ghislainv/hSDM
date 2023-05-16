@@ -3,16 +3,15 @@
 # http://cran.r-project.org/doc/manuals/R-exts.html#index-_002eRbuildignore-file
 
 # GitHub files
-.git/
+^\.git$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 
 # pkgdown
-docs
-logos
-pkgdown
+^docs$
+^pkgdown$
+^logos$
 README.Rmd
-vignettes/location.Rmd
 
-# travis
-^\.travis\.yml$
+# GitHub Actions
+^\.github$

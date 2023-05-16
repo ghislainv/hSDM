@@ -12,8 +12,6 @@
   Counts of the number of frogs in ponds of the Canton Aargau, Switzerland.
 }
 
-\usage{data(frogs)}
-
 \format{
   A data frame with 481 observations on the following 10 variables.
   \describe{

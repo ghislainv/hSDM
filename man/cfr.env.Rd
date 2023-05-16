@@ -10,8 +10,6 @@
 by one minute grid cells on the whole South Africa's Cap Floristic
 Region.}
 
-\usage{cfr.env}
-
 \format{
   
   \code{cfr.env} is a data frame with 36909 observations (cells) on the

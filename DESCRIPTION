@@ -35,5 +35,5 @@ URL: https://ecology.ghislainv.fr/hSDM, https://github.com/ghislainv/hSDM
 BugReports: https://github.com/ghislainv/hSDM/issues
 LazyLoad: yes
 Encoding: UTF-8
-RoxygenNote: 6.1.1
 VignetteBuilder: knitr
+

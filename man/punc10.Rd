@@ -10,8 +10,6 @@ Floristic Region}
 \description{The species data were collected by the Protea Atlas Project
 of South Africa’s National Botanical Institute.}
 
-\usage{punc10}
-
 \format{
   
   \code{cfr.env} is a data frame with 2934 presence-absence observation points.

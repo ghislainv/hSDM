@@ -1,4 +1,3 @@
-inst/doc
 .Rproj.user
 .Rhistory
 .RData
@@ -7,4 +6,5 @@ src/*.o
 src/*.so
 src/*.dll
 hSDM.Rproj
-docs/*
+hSDM.Rcheck
+docs

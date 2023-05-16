@@ -12,8 +12,6 @@ Africa's Cape Floristic Region, and includes very high plant species
 diversity and a World Biosphere Reserve. The data frame can be used as an example
 for several functions in the \code{hSDM} package.}
 
-\usage{datacells.Latimer2006}
-
 \format{
   
   \code{datacells.Latimer2006} is a data frame with 476 observations (cells) on the following 9 variables.

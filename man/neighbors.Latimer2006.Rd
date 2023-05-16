@@ -11,8 +11,6 @@ Africa's Cape Floristic Region, and includes very high plant species
 diversity and a World Biosphere Reserve. The data frame can be used as
 an example for several functions in the \code{hSDM} package.}
 
-\usage{neighbors.Latimer2006}
-
 \format{
   
   \code{neighbors.Latimer2006} is a vector of 3542 integers indicating

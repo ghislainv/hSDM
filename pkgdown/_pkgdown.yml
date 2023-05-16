@@ -1,14 +1,21 @@
+url: https://ecology.ghislainv.fr/hSDM/
 authors:
   Ghislain Vieilledent:
-    href: "https://ecology.ghislainv.fr"
+    href: https://ecology.ghislainv.fr
   CIRAD:
-    href: "https://www.cirad.fr"
-    html: "<img src='https://ecology.ghislainv.fr/images/logos/logo-cirad.svg' height=24>"
-    
+    href: https://www.cirad.fr
+    html: <img src='https://ecology.ghislainv.fr/hSDM/articles/logos/logo-cirad.svg' height=24>
 navbar:
   structure:
-    left: [home, intro, reference, publications, articles, tutorials, news]
-    right: [twitter, github]
+    left:
+    - home
+    - intro
+    - reference
+    - publications
+    - articles
+    - tutorials
+    - news
+    right: github
   components:
     articles: ~
     home:
@@ -26,18 +33,13 @@ navbar:
     news:
       text: Change log
       href: news/index.html
-    twitter:
-      icon: fa-twitter fa-lg
-      href: http://twitter.com/ghislainv
     github:
       icon: fa-github fa-lg
       href: https://github.com/ghislainv/hSDM
-
 reference:
 - title: Package
   desc: Package description
-  contents:
-  - '`hSDM-package`'
+  contents: '`hSDM-package`'
 - title: Data
   desc: Data available in `hSDM` and used in examples
   contents:
@@ -57,7 +59,7 @@ reference:
   - '`hSDM.siteocc.iCAR`'
 - title: Count
   desc: Functions for count (abundance) data
-  contents:  
+  contents:
   - '`hSDM.poisson`'
   - '`hSDM.poisson.iCAR`'
   - '`hSDM.Nmixture.K`'
@@ -74,9 +76,8 @@ reference:
   - '`hSDM.ZIP.iCAR.alteration`'
 - title: Miscellaneous
   desc: Miscellaneous functions
-  contents:
-  - '`logit`'
+  contents: '`logit`'
 - title: Predict
   desc: S3 method to predict from an hSDM model
-  contents:
-  - '`predict.hSDM`'
+  contents: '`predict.hSDM`'
+

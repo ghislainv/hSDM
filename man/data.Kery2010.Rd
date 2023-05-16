@@ -11,8 +11,6 @@
   1999-2003. Data come from the Swiss national breeding bird survey MHB
   (Monitoring Haüfige Brutvögel).}
 
-\usage{data.Kery2010}
-
 \format{
   
   \code{data.Kery2010} is a data frame with 264 observations (1 km^2 quadrats) and the

@@ -12,6 +12,8 @@ link-citations: yes
 bibliography: bib/biblio-hSDM.bib
 biblio-style: bib/jae.bst
 csl: bib/journal-of-applied-ecology.csl
+resource_files:
+  - logos/logo-cirad.svg
 pkgdown:
   as_is: true
 vignette: >
@@ -19,6 +21,7 @@ vignette: >
  %\VignetteIndexEntry{Introduction to hSDM}
  %\VignetteEncoding{UTF-8}
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
