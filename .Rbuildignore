@@ -13,5 +13,5 @@
 ^logos$
 README.Rmd
 
-# GitHub Actions
+# GitHub Actions directory
 ^\.github$

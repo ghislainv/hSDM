@@ -8,6 +8,7 @@ output: github_document
 
 # hSDM R Package <img src="man/figures/logo.png" align="right" alt="" width="120" />
 
+[![R-CMD-check](https://github.com/ghislainv/hSDM/workflows/R-CMD-check/badge.svg)](https://github.com/ghislainv/hSDM/actions/workflows/check-standard.yaml)
 [![CRAN Status](https://www.r-pkg.org/badges/version/hSDM)](https://cran.r-project.org/package=hSDM)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.594920.svg)](https://doi.org/10.5281/zenodo.594920)
 [![Downloads](https://cranlogs.r-pkg.org/badges/hSDM)](https://cran.r-project.org/package=hSDM)
@@ -42,7 +43,11 @@ devtools::install_github("ghislainv/hSDM")
 - Tutorial by Adam M. Wilson adapted by [Marta A. Jarzyna](https://www.majarzyna.com/) on [spatial-ecology.net](http://spatial-ecology.net/dokuwiki/doku.php?id=wiki:spdistr2)
 - Tutorial on modelling spatial autocorrelation by [Jérôme Guélat](https://www.random-nature.net) on [Amazonaws](https://rstudio-pubs-static.s3.amazonaws.com/9687_cc323b60e5d542449563ff1142163f05.html).
 
-## Related publications
+## Contributing
+
+The `hSDM` R package is Open Source and released under the [GNU GPL version 3](https://www.gnu.org/licenses/gpl-3.0.en.html) license. Anybody who is interested can contribute to the package development following our [Contributing guide](CONTRIBUTING.html). Every contributor must agree to follow the project's [Code of conduct](CODE_OF_CONDUCT.html).
+
+## References
 
 **Diez J. M. and Pulliam H. R.** 2007. Hierarchical analysis of species distributions and abundance across environmental gradients. _Ecology_. **88**(12): 3144-3152.
 

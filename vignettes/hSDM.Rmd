@@ -13,7 +13,7 @@ bibliography: bib/biblio-hSDM.bib
 biblio-style: bib/jae.bst
 csl: bib/journal-of-applied-ecology.csl
 resource_files:
-  - logos/logo-cirad.svg
+  - logos/logo-cirad.png
 pkgdown:
   as_is: true
 vignette: >
