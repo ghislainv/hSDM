@@ -40,7 +40,6 @@ double invlogit (double x) {
 /* Random draws with GSL */
 /*****************************************************************/
 
-
 /************************/
 /* left truncated gamma */
 /* Philippe, A. Simulation of right and left truncated gamma distributions by mixtures Statistics and Computing, 1997, 7, 173-181 */
@@ -125,3 +124,4 @@ double myrtgamma_left_gsl(const gsl_rng *r, double a, double b, double t)
   return(inter_le_gsl(r, a, b*t)*t);
 }
 
+/* End */
