@@ -1,11 +1,3 @@
----
-output: github_document
----
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
-
-
 # hSDM R Package <img src="man/figures/logo.png" align="right" alt="" width="120" />
 
 [![R-CMD-check](https://github.com/ghislainv/hSDM/workflows/R-CMD-check/badge.svg)](https://github.com/ghislainv/hSDM/actions/workflows/check-standard.yaml)
