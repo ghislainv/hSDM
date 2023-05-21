@@ -25,9 +25,9 @@ devtools::install_github("ghislainv/hSDM")
 
 ## Vignettes and manual
 
-- Presentation at ISEC 2014: [hSDM-ISEC2014.pdf](https://ecology.ghislainv.fr/pdfs/hSDM-ISEC2014.pdf)
-- Long vignette with several examples: [hSDM-vignette.pdf](https://ecology.ghislainv.fr/pdfs/hSDM-vignette.pdf)
-- Manual: [hSDM-manual.pdf](https://ecology.ghislainv.fr/pdfs/hSDM-manual.pdf)
+- Presentation at ISEC 2014: [hSDM-ISEC2014.pdf](https://ecology.ghislainv.fr/hSDM/pdfs/hSDM-ISEC2014.pdf)
+- Long vignette with several examples: [hSDM-vignette.pdf](https://ecology.ghislainv.fr/hSDM/pdfs/hSDM-vignette.pdf)
+- Manual: [hSDM-manual.pdf](https://ecology.ghislainv.fr/hSDM/pdfs/hSDM-manual.pdf)
 
 ## In the wild
 
