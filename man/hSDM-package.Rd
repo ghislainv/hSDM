@@ -29,7 +29,7 @@
 \author{
   \tabular{l}{
     Ghislain Vieilledent <ghislain.vieilledent@cirad.fr>\cr
-    Matthieu Autier <>\cr
+    Matthieu Autier <matthieu.authier@univ-lr.fr>\cr
     Alan E. Gelfand <alan@stat.duke.edu>\cr
     Jérôme Guélat <jerome.guelat@vogelwarte.ch>\cr
     Marc Kéry <marc.kery@vogelwarte.ch>\cr
@@ -37,7 +37,7 @@
     Cory Merow <cory.merow@gmail.com>\cr
     Frédéric Mortier <frederic.mortier@cirad.fr>\cr
     John A. Silander Jr. <john.silander@uconn.edu>\cr
-    Adam M. Wilson <adam.wilson@yale.edu>\cr
+    Adam M. Wilson <adamw@buffalo.edu>\cr
     Shanshan Wu <wu_shanshan@hotmail.com>\cr
   }
 }
