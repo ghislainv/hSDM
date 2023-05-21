@@ -11,6 +11,7 @@
 ^docs$
 ^pkgdown$
 ^logos$
+^folders4website$
 README.Rmd
 
 # GitHub Actions directory

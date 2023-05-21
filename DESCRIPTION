@@ -31,8 +31,8 @@ Authors@R: c(
 Maintainer: Ghislain Vieilledent <ghislain.vieilledent@cirad.fr>
 Description: User-friendly and fast set of functions for estimating parameters of hierarchical Bayesian species distribution models (Latimer and others 2006 <doi:10.1890/04-0609>). Such models allow interpreting the observations (occurrence and abundance of a species) as a result of several hierarchical processes including ecological processes (habitat suitability, spatial dependence and anthropogenic disturbance) and observation processes (species detectability). Hierarchical species distribution models are essential for accurately characterizing the environmental response of species, predicting their probability of occurrence, and assessing uncertainty in the model results.
 License: GPL-3
-URL: https://ecology.ghislainv.fr/hSDM, https://github.com/ghislainv/hSDM
-BugReports: https://github.com/ghislainv/hSDM/issues
+URL: https://ecology.ghislainv.fr/hSDM/, https://github.com/ghislainv/hSDM/
+BugReports: https://github.com/ghislainv/hSDM/issues/
 LazyLoad: yes
 Encoding: UTF-8
 VignetteBuilder: knitr

@@ -25,19 +25,18 @@ devtools::install_github("ghislainv/hSDM")
 
 ## Vignettes and manual
 
-- Presentation at ISEC 2014: [hSDM-ISEC2014.pdf](https://bioscenemada.cirad.fr/FileTransfer/hSDM-ISEC2014.pdf)
-- Long vignette with several examples: [hSDM-vignette.pdf](https://bioscenemada.cirad.fr/FileTransfer/hSDM-vignette.pdf)
-- Manual: [hSDM-manual.pdf](https://CRAN.R-project.org/package=hSDM/hSDM.pdf)
+- Presentation at ISEC 2014: [hSDM-ISEC2014.pdf](https://ecology.ghislainv.fr/pdfs/hSDM-ISEC2014.pdf)
+- Long vignette with several examples: [hSDM-vignette.pdf](https://ecology.ghislainv.fr/pdfs/hSDM-vignette.pdf)
+- Manual: [hSDM-manual.pdf](https://ecology.ghislainv.fr/pdfs/hSDM-manual.pdf)
 
 ## In the wild
 
 - Tutorial on using opportunistic species occurrence data for occupancy modelling by [Adam M. Wilson](https://github.com/adammwilson) on [GitHub](https://github.com/adammwilson/hSDM_Tutorial/blob/master/hSDM_Tutorial.md).
-- Tutorial by Adam M. Wilson adapted by [Marta A. Jarzyna](https://www.majarzyna.com/) on [spatial-ecology.net](http://spatial-ecology.net/dokuwiki/doku.php?id=wiki:spdistr2)
 - Tutorial on modelling spatial autocorrelation by [Jérôme Guélat](https://www.random-nature.net) on [Amazonaws](https://rstudio-pubs-static.s3.amazonaws.com/9687_cc323b60e5d542449563ff1142163f05.html).
 
 ## Contributing
 
-The `hSDM` R package is Open Source and released under the [GNU GPL version 3](https://www.gnu.org/licenses/gpl-3.0.en.html) license. Anybody who is interested can contribute to the package development following our [Contributing guide](CONTRIBUTING.html). Every contributor must agree to follow the project's [Code of conduct](CODE_OF_CONDUCT.html).
+The `hSDM` R package is Open Source and released under the [GNU GPL version 3](https://www.gnu.org/licenses/gpl-3.0.en.html) license. Anybody who is interested can contribute to the package development following our [Contributing guide](https://ecology.ghislainv.fr/hSDM/CONTRIBUTING.html). Every contributor must agree to follow the project's [Code of conduct](https://ecology.ghislainv.fr/hSDM/CODE_OF_CONDUCT.html).
 
 ## References
 
