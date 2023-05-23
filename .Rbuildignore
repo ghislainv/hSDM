@@ -14,5 +14,8 @@
 ^folders4website$
 README.Rmd
 
+# Vignette cache
+vignettes/hSDM_cache
+
 # GitHub Actions directory
 ^\.github$
