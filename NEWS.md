@@ -1,3 +1,7 @@
+# hSDM 1.4.3
+
+- Minor changes to fulfill the CRAN conditions.
+
 # hSDM 1.4.2
 
 - Updating the DESCRIPTION file to fulfill the CRAN conditions.

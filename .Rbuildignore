@@ -7,6 +7,9 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 
+# CRAN
+cran-comments.md
+
 # pkgdown
 ^docs$
 ^pkgdown$
