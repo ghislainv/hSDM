@@ -128,6 +128,14 @@ Figure 1.1: <strong>Willow tit (<em>Poecile montanus</em>).</strong>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load libraries</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/edzer/sp/" class="external-link">sp</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,</span></span>
+<span><span class="co">#&gt; which was just loaded, will retire in October 2023.</span></span>
+<span><span class="co">#&gt; Please refer to R-spatial evolution reports for details, especially</span></span>
+<span><span class="co">#&gt; https://r-spatial.org/r/2023/05/15/evolution4.html.</span></span>
+<span><span class="co">#&gt; It may be desirable to make the sf package available;</span></span>
+<span><span class="co">#&gt; package maintainers should consider adding sf to Suggests:.</span></span>
+<span><span class="co">#&gt; The sp package is now running under evolution status 2</span></span>
+<span><span class="co">#&gt;      (status 2 uses the sf package in place of rgdal)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/raster" class="external-link">raster</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ecology.ghislainv.fr/hSDM/">hSDM</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; ##</span></span>
@@ -202,6 +210,7 @@ Figure 1.2: <strong>Location of the 264 10 km<span class="math inline">\(^2\)</
 <code class="sourceCode R"><span><span class="co"># Neighborhood</span></span>
 <span><span class="co"># Rasters must be projected to correctly compute the neighborhood</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">landscape</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">'+proj=utm +zone=1'</span></span>
+<span><span class="co">#&gt; Warning in sp::CRS(...): sf required for evolution_status==2L</span></span>
 <span><span class="co"># Cell for each site</span></span>
 <span><span class="va">cells</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">landscape</span>,<span class="va">sites.sp</span>,cell<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span></span>
 <span><span class="co"># Neighborhood matrix</span></span>
