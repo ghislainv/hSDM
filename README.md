@@ -3,7 +3,7 @@
 [![R-CMD-check](https://github.com/ghislainv/hSDM/workflows/R-CMD-check/badge.svg)](https://github.com/ghislainv/hSDM/actions/workflows/check-standard.yaml)
 [![CRAN Status](https://www.r-pkg.org/badges/version/hSDM)](https://cran.r-project.org/package=hSDM)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.594920.svg)](https://doi.org/10.5281/zenodo.594920)
-[![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/hSDM)](https://cran.r-project.org/package=hSDM)
+[![Downloads](https://cranlogs.r-pkg.org/badges/hSDM)](https://cran.r-project.org/package=hSDM)
 
 `hSDM` is an R package for estimating parameters of hierarchical Bayesian species distribution models. Such models allow interpreting the observations (occurrence and abundance of a species) as a result of several hierarchical processes including ecological processes (habitat suitability, spatial dependence and anthropogenic disturbance) and observation processes (species detectability). Hierarchical species distribution models are essential for accurately characterizing the environmental response of species, predicting their probability of occurrence, and assessing uncertainty in the model results.
 

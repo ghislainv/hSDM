@@ -1,3 +1,7 @@
+# hSDM 1.4.4
+
+- Minor changes to correct an error while checking on CRAN.
+
 # hSDM 1.4.3
 
 - Minor changes to fulfill the CRAN conditions.

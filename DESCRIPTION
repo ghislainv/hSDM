@@ -1,8 +1,8 @@
 Package: hSDM
 Type: Package
 Title: Hierarchical Bayesian Species Distribution Models
-Version: 1.4.3
-Date: 2023-08-19
+Version: 1.4.4
+Date: 2023-09-06
 Imports: coda
 NeedsCompilation: yes
 SystemRequirements: GNU GSL
